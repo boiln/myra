@@ -56,7 +56,9 @@ pub fn throttle_packages<'a>(
         if drop {
             stats.dropped_count += packets.len();
             packets.clear();
-        } else {
+        }
+
+        if !drop {
             storage.extend(packets.drain(..));
         }
 

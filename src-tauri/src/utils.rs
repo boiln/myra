@@ -22,11 +22,10 @@ use std::fmt;
 pub fn log_statistics(received: usize, sent: usize) {
     let dropped = received.saturating_sub(sent);
 
-    let dropped_percentage = if received > 0 {
-        (dropped as f64 / received as f64) * 100.0
-    } else {
-        0.0
-    };
+    let mut dropped_percentage = 0.0;
+    if received > 0 {
+        dropped_percentage = (dropped as f64 / received as f64) * 100.0;
+    }
 
     info!(
         "Received Packets: {}, Sent Packets: {}, Skipped Packets: {} - {:.2}%",

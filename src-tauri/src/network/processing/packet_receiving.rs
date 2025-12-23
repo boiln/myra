@@ -89,10 +89,12 @@ pub fn receive_packets(
                 "Filter changed to: {}",
                 current_filter.as_deref().unwrap_or("none")
             );
+
             if let Some(ref filter_str) = current_filter {
                 update_windivert_handle(&mut wd, filter_str)?;
-            } else {
-                // If filter is None, close the handle
+            }
+
+            if current_filter.is_none() {
                 if let Some(ref mut handle) = wd {
                     debug!("Closing WinDivert handle due to empty filter");
                     if let Err(e) = handle.close(CloseAction::Nothing) {
@@ -101,6 +103,7 @@ pub fn receive_packets(
                 }
                 wd = None;
             }
+
             last_filter = current_filter;
         }
 
@@ -113,9 +116,9 @@ pub fn receive_packets(
                     if packet_sender.send(packet_data).is_err() {
                         if should_shutdown(&running) {
                             break;
-                        } else {
-                            error!("Failed to send packet data to main thread");
                         }
+
+                        error!("Failed to send packet data to main thread");
                     }
                 }
                 Err(e) => {
@@ -125,7 +128,9 @@ pub fn receive_packets(
                     }
                 }
             }
-        } else if !logged_missing_handle {
+        }
+
+        if wd.is_none() && !logged_missing_handle {
             error!("WinDivert handle is not initialized. Skipping packet reception.");
             logged_missing_handle = true;
         }
@@ -135,10 +140,12 @@ pub fn receive_packets(
     if let Some(mut handle) = wd {
         debug!("Closing packet receiving WinDivert handle on shutdown");
 
-        // First close the handle
-        if let Err(e) = handle.close(CloseAction::Nothing) {
+        let close_result = handle.close(CloseAction::Nothing);
+        if let Err(e) = &close_result {
             error!("Failed to close WinDivert handle on shutdown: {}", e);
-        } else {
+        }
+
+        if close_result.is_ok() {
             debug!("Successfully closed packet receiving WinDivert handle");
         }
 

@@ -226,12 +226,11 @@ pub async fn get_status(
 ) -> Result<ProcessingStatus, String> {
     let running = state.running.load(Ordering::SeqCst);
 
-    let statistics = if !running {
-        None
-    } else {
+    let mut statistics = None;
+    if running {
         let stats = state.statistics.read().map_err(|e| e.to_string())?;
-        Some(format!("{:?}", stats))
-    };
+        statistics = Some(format!("{:?}", stats));
+    }
 
     let settings = state.settings.lock().map_err(|e| e.to_string())?;
     let mut modules = Vec::new();
@@ -320,11 +319,10 @@ pub async fn get_status(
 
     // Bandwidth module
     if let Some(bandwidth) = &settings.bandwidth {
-        let limit_kbps = if bandwidth.limit > 0 {
-            Some(bandwidth.limit as u64)
-        } else {
-            None
-        };
+        let mut limit_kbps = None;
+        if bandwidth.limit > 0 {
+            limit_kbps = Some(bandwidth.limit as u64);
+        }
 
         modules.push(ModuleInfo {
             name: "bandwidth".to_string(),

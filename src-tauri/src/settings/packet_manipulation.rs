@@ -118,10 +118,10 @@ impl PacketManipulationSettings {
             .lines()
             .map(|line| {
                 if line.trim().is_empty() || line.starts_with('[') {
-                    line.to_string()
-                } else {
-                    format!("# {}", line)
+                    return line.to_string();
                 }
+
+                format!("# {}", line)
             })
             .collect::<Vec<String>>()
             .join("\n");

@@ -270,16 +270,19 @@ fn bit_manipulation(
     bit_position: usize,
     new_bit: bool,
 ) -> Vec<usize> {
-    if byte_index < data.len() && bit_position < 8 {
-        if new_bit {
-            data[byte_index] |= 1 << bit_position; // Set the bit
-        } else {
-            data[byte_index] &= !(1 << bit_position); // Clear the bit
-        }
-        vec![byte_index] // Return the modified index
-    } else {
-        vec![] // No modification
+    if byte_index >= data.len() || bit_position >= 8 {
+        return vec![];
     }
+
+    if new_bit {
+        data[byte_index] |= 1 << bit_position; // Set the bit
+    }
+
+    if !new_bit {
+        data[byte_index] &= !(1 << bit_position); // Clear the bit
+    }
+
+    vec![byte_index]
 }
 
 /// Flips a specific bit in a byte (0 becomes 1, 1 becomes 0)
@@ -294,12 +297,12 @@ fn bit_manipulation(
 ///
 /// A vector containing the index of the modified byte, or empty if no modification occurred
 fn bit_flipping(data: &mut [u8], byte_index: usize, bit_position: usize) -> Vec<usize> {
-    if byte_index < data.len() && bit_position < 8 {
-        data[byte_index] ^= 1 << bit_position; // Flip the bit
-        vec![byte_index] // Return the modified index
-    } else {
-        vec![] // No modification
+    if byte_index >= data.len() || bit_position >= 8 {
+        return vec![];
     }
+
+    data[byte_index] ^= 1 << bit_position;
+    vec![byte_index]
 }
 
 /// Adjusts a byte value by adding a signed offset
@@ -314,11 +317,11 @@ fn bit_flipping(data: &mut [u8], byte_index: usize, bit_position: usize) -> Vec<
 ///
 /// A vector containing the index of the modified byte, or empty if no modification occurred
 fn value_adjustment(data: &mut [u8], offset: usize, value: i8) -> Vec<usize> {
-    if offset < data.len() {
-        let adjusted_value = data[offset].wrapping_add(value as u8);
-        data[offset] = adjusted_value;
-        vec![offset] // Return the modified index
-    } else {
-        vec![] // No modification
+    if offset >= data.len() {
+        return vec![];
     }
+
+    let adjusted_value = data[offset].wrapping_add(value as u8);
+    data[offset] = adjusted_value;
+    vec![offset]
 }
