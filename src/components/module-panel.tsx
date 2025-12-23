@@ -18,7 +18,6 @@ export function ModulePanel() {
 
     const modules = manipulationStatus.modules;
 
-    // Load initial status
     useEffect(() => {
         loadStatus();
     }, [loadStatus]);

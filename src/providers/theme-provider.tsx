@@ -22,21 +22,17 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     });
 
     useEffect(() => {
-        // Remove any existing theme classes from html and body
         document.documentElement.classList.remove(...themes.map((t) => t.id));
         document.body.classList.remove(...themes.map((t) => t.id));
 
-        // Set the new theme
         document.documentElement.setAttribute("data-theme", theme);
         document.documentElement.classList.add(theme);
         document.body.classList.add(theme);
 
-        // Force a re-render of the background
         document.body.style.display = "none";
-        document.body.offsetHeight; // Trigger reflow
+        document.body.offsetHeight;
         document.body.style.display = "";
 
-        // Save theme to localStorage
         localStorage.setItem("theme", theme);
     }, [theme]);
 

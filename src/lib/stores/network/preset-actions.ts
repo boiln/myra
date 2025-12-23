@@ -41,14 +41,14 @@ export const createPresetSlice: StateCreator<
     loadPreset: async (name: string) => {
         try {
             const settings = await ManipulationService.loadConfig(name);
+
             if (!settings) return;
 
             await ManipulationService.updateSettings(settings);
-            // Get the current filter since loadConfig doesn't return it
+
             const filter = await ManipulationService.getFilter();
             await ManipulationService.updateFilter(filter);
 
-            // Refresh state
             await get().loadStatus();
             set({ currentPreset: name });
         } catch (error) {
@@ -63,9 +63,9 @@ export const createPresetSlice: StateCreator<
             await ManipulationService.deleteConfig(name);
             await get().loadPresets();
 
-            if (get().currentPreset === name) {
-                set({ currentPreset: null });
-            }
+            if (get().currentPreset !== name) return;
+
+            set({ currentPreset: null });
         } catch (error) {
             console.error("Failed to delete preset:", error);
         }
@@ -74,18 +74,17 @@ export const createPresetSlice: StateCreator<
     initializeDefaultPreset: async () => {
         try {
             const configs = await ManipulationService.listConfigs();
-            const defaultExists = configs.includes(DEFAULT_PRESET_NAME);
 
-            if (!defaultExists) {
-                const settings = await ManipulationService.getSettings();
-                const filter = await ManipulationService.getFilter();
-                // First update the settings and filter
-                await ManipulationService.updateSettings(settings);
-                await ManipulationService.updateFilter(filter);
-                // Then save the config
-                await ManipulationService.saveConfig(DEFAULT_PRESET_NAME);
-                await get().loadPresets();
-            }
+            if (configs.includes(DEFAULT_PRESET_NAME)) return;
+
+            const settings = await ManipulationService.getSettings();
+            const filter = await ManipulationService.getFilter();
+
+            await ManipulationService.updateSettings(settings);
+            await ManipulationService.updateFilter(filter);
+            await ManipulationService.saveConfig(DEFAULT_PRESET_NAME);
+
+            await get().loadPresets();
         } catch (error) {
             console.error("Failed to initialize default preset:", error);
         }

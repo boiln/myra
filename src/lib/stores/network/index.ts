@@ -19,12 +19,14 @@ const buildSettings = (modules: ModuleInfo[]) => {
                     duration_ms: module.config.duration_ms,
                 };
                 break;
+
             case "drop":
                 settings.drop = {
                     probability: module.config.chance / 100,
                     duration_ms: module.config.duration_ms,
                 };
                 break;
+
             case "throttle":
                 settings.throttle = {
                     probability: module.config.chance / 100,
@@ -32,6 +34,7 @@ const buildSettings = (modules: ModuleInfo[]) => {
                     throttle_ms: module.config.throttle_ms || 30,
                 };
                 break;
+
             case "duplicate":
                 settings.duplicate = {
                     probability: module.config.chance / 100,
@@ -39,6 +42,7 @@ const buildSettings = (modules: ModuleInfo[]) => {
                     count: module.config.count || 2,
                 };
                 break;
+
             case "bandwidth":
                 settings.bandwidth = {
                     probability: module.config.chance / 100,
@@ -46,12 +50,14 @@ const buildSettings = (modules: ModuleInfo[]) => {
                     limit_kbps: module.config.limit_kbps || 100,
                 };
                 break;
+
             case "tamper":
                 settings.tamper = {
                     probability: module.config.chance / 100,
                     duration_ms: module.config.duration_ms,
                 };
                 break;
+
             case "reorder":
                 settings.reorder = {
                     probability: module.config.chance / 100,

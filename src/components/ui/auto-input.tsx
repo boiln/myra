@@ -28,14 +28,12 @@ export const AutoInput = forwardRef<HTMLInputElement, AutoInputProps>(
         const [value, setValue] = useState(propValue || "");
         const [isFocused, setIsFocused] = useState(false);
 
-        // Sync with prop value
         useEffect(() => {
-            if (propValue !== undefined && propValue !== value) {
-                setValue(propValue);
-            }
+            if (propValue === undefined || propValue === value) return;
+
+            setValue(propValue);
         }, [propValue]);
 
-        // Debounce effect
         useEffect(() => {
             if (value === propValue) return;
 

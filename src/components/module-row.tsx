@@ -29,66 +29,52 @@ export function ModuleRow({
         isInteger = false
     ) => {
         const input = e.target.value;
+
         setInputValues((prev) => ({ ...prev, [setting]: input }));
 
-        // allow empty input
         if (input === "") {
             onSettingChange(module, setting, 0);
             return;
         }
 
-        // only allow numbers and decimal point
-        if (!/^-?\d*\.?\d*$/.test(input)) {
-            return;
-        }
+        if (!/^-?\d*\.?\d*$/.test(input)) return;
+        if (input === "." || input === "-" || input === "-.") return;
 
-        // if it's just a decimal point or minus, don't process yet
-        if (input === "." || input === "-" || input === "-.") {
-            return;
-        }
-
-        // parse and validate the number
         const parsed = isInteger ? parseInt(input, 10) : parseFloat(input);
-        if (!isNaN(parsed)) {
-            // Only clamp if the value exceeds limits
-            if (parsed < min) {
-                setInputValues((prev) => ({ ...prev, [setting]: min.toString() }));
-                onSettingChange(module, setting, min);
-            } else if (parsed > max) {
-                setInputValues((prev) => ({ ...prev, [setting]: max.toString() }));
-                onSettingChange(module, setting, max);
-            } else {
-                onSettingChange(module, setting, parsed);
-            }
+
+        if (isNaN(parsed)) return;
+
+        if (parsed < min) {
+            setInputValues((prev) => ({ ...prev, [setting]: min.toString() }));
+            onSettingChange(module, setting, min);
+            return;
         }
+
+        if (parsed > max) {
+            setInputValues((prev) => ({ ...prev, [setting]: max.toString() }));
+            onSettingChange(module, setting, max);
+            return;
+        }
+
+        onSettingChange(module, setting, parsed);
     };
 
     const getDisplayValue = (setting: string) => {
-        if (setting in inputValues) {
-            return inputValues[setting];
-        }
+        if (setting in inputValues) return inputValues[setting];
 
         const value = module.config[setting as keyof typeof module.config];
 
-        // Return sensible defaults if value is undefined/null
-        if (value === undefined || value === null) {
-            switch (setting) {
-                case "chance":
-                    return "100";
-                case "duration_ms":
-                    return module.name === "delay" ? "1000" : "0";
-                case "throttle_ms":
-                    return module.name === "throttle" ? "30" : "100";
-                case "count":
-                    return "2";
-                case "limit_kbps":
-                    return "500";
-                default:
-                    return "";
-            }
-        }
+        if (value !== undefined && value !== null) return value.toString();
 
-        return value.toString();
+        const defaults: Record<string, string> = {
+            chance: "100",
+            duration_ms: module.name === "delay" ? "1000" : "0",
+            throttle_ms: module.name === "throttle" ? "30" : "100",
+            count: "2",
+            limit_kbps: "500",
+        };
+
+        return defaults[setting] ?? "";
     };
 
     return (

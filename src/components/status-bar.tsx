@@ -37,7 +37,6 @@ const ModulesIndicator = ({ activeModules }: { activeModules: { display_name: st
 
 export function StatusBar() {
     const { isActive, manipulationStatus, currentPreset } = useNetworkStore();
-
     const modules = manipulationStatus.modules;
     const activeModules = modules.filter((m) => m.enabled);
 

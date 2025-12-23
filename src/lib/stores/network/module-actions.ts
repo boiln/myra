@@ -17,101 +17,60 @@ export const createModuleSlice: StateCreator<
             ...(await ManipulationService.getSettings()),
         };
 
+        const probability = Math.max(0.0001, (config.chance || 100) / 100);
+        const duration_ms = config.duration_ms || 0;
+
         switch (moduleName) {
             case "delay":
-                if (!newSettings.delay) {
-                    newSettings.delay = {
-                        probability: Math.max(0.0001, (config.chance || 100) / 100),
-                        duration_ms: config.duration_ms || 100,
-                    };
-                } else {
-                    newSettings.delay.probability = Math.max(0.0001, (config.chance || 100) / 100);
-                    newSettings.delay.duration_ms = config.duration_ms || 100;
-                }
+                newSettings.delay = {
+                    probability,
+                    duration_ms: config.duration_ms || 100,
+                };
                 break;
+
             case "drop":
-                if (!newSettings.drop) {
-                    newSettings.drop = {
-                        probability: Math.max(0.0001, (config.chance || 100) / 100),
-                        duration_ms: config.duration_ms || 0,
-                    };
-                } else {
-                    newSettings.drop.probability = Math.max(0.0001, (config.chance || 100) / 100);
-                    newSettings.drop.duration_ms = config.duration_ms || 0;
-                }
+                newSettings.drop = {
+                    probability,
+                    duration_ms,
+                };
                 break;
+
             case "throttle":
-                if (!newSettings.throttle) {
-                    newSettings.throttle = {
-                        probability: Math.max(0.0001, (config.chance || 100) / 100),
-                        duration_ms: config.duration_ms || 0,
-                    };
-                } else {
-                    newSettings.throttle.probability = Math.max(
-                        0.0001,
-                        (config.chance || 100) / 100
-                    );
-                    newSettings.throttle.duration_ms = config.duration_ms || 0;
-                }
+                newSettings.throttle = {
+                    probability,
+                    duration_ms,
+                };
                 break;
+
             case "duplicate":
-                if (!newSettings.duplicate) {
-                    newSettings.duplicate = {
-                        probability: Math.max(0.0001, (config.chance || 100) / 100),
-                        count: config.count || 1,
-                        duration_ms: config.duration_ms || 0,
-                    };
-                } else {
-                    newSettings.duplicate.probability = Math.max(
-                        0.0001,
-                        (config.chance || 100) / 100
-                    );
-                    newSettings.duplicate.count = config.count || 1;
-                    newSettings.duplicate.duration_ms = config.duration_ms || 0;
-                }
+                newSettings.duplicate = {
+                    probability,
+                    count: config.count || 1,
+                    duration_ms,
+                };
                 break;
+
             case "bandwidth":
-                if (!newSettings.bandwidth) {
-                    newSettings.bandwidth = {
-                        probability: Math.max(0.0001, (config.chance || 100) / 100),
-                        limit_kbps: config.limit_kbps || 500,
-                        duration_ms: config.duration_ms || 0,
-                    };
-                } else {
-                    newSettings.bandwidth.probability = Math.max(
-                        0.0001,
-                        (config.chance || 100) / 100
-                    );
-                    newSettings.bandwidth.limit_kbps = config.limit_kbps || 500;
-                    newSettings.bandwidth.duration_ms = config.duration_ms || 0;
-                }
+                newSettings.bandwidth = {
+                    probability,
+                    limit_kbps: config.limit_kbps || 500,
+                    duration_ms,
+                };
                 break;
+
             case "tamper":
-                if (!newSettings.tamper) {
-                    newSettings.tamper = {
-                        probability: Math.max(0.0001, (config.chance || 100) / 100),
-                        duration_ms: config.duration_ms || 0,
-                    };
-                } else {
-                    newSettings.tamper.probability = Math.max(0.0001, (config.chance || 100) / 100);
-                    newSettings.tamper.duration_ms = config.duration_ms || 0;
-                }
+                newSettings.tamper = {
+                    probability,
+                    duration_ms,
+                };
                 break;
+
             case "reorder":
-                if (!newSettings.reorder) {
-                    newSettings.reorder = {
-                        probability: Math.max(0.0001, (config.chance || 100) / 100),
-                        duration_ms: config.duration_ms || 0,
-                        max_delay: config.throttle_ms || 100,
-                    };
-                } else {
-                    newSettings.reorder.probability = Math.max(
-                        0.0001,
-                        (config.chance || 100) / 100
-                    );
-                    newSettings.reorder.duration_ms = config.duration_ms || 0;
-                    newSettings.reorder.max_delay = config.throttle_ms || 100;
-                }
+                newSettings.reorder = {
+                    probability,
+                    duration_ms,
+                    max_delay: config.throttle_ms || 100,
+                };
                 break;
         }
 
@@ -130,6 +89,7 @@ export const createModuleSlice: StateCreator<
         if (moduleIndex === -1) return;
 
         const updatedModules = [...manipulationStatus.modules];
+
         updatedModules[moduleIndex] = {
             ...updatedModules[moduleIndex],
             config: {
@@ -159,6 +119,7 @@ export const createModuleSlice: StateCreator<
         if (moduleIndex === -1) return;
 
         const module = manipulationStatus.modules[moduleIndex];
+
         const newConfig = {
             ...module.config,
             [direction]: !module.config[direction],
@@ -174,6 +135,7 @@ export const createModuleSlice: StateCreator<
         if (moduleIndex === -1) return;
 
         const updatedModules = [...manipulationStatus.modules];
+
         updatedModules[moduleIndex] = {
             ...updatedModules[moduleIndex],
             enabled,

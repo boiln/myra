@@ -20,6 +20,7 @@ export function useApiCall<T>(
 
     const fetchData = useCallback(async () => {
         setLoading(true);
+
         try {
             const result = await invokeCommand<T>(command, args);
             setData(result);

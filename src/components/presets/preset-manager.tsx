@@ -82,27 +82,24 @@ export function PresetManager() {
 
     const handleSavePreset = async () => {
         if (!presetName.trim()) {
-            toast.error("Please enter a preset name", {
-                dismissible: true,
-            });
+            toast.error("Please enter a preset name", { dismissible: true });
             return;
         }
 
         setIsLoading(true);
+
         try {
             await savePreset(presetName);
-            toast.success(`Preset "${presetName}" saved`, {
-                dismissible: true,
-            });
+            toast.success(`Preset "${presetName}" saved`, { dismissible: true });
+
             await loadPresets();
             setPresetName("");
             setShowPresetInfo(true);
             setSaveDialogOpen(false);
+
             setTimeout(() => setShowPresetInfo(false), 5000);
         } catch (error) {
-            toast.error(`Failed to save preset: ${error}`, {
-                dismissible: true,
-            });
+            toast.error(`Failed to save preset: ${error}`, { dismissible: true });
         } finally {
             setIsLoading(false);
         }
@@ -110,15 +107,12 @@ export function PresetManager() {
 
     const handleLoadPreset = async (name: string) => {
         setIsLoading(true);
+
         try {
             await loadPreset(name);
-            toast.success(`Preset "${name}" loaded`, {
-                dismissible: true,
-            });
+            toast.success(`Preset "${name}" loaded`, { dismissible: true });
         } catch (error) {
-            toast.error(`Failed to load preset: ${error}`, {
-                dismissible: true,
-            });
+            toast.error(`Failed to load preset: ${error}`, { dismissible: true });
         } finally {
             setIsLoading(false);
         }
@@ -126,22 +120,17 @@ export function PresetManager() {
 
     const handleDeletePreset = async (name: string) => {
         if (!name) return;
-
-        if (!confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) {
+        if (!confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`))
             return;
-        }
 
         setIsLoading(true);
+
         try {
             await deletePreset(name);
-            toast.success(`Preset "${name}" deleted`, {
-                dismissible: true,
-            });
+            toast.success(`Preset "${name}" deleted`, { dismissible: true });
             await loadPresets();
         } catch (error) {
-            toast.error(`Failed to delete preset: ${error}`, {
-                dismissible: true,
-            });
+            toast.error(`Failed to delete preset: ${error}`, { dismissible: true });
         } finally {
             setIsLoading(false);
         }

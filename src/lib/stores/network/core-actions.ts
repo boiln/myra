@@ -137,24 +137,20 @@ export const createCoreSlice: StateCreator<
 
         try {
             set({ isTogglingActive: true });
-
-            // Optimistically update UI
             set({ isActive: !isActive });
 
             if (isActive) {
-                // Stop processing
                 await ManipulationService.stopProcessing();
-            } else {
-                // Start processing
+            }
+
+            if (!isActive) {
                 const settings = await ManipulationService.getSettings();
                 await ManipulationService.startProcessing(settings, filter);
             }
 
-            // Refresh the status
             await get().loadStatus();
         } catch (error) {
             console.error("Failed to toggle active state:", error);
-            // Revert optimistic update on error
             set({ isActive: isActive });
         } finally {
             set({ isTogglingActive: false });
@@ -170,14 +166,15 @@ export const createCoreSlice: StateCreator<
             await ManipulationService.updateFilter(newFilter || DEFAULT_FILTER);
             set({ filter: newFilter || DEFAULT_FILTER });
 
-            // If active, restart with new filter
-            if (isActive) {
-                const settings = await ManipulationService.getSettings();
-                await ManipulationService.stopProcessing();
-                await ManipulationService.startProcessing(settings, newFilter);
+            if (!isActive) {
+                await get().loadStatus();
+                return;
             }
 
-            // Refresh state
+            const settings = await ManipulationService.getSettings();
+            await ManipulationService.stopProcessing();
+            await ManipulationService.startProcessing(settings, newFilter);
+
             await get().loadStatus();
         } catch (error) {
             console.error("Failed to update filter:", error);

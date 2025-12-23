@@ -38,9 +38,9 @@ export function FilterControl() {
     const handleBlur = () => {
         setIsFocused(false);
 
-        if (localFilter !== filter && !isActive) {
-            applyFilterChange();
-        }
+        if (localFilter === filter || isActive) return;
+
+        applyFilterChange();
     };
 
     return (
