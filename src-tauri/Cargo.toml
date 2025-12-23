@@ -12,14 +12,14 @@ categories = ["development-tools::testing", "simulation", "network-programming"]
 readme = "../README.md"
 
 [build-dependencies]
-tauri-build = { version = "2.0.0", features = [] }
+tauri-build = { version = "2", features = [] }
 
 [dependencies]
 # Tauri framework
-tauri = { version = "2.0.0", features = [] }
-tauri-plugin-fs = "2.0.0"
-tauri-plugin-opener = "2.0.0"
-tauri-plugin-window-state = { version = "2.0.0" }
+tauri = { version = "2", features = [] }
+tauri-plugin-fs = "2"
+tauri-plugin-opener = "2"
+tauri-plugin-window-state = { version = "2" }
 
 # WinDivert for packet capture and manipulation
 windivert = { version = "0.6", features = ["vendored"] }
