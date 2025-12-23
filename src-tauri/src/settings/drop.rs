@@ -8,7 +8,7 @@ pub struct DropOptions {
     #[arg(long = "drop-probability", id = "drop-probability", default_value_t = Probability::default())]
     #[serde(default)]
     pub probability: Probability,
-    
+
     /// Duration for which the effect is applied in milliseconds (0 = infinite)
     #[arg(long = "drop-duration", id = "drop-duration", default_value_t = 0)]
     #[serde(default)]

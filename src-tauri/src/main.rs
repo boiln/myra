@@ -33,20 +33,25 @@ impl log::Log for SimpleLogger {
                 record.level(),
                 record.target(),
                 record.args()
-            ).unwrap_or_else(|e| error!("Failed to write log: {}", e));
-            stdout.flush().unwrap_or_else(|e| error!("Failed to flush stdout: {}", e));
+            )
+            .unwrap_or_else(|e| error!("Failed to write log: {}", e));
+            stdout
+                .flush()
+                .unwrap_or_else(|e| error!("Failed to flush stdout: {}", e));
         }
     }
 
     fn flush(&self) {
-        io::stdout().flush().unwrap_or_else(|e| error!("Failed to flush stdout: {}", e));
+        io::stdout()
+            .flush()
+            .unwrap_or_else(|e| error!("Failed to flush stdout: {}", e));
     }
 }
 
 static LOGGER: SimpleLogger = SimpleLogger;
 
 /// Initialize the application logger
-/// 
+///
 /// Sets up the SimpleLogger with Info level filtering
 fn init_logger() -> Result<(), SetLoggerError> {
     log::set_logger(&LOGGER).map(|()| log::set_max_level(LevelFilter::Info))
@@ -54,15 +59,13 @@ fn init_logger() -> Result<(), SetLoggerError> {
 
 /// Main entry point for the Myra application
 fn main() {
-    // Initialize logger
     if let Err(e) = init_logger() {
         eprintln!("Failed to initialize logger: {}", e);
         return;
     }
-    
+
     info!("Myra starting up");
-    
-    // Check if running as administrator (required for WinDivert)
+
     if !is_admin() {
         error!("Myra requires administrator privileges to capture network packets. Please run as administrator.");
         return;
@@ -71,7 +74,6 @@ fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_window_state::Builder::default().build())
         .setup(move |app| {
-            // Register command state
             commands::register_commands(app)?;
             info!("Packet manipulation system initialized");
             Ok(())
@@ -94,64 +96,68 @@ fn main() {
 }
 
 /// Verify that WinDivert files are present in the expected locations
-/// 
+///
 /// Logs the presence or absence of critical WinDivert files
 fn check_windivert_files() {
     let current_exe = env::current_exe().unwrap_or_else(|e| {
         error!("Failed to get current executable path: {}", e);
         PathBuf::new()
     });
-    
+
     let exe_dir = current_exe.parent().unwrap_or_else(|| {
         error!("Failed to get parent directory of executable");
         std::path::Path::new(".")
     });
-    
+
     let dll_path = exe_dir.join("WinDivert.dll");
     let sys_path = exe_dir.join("WinDivert64.sys");
-    
+
     info!("Looking for WinDivert.dll at: {:?}", dll_path);
     info!("Looking for WinDivert64.sys at: {:?}", sys_path);
-    
     info!("WinDivert.dll exists: {}", dll_path.exists());
     info!("WinDivert64.sys exists: {}", sys_path.exists());
 }
 
 /// Check if the current process is running with administrator privileges
-/// 
+///
 /// Uses Windows API to determine if the current process has admin rights,
 /// which are required for packet manipulation.
-/// 
+///
 /// # Returns
-/// 
+///
 /// `bool` - true if the process has administrator privileges
 fn is_admin() -> bool {
     use winapi::um::securitybaseapi::AllocateAndInitializeSid;
     use winapi::um::securitybaseapi::CheckTokenMembership;
-    use winapi::um::winnt::{SECURITY_NT_AUTHORITY, SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS};
-    
+    use winapi::um::winnt::{
+        DOMAIN_ALIAS_RID_ADMINS, SECURITY_BUILTIN_DOMAIN_RID, SECURITY_NT_AUTHORITY,
+    };
+
     unsafe {
         let mut sid = std::ptr::null_mut();
-        let sub_authorities = [
-            SECURITY_BUILTIN_DOMAIN_RID,
-            DOMAIN_ALIAS_RID_ADMINS
-        ];
-        
+        let sub_authorities = [SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS];
+
         if AllocateAndInitializeSid(
             &SECURITY_NT_AUTHORITY as *const _ as *mut _,
             2,
             sub_authorities[0],
             sub_authorities[1],
-            0, 0, 0, 0, 0, 0,
-            &mut sid
-        ) == 0 {
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            &mut sid,
+        ) == 0
+        {
             return false;
         }
-        
+
         let mut is_member = 0;
-        let is_admin = CheckTokenMembership(std::ptr::null_mut(), sid, &mut is_member) != 0
-            && is_member != 0;
-            
+        let is_admin =
+            CheckTokenMembership(std::ptr::null_mut(), sid, &mut is_member) != 0 && is_member != 0;
+
         FreeSid(sid);
         is_admin
     }

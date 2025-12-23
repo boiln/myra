@@ -13,7 +13,7 @@ use std::time::{Duration, Instant};
 /// - If drop mode is disabled, packets are stored temporarily and released when throttling stops
 ///
 /// # Arguments
-/// 
+///
 /// * `packets` - Vector of packets to process; may be modified by this function
 /// * `storage` - Queue for storing packets when throttling is active and drop mode is disabled
 /// * `throttled_start_time` - Time when the current throttling period began
@@ -59,14 +59,18 @@ pub fn throttle_packages<'a>(
         } else {
             storage.extend(packets.drain(..));
         }
+
         stats.is_throttling = true;
-    } else {
-        packets.extend(storage.drain(..));
-        if rand::rng().random_bool(throttle_probability.value()) {
-            *throttled_start_time = Instant::now();
-        }
-        stats.is_throttling = false;
+        return;
     }
+
+    packets.extend(storage.drain(..));
+
+    if rand::rng().random_bool(throttle_probability.value()) {
+        *throttled_start_time = Instant::now();
+    }
+
+    stats.is_throttling = false;
 }
 
 /// Determines if throttling is currently active
@@ -93,7 +97,9 @@ mod tests {
         // This is a simplification - in real tests we'd create proper packet data
         unsafe {
             let data = vec![id; 10]; // Simple packet with 10 bytes all set to id
-            PacketData::from(windivert::packet::WinDivertPacket::<windivert::layer::NetworkLayer>::new(data))
+            PacketData::from(windivert::packet::WinDivertPacket::<
+                windivert::layer::NetworkLayer,
+            >::new(data))
         }
     }
 
@@ -131,7 +137,10 @@ mod tests {
         );
 
         assert!(packets.is_empty(), "Packets should be dropped in drop mode");
-        assert!(storage.is_empty(), "Storage should remain empty in drop mode");
+        assert!(
+            storage.is_empty(),
+            "Storage should remain empty in drop mode"
+        );
         assert!(stats.is_throttling, "Throttling status should be true");
         assert_eq!(stats.dropped_count, 2, "Should record 2 dropped packets");
     }

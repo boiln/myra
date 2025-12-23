@@ -102,7 +102,7 @@ impl Ewma {
     pub fn get(&self) -> Option<f64> {
         self.current_value
     }
-    
+
     /// Returns the alpha value (smoothing factor) used by this EWMA.
     ///
     /// # Returns
@@ -119,7 +119,7 @@ impl Ewma {
     pub fn alpha(&self) -> f64 {
         self.alpha
     }
-    
+
     /// Resets the EWMA to its initial state.
     ///
     /// This clears the current value, but maintains the same alpha.
@@ -131,7 +131,7 @@ impl Ewma {
     /// let mut ewma = Ewma::new(0.5);
     /// ewma.update(10.0);
     /// assert_eq!(ewma.get(), Some(10.0));
-    /// 
+    ///
     /// ewma.reset();
     /// assert_eq!(ewma.get(), None);
     /// ```
@@ -143,32 +143,32 @@ impl Ewma {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_new_ewma() {
         let ewma = Ewma::new(0.5);
         assert_eq!(ewma.alpha(), 0.5);
         assert_eq!(ewma.get(), None);
     }
-    
+
     #[test]
     #[should_panic]
     fn test_invalid_alpha_zero() {
         Ewma::new(0.0);
     }
-    
+
     #[test]
     #[should_panic]
     fn test_invalid_alpha_negative() {
         Ewma::new(-0.1);
     }
-    
+
     #[test]
     #[should_panic]
     fn test_invalid_alpha_greater_than_one() {
         Ewma::new(1.1);
     }
-    
+
     #[test]
     fn test_update() {
         let mut ewma = Ewma::new(0.5);
@@ -176,13 +176,13 @@ mod tests {
         assert_eq!(ewma.update(20.0), 15.0); // 0.5*10 + 0.5*20
         assert_eq!(ewma.update(30.0), 22.5); // 0.5*15 + 0.5*30
     }
-    
+
     #[test]
     fn test_reset() {
         let mut ewma = Ewma::new(0.5);
         ewma.update(10.0);
         assert_eq!(ewma.get(), Some(10.0));
-        
+
         ewma.reset();
         assert_eq!(ewma.get(), None);
     }

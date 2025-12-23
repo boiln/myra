@@ -13,7 +13,7 @@ pub enum FilterError {
     /// Error for invalid filter syntax
     #[error("Invalid filter syntax: {0}")]
     InvalidSyntax(String),
-    
+
     /// Error for invalid port numbers in filters
     #[error("Invalid port number detected in filter: {0}")]
     InvalidPort(String),
@@ -63,8 +63,9 @@ pub fn validate_filter_with_docs(filter: &str) -> Result<String, FilterError> {
 #[allow(dead_code)]
 pub fn validate_filter(filter: &str) -> Result<String, FilterError> {
     // Attempt to open a handle to validate the filter string syntax
-    let mut win_divert = WinDivert::<NetworkLayer>::network(filter, 0, WinDivertFlags::new().set_sniff())
-        .map_err(|e| FilterError::InvalidSyntax(e.to_string()))?;
+    let mut win_divert =
+        WinDivert::<NetworkLayer>::network(filter, 0, WinDivertFlags::new().set_sniff())
+            .map_err(|e| FilterError::InvalidSyntax(e.to_string()))?;
 
     win_divert
         .close(CloseAction::Nothing)

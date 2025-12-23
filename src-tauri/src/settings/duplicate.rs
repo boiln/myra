@@ -13,9 +13,13 @@ pub struct DuplicateOptions {
     #[arg(long = "duplicate-count", default_value_t = 1, id = "duplicate-count")]
     #[serde(default)]
     pub count: usize,
-    
+
     /// Duration for which the effect is applied in milliseconds (0 = infinite)
-    #[arg(long = "duplicate-duration", id = "duplicate-duration", default_value_t = 0)]
+    #[arg(
+        long = "duplicate-duration",
+        id = "duplicate-duration",
+        default_value_t = 0
+    )]
     #[serde(default)]
     pub duration_ms: u64,
 }

@@ -10,16 +10,16 @@ pub struct ThrottleOptions {
     pub probability: Probability,
 
     /// Duration in milliseconds for each throttling period
-    #[arg(
-        long = "throttle-ms",
-        default_value_t = 30,
-        id = "throttle-ms"
-    )]
+    #[arg(long = "throttle-ms", default_value_t = 30, id = "throttle-ms")]
     #[serde(default)]
     pub throttle_ms: u64,
-    
+
     /// Duration for which the effect is applied in milliseconds (0 = infinite)
-    #[arg(long = "throttle-duration", id = "throttle-duration", default_value_t = 0)]
+    #[arg(
+        long = "throttle-duration",
+        id = "throttle-duration",
+        default_value_t = 0
+    )]
     #[serde(default)]
     pub duration_ms: u64,
 

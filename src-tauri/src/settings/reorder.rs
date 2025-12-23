@@ -17,7 +17,11 @@ pub struct ReorderOptions {
     #[serde(default)]
     pub max_delay: u64,
     /// Duration for which the effect is applied in milliseconds (0 = infinite)
-    #[arg(long = "reorder-duration", id = "reorder-duration", default_value_t = 0)]
+    #[arg(
+        long = "reorder-duration",
+        id = "reorder-duration",
+        default_value_t = 0
+    )]
     #[serde(default)]
     pub duration_ms: u64,
 }

@@ -10,7 +10,7 @@ pub enum ProbabilityError {
     /// Returned when a probability value is out of the valid range (0.0-1.0)
     #[error("{0} is not in the valid probability range of 0.0 to 1.0")]
     OutOfRange(f64),
-    
+
     /// Returned when a string can't be parsed as a valid float
     #[error("'{0}' is not a valid number for a probability value")]
     ParseError(String),
@@ -27,7 +27,7 @@ pub enum ProbabilityError {
 /// let p = Probability::new(0.5).unwrap(); // 50% chance
 /// assert_eq!(p.value(), 0.5);
 ///
-/// assert!(Probability::new(1.5).is_err()); 
+/// assert!(Probability::new(1.5).is_err());
 /// ```
 #[derive(Debug, Copy, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Probability(f64);
@@ -45,10 +45,10 @@ impl Probability {
     ///   or an error if the value is outside the valid range
     pub fn new(value: f64) -> Result<Self, ProbabilityError> {
         if !(0.0..=1.0).contains(&value) {
-            Err(ProbabilityError::OutOfRange(value))
-        } else {
-            Ok(Probability(value))
+            return Err(ProbabilityError::OutOfRange(value));
         }
+
+        Ok(Probability(value))
     }
 
     /// Returns the underlying probability value.
@@ -143,7 +143,7 @@ mod tests {
     fn test_from_string() {
         let p = "0.75".parse::<Probability>().unwrap();
         assert_eq!(p.value(), 0.75);
-        
+
         assert!("not_a_number".parse::<Probability>().is_err());
         assert!("1.5".parse::<Probability>().is_err());
     }

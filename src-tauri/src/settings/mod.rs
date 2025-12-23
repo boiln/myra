@@ -1,6 +1,6 @@
 //! Settings module for network condition simulation parameters.
-//! 
-//! This module contains configuration structures for all the 
+//!
+//! This module contains configuration structures for all the
 //! different types of network manipulations that can be applied.
 
 pub mod bandwidth;

@@ -13,7 +13,7 @@ pub struct PacketProcessingState<'a> {
     pub throttle_storage: VecDeque<PacketData<'a>>,
     pub throttled_start_time: Instant,
     pub last_sent_package_time: Instant,
-    
+
     /// Time when each module's effect was started
     pub effect_start_times: ModuleEffectStartTimes,
 }
@@ -23,22 +23,22 @@ pub struct PacketProcessingState<'a> {
 pub struct ModuleEffectStartTimes {
     /// Time when drop effect was started
     pub drop_start: Instant,
-    
+
     /// Time when delay effect was started  
     pub delay_start: Instant,
-    
+
     /// Time when throttle effect was started
     pub throttle_start: Instant,
-    
+
     /// Time when duplicate effect was started
     pub duplicate_start: Instant,
-    
+
     /// Time when tamper effect was started
     pub tamper_start: Instant,
-    
+
     /// Time when reorder effect was started
     pub reorder_start: Instant,
-    
+
     /// Time when bandwidth effect was started
     pub bandwidth_start: Instant,
 }

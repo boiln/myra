@@ -83,8 +83,9 @@ pub fn start_packet_processing(
         // Apply packet manipulations according to current settings
         if let Ok(settings) = settings.lock() {
             process_packets(&settings, &mut packets, &mut state, &statistics);
-        } else {
-            // If we can't access settings, log the error but continue processing
+        }
+
+        if settings.lock().is_err() {
             error!("Failed to acquire lock on packet manipulation settings");
         }
 
@@ -92,10 +93,10 @@ pub fn start_packet_processing(
         for packet_data in &packets {
             if let Err(e) = wd.send(&packet_data.packet) {
                 error!("Failed to send packet: {}", e);
-                // Continue processing other packets
-            } else {
-                sent_packet_count += 1;
+                continue;
             }
+
+            sent_packet_count += 1;
         }
 
         // Periodically log statistics
@@ -111,9 +112,12 @@ pub fn start_packet_processing(
     debug!("Closing packet processing WinDivert handle");
 
     // First close the handle
-    if let Err(e) = wd.close(CloseAction::Nothing) {
+    let close_result = wd.close(CloseAction::Nothing);
+    if let Err(e) = &close_result {
         error!("Failed to close WinDivert handle: {}", e);
-    } else {
+    }
+
+    if close_result.is_ok() {
         debug!("Successfully closed packet processing WinDivert handle");
     }
 
@@ -163,7 +167,13 @@ pub fn process_packets<'a>(
 ) {
     // Apply packet dropping if enabled
     if let Some(drop) = &settings.drop {
-        if is_effect_active(drop.duration_ms, state.effect_start_times.drop_start) {
+        let effect_active = is_effect_active(drop.duration_ms, state.effect_start_times.drop_start);
+
+        if !effect_active && !packets.is_empty() {
+            state.effect_start_times.drop_start = Instant::now();
+        }
+
+        if effect_active {
             drop_packets(
                 packets,
                 drop.probability,
@@ -175,13 +185,9 @@ pub fn process_packets<'a>(
                     })
                     .drop_stats,
             );
-        } else if !packets.is_empty() {
-            // Reset the effect start time when we get new packets and effect is inactive
-            state.effect_start_times.drop_start = Instant::now();
         }
     }
 
-    // Apply packet delay if enabled
     if let Some(delay) = &settings.delay {
         debug!(
             "Delay module check: duration_ms={}, elapsed={:?}, active={}",
@@ -190,7 +196,15 @@ pub fn process_packets<'a>(
             is_effect_active(delay.duration_ms, state.effect_start_times.delay_start)
         );
 
-        if is_effect_active(delay.duration_ms, state.effect_start_times.delay_start) {
+        let effect_active =
+            is_effect_active(delay.duration_ms, state.effect_start_times.delay_start);
+
+        if !effect_active && !packets.is_empty() {
+            debug!("Delay module deactivated, resetting start time");
+            state.effect_start_times.delay_start = Instant::now();
+        }
+
+        if effect_active {
             delay_packets(
                 packets,
                 &mut state.delay_storage,
@@ -204,19 +218,20 @@ pub fn process_packets<'a>(
                     })
                     .delay_stats,
             );
-        } else if !packets.is_empty() {
-            debug!("Delay module deactivated, resetting start time");
-            // Reset the effect start time when we get new packets and effect is inactive
-            state.effect_start_times.delay_start = Instant::now();
         }
     }
 
-    // Apply throttling if enabled
     if let Some(throttle) = &settings.throttle {
-        if is_effect_active(
+        let effect_active = is_effect_active(
             throttle.duration_ms,
             state.effect_start_times.throttle_start,
-        ) {
+        );
+
+        if !effect_active && !packets.is_empty() {
+            state.effect_start_times.throttle_start = Instant::now();
+        }
+
+        if effect_active {
             throttle_packages(
                 packets,
                 &mut state.throttle_storage,
@@ -232,20 +247,23 @@ pub fn process_packets<'a>(
                     })
                     .throttle_stats,
             );
-        } else if !packets.is_empty() {
-            // Reset the effect start time when we get new packets and effect is inactive
-            state.effect_start_times.throttle_start = Instant::now();
         }
     }
 
-    // Apply packet reordering if enabled
     if let Some(reorder) = &settings.reorder {
         let effect_active =
             is_effect_active(reorder.duration_ms, state.effect_start_times.reorder_start);
+
         debug!(
             "Reorder check: duration_ms={}, effect_active={}, max_delay={}",
             reorder.duration_ms, effect_active, reorder.max_delay
         );
+
+        if !effect_active && !packets.is_empty() {
+            debug!("Reorder effect inactive, resetting start time");
+            state.effect_start_times.reorder_start = Instant::now();
+        }
+
         if effect_active {
             reorder_packets(
                 packets,
@@ -260,16 +278,18 @@ pub fn process_packets<'a>(
                     })
                     .reorder_stats,
             );
-        } else if !packets.is_empty() {
-            // Reset the effect start time when we get new packets and effect is inactive
-            debug!("Reorder effect inactive, resetting start time");
-            state.effect_start_times.reorder_start = Instant::now();
         }
     }
 
-    // Apply packet tampering if enabled
     if let Some(tamper) = &settings.tamper {
-        if is_effect_active(tamper.duration_ms, state.effect_start_times.tamper_start) {
+        let effect_active =
+            is_effect_active(tamper.duration_ms, state.effect_start_times.tamper_start);
+
+        if !effect_active && !packets.is_empty() {
+            state.effect_start_times.tamper_start = Instant::now();
+        }
+
+        if effect_active {
             tamper_packets(
                 packets,
                 tamper.probability,
@@ -283,63 +303,72 @@ pub fn process_packets<'a>(
                     })
                     .tamper_stats,
             );
-        } else if !packets.is_empty() {
-            // Reset the effect start time when we get new packets and effect is inactive
-            state.effect_start_times.tamper_start = Instant::now();
         }
     }
 
-    // Apply packet duplication if enabled
     if let Some(duplicate) = &settings.duplicate {
-        if duplicate.count > 1 && duplicate.probability.value() > 0.0 {
-            if is_effect_active(
+        let should_skip = duplicate.count <= 1 || duplicate.probability.value() <= 0.0;
+        if should_skip {
+            // Skip - no duplication needed
+        }
+
+        let effect_active = !should_skip
+            && is_effect_active(
                 duplicate.duration_ms,
                 state.effect_start_times.duplicate_start,
-            ) {
-                duplicate_packets(
-                    packets,
-                    duplicate.count,
-                    duplicate.probability,
-                    &mut statistics
-                        .write()
-                        .unwrap_or_else(|_| {
-                            error!("Failed to acquire write lock for duplicate statistics");
-                            panic!("Failed to acquire statistics lock");
-                        })
-                        .duplicate_stats,
-                );
-            } else if !packets.is_empty() {
-                // Reset the effect start time when we get new packets and effect is inactive
-                state.effect_start_times.duplicate_start = Instant::now();
-            }
+            );
+
+        if !should_skip && !effect_active && !packets.is_empty() {
+            state.effect_start_times.duplicate_start = Instant::now();
+        }
+
+        if effect_active {
+            duplicate_packets(
+                packets,
+                duplicate.count,
+                duplicate.probability,
+                &mut statistics
+                    .write()
+                    .unwrap_or_else(|_| {
+                        error!("Failed to acquire write lock for duplicate statistics");
+                        panic!("Failed to acquire statistics lock");
+                    })
+                    .duplicate_stats,
+            );
         }
     }
 
-    // Apply bandwidth limiting if enabled
     if let Some(bandwidth) = &settings.bandwidth {
-        if bandwidth.limit > 0 {
-            if is_effect_active(
+        let should_skip = bandwidth.limit == 0;
+        if should_skip {
+            // Skip - no bandwidth limit
+        }
+
+        let effect_active = !should_skip
+            && is_effect_active(
                 bandwidth.duration_ms,
                 state.effect_start_times.bandwidth_start,
-            ) {
-                bandwidth_limiter(
-                    packets,
-                    &mut state.bandwidth_limit_storage,
-                    &mut state.bandwidth_storage_total_size,
-                    &mut state.last_sent_package_time,
-                    bandwidth.limit,
-                    &mut statistics
-                        .write()
-                        .unwrap_or_else(|_| {
-                            error!("Failed to acquire write lock for bandwidth statistics");
-                            panic!("Failed to acquire statistics lock");
-                        })
-                        .bandwidth_stats,
-                );
-            } else if !packets.is_empty() {
-                // Reset the effect start time when we get new packets and effect is inactive
-                state.effect_start_times.bandwidth_start = Instant::now();
-            }
+            );
+
+        if !should_skip && !effect_active && !packets.is_empty() {
+            state.effect_start_times.bandwidth_start = Instant::now();
+        }
+
+        if effect_active {
+            bandwidth_limiter(
+                packets,
+                &mut state.bandwidth_limit_storage,
+                &mut state.bandwidth_storage_total_size,
+                &mut state.last_sent_package_time,
+                bandwidth.limit,
+                &mut statistics
+                    .write()
+                    .unwrap_or_else(|_| {
+                        error!("Failed to acquire write lock for bandwidth statistics");
+                        panic!("Failed to acquire statistics lock");
+                    })
+                    .bandwidth_stats,
+            );
         }
     }
 }

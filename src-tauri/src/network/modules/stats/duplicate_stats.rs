@@ -44,10 +44,10 @@ impl DuplicateStats {
     #[allow(dead_code)]
     pub fn total_duplication_multiplier(&self) -> f64 {
         if self.incoming_packet_count == 0 {
-            1.0
-        } else {
-            self.outgoing_packet_count as f64 / self.incoming_packet_count as f64
+            return 1.0;
         }
+
+        self.outgoing_packet_count as f64 / self.incoming_packet_count as f64
     }
 
     /// Returns the recent duplication multiplier based on the EWMA

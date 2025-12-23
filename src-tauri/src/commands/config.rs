@@ -1,9 +1,9 @@
-use std::path::PathBuf;
 use log::info;
 use serde::{Deserialize, Serialize};
-use tauri::State;
 use std::fs;
 use std::io::Write;
+use std::path::PathBuf;
+use tauri::State;
 
 use crate::commands::PacketProcessingState;
 use crate::settings::packet_manipulation::PacketManipulationSettings;
@@ -36,31 +36,33 @@ pub async fn save_config(
     state: State<'_, PacketProcessingState>,
     name: String,
 ) -> Result<(), String> {
-    let settings = state.settings.lock()
+    let settings = state
+        .settings
+        .lock()
         .map_err(|e| format!("Failed to lock settings mutex: {}", e))?
         .clone();
-    let filter = state.filter.lock()
+
+    let filter = state
+        .filter
+        .lock()
         .map_err(|e| format!("Failed to lock filter mutex: {}", e))?
         .clone();
+
     let config_path = get_config_path(&name)?;
-    
-    // Create a config file structure with both settings and filter
-    let config = ConfigFile {
-        settings,
-        filter,
-    };
-    
-    // Convert to TOML string
+
+    let config = ConfigFile { settings, filter };
+
     let content = toml::to_string_pretty(&config)
         .map_err(|e| format!("Failed to serialize config: {}", e))?;
-    
-    // Write to file
+
     let mut file = fs::File::create(&config_path)
         .map_err(|e| format!("Failed to create config file: {}", e))?;
+
     file.write_all(content.as_bytes())
         .map_err(|e| format!("Failed to write to config file: {}", e))?;
-    
+
     info!("Saved configuration to {}", name);
+
     Ok(())
 }
 
@@ -81,23 +83,25 @@ pub async fn load_config(
     name: String,
 ) -> Result<PacketManipulationSettings, String> {
     let config_path = get_config_path(&name)?;
-    
-    // Read the config file
+
     let content = fs::read_to_string(&config_path)
         .map_err(|e| format!("Failed to read config file: {}", e))?;
-    
-    // Deserialize the config
-    let config: ConfigFile = toml::from_str(&content)
-        .map_err(|e| format!("Failed to deserialize config: {}", e))?;
-    
-    // Update both settings and filter in the state
-    *state.settings.lock()
+
+    let config: ConfigFile =
+        toml::from_str(&content).map_err(|e| format!("Failed to deserialize config: {}", e))?;
+
+    *state
+        .settings
+        .lock()
         .map_err(|e| format!("Failed to lock settings mutex: {}", e))? = config.settings.clone();
-    *state.filter.lock()
+
+    *state
+        .filter
+        .lock()
         .map_err(|e| format!("Failed to lock filter mutex: {}", e))? = config.filter.clone();
-    
+
     info!("Loaded configuration from {}", name);
-    
+
     Ok(config.settings)
 }
 
@@ -110,7 +114,7 @@ pub async fn load_config(
 #[tauri::command]
 pub async fn list_configs() -> Result<Vec<String>, String> {
     let config_dir = get_config_dir()?;
-    
+
     let mut configs = Vec::new();
     for entry in std::fs::read_dir(config_dir).map_err(|e| e.to_string())? {
         let entry = entry.map_err(|e| e.to_string())?;
@@ -123,7 +127,7 @@ pub async fn list_configs() -> Result<Vec<String>, String> {
             }
         }
     }
-    
+
     Ok(configs)
 }
 
@@ -140,15 +144,16 @@ pub async fn list_configs() -> Result<Vec<String>, String> {
 #[tauri::command]
 pub async fn delete_config(name: String) -> Result<(), String> {
     let config_path = get_config_path(&name)?;
-    
-    if config_path.exists() {
-        std::fs::remove_file(&config_path)
-            .map_err(|e| format!("Failed to delete config: {}", e))?;
-        info!("Deleted configuration {}", name);
-        Ok(())
-    } else {
-        Err(format!("Configuration {} does not exist", name))
+
+    if !config_path.exists() {
+        return Err(format!("Configuration {} does not exist", name));
     }
+
+    std::fs::remove_file(&config_path).map_err(|e| format!("Failed to delete config: {}", e))?;
+
+    info!("Deleted configuration {}", name);
+
+    Ok(())
 }
 
 /// Gets the path to the configs directory
@@ -165,13 +170,13 @@ fn get_config_dir() -> Result<PathBuf, String> {
         .parent()
         .ok_or_else(|| "Could not determine executable directory".to_string())?
         .to_path_buf();
-    
+
     let config_dir = exe_dir.join("configs");
     if !config_dir.exists() {
         std::fs::create_dir_all(&config_dir)
             .map_err(|e| format!("Failed to create config directory: {}", e))?;
     }
-    
+
     Ok(config_dir)
 }
 
@@ -189,4 +194,4 @@ fn get_config_path(name: &str) -> Result<PathBuf, String> {
     let mut path = get_config_dir()?;
     path.push(format!("{}.toml", name));
     Ok(path)
-} 
+}

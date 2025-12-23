@@ -11,7 +11,7 @@ use std::path::Path;
 use std::{fs, io};
 
 /// Custom serializer for Option<T> values in configuration.
-/// 
+///
 /// This function allows for consistent serialization of Option values
 /// across the application.
 pub fn serialize_option<T, S>(value: &Option<T>, serializer: S) -> Result<S::Ok, S::Error>
@@ -26,7 +26,7 @@ where
 }
 
 /// Represents all network packet manipulation settings.
-/// 
+///
 /// This struct contains all the different types of network condition simulations
 /// that can be applied to packets, each as an optional setting.
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]

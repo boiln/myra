@@ -21,29 +21,22 @@ use windivert_sys::WinDivertFlags;
 ///
 /// The complete filter string with Tauri port exclusions
 fn construct_filter_with_exclusions(user_filter: &Option<String>) -> Option<String> {
-    // When filter is None and we're stopping, return None to stop capturing
     if user_filter.is_none() {
         return None;
     }
 
-    // Tauri's default development port
     const TAURI_PORT: u16 = 1420;
-    
-    // Base filter excluding Tauri ports - using proper WinDivert filter syntax
+
     let tauri_exclusion = format!(
         "tcp.DstPort != {0} or tcp.SrcPort != {0} or udp.DstPort != {0} or udp.SrcPort != {0}",
         TAURI_PORT
     );
-    
+
     Some(match user_filter {
         Some(filter) if !filter.is_empty() => {
-            // Combine user filter with port exclusion
             format!("{} and ({})", filter, tauri_exclusion)
         }
-        _ => {
-            // If no user filter but we're not stopping, use true to capture all non-Tauri packets
-            tauri_exclusion
-        }
+        _ => tauri_exclusion,
     })
 }
 
@@ -92,7 +85,10 @@ pub fn receive_packets(
 
         // If filter changed, update WinDivert handle
         if current_filter != last_filter {
-            info!("Filter changed to: {}", current_filter.as_deref().unwrap_or("none"));
+            info!(
+                "Filter changed to: {}",
+                current_filter.as_deref().unwrap_or("none")
+            );
             if let Some(ref filter_str) = current_filter {
                 update_windivert_handle(&mut wd, filter_str)?;
             } else {
@@ -138,7 +134,7 @@ pub fn receive_packets(
     // Clean up resources
     if let Some(mut handle) = wd {
         debug!("Closing packet receiving WinDivert handle on shutdown");
-        
+
         // First close the handle
         if let Err(e) = handle.close(CloseAction::Nothing) {
             error!("Failed to close WinDivert handle on shutdown: {}", e);
@@ -186,7 +182,7 @@ fn update_windivert_handle(
     // Close existing handle if it exists
     if let Some(ref mut wd_handle) = wd {
         debug!("Filter changed, closing existing WinDivert handle");
-        
+
         if let Err(e) = wd_handle.close(CloseAction::Nothing) {
             error!("Failed to close existing WinDivert handle: {}", e);
         }
@@ -211,7 +207,7 @@ fn update_windivert_handle(
 
     // Open a new WinDivert handle with the actual filter
     info!("Creating new WinDivert handle with filter: {}", filter);
-    
+
     match WinDivert::<NetworkLayer>::network(
         filter,
         1, // High priority
@@ -226,7 +222,8 @@ fn update_windivert_handle(
             error!("Failed to initialize WinDivert: {}", e);
             debug!("WinDivert error detailed: {:?}", e);
             // Try one final flush of WFP cache
-            if let Ok(mut h) = WinDivert::<NetworkLayer>::network("false", 0, WinDivertFlags::new()) {
+            if let Ok(mut h) = WinDivert::<NetworkLayer>::network("false", 0, WinDivertFlags::new())
+            {
                 let _ = h.close(CloseAction::Nothing);
             }
             Err(e)
@@ -249,5 +246,6 @@ fn should_shutdown(running: &Arc<AtomicBool>) -> bool {
         debug!("Packet receiving thread exiting due to shutdown signal.");
         return true;
     }
+
     false
 }

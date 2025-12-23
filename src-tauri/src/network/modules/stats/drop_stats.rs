@@ -14,10 +14,10 @@ use crate::network::modules::stats::util::ewma::Ewma;
 pub struct DropStats {
     /// Total number of packets processed
     pub total_packets: usize,
-    
+
     /// Total number of packets dropped
     pub total_dropped: usize,
-    
+
     /// EWMA for recent drop rate calculations
     ewma: Ewma,
 }
@@ -88,10 +88,10 @@ impl DropStats {
     /// ```
     pub fn total_drop_rate(&self) -> f64 {
         if self.total_packets == 0 {
-            0.0
-        } else {
-            self.total_dropped as f64 / self.total_packets as f64
+            return 0.0;
         }
+
+        self.total_dropped as f64 / self.total_packets as f64
     }
 
     /// Gets the recent drop rate based on the EWMA.
@@ -106,7 +106,7 @@ impl DropStats {
     pub fn recent_drop_rate(&self) -> f64 {
         self.ewma.get().unwrap_or(0.0)
     }
-    
+
     /// Resets all statistics to zero.
     ///
     /// This clears both the total counters and resets the EWMA.
@@ -134,25 +134,25 @@ mod tests {
     #[test]
     fn test_record_drops() {
         let mut stats = DropStats::new(0.5);
-        
+
         // Record 1 drop, 2 non-drops
         stats.record(true);
         stats.record(false);
         stats.record(false);
-        
+
         assert_eq!(stats.total_packets, 3);
         assert_eq!(stats.total_dropped, 1);
-        assert_eq!(stats.total_drop_rate(), 1.0/3.0);
+        assert_eq!(stats.total_drop_rate(), 1.0 / 3.0);
     }
 
     #[test]
     fn test_reset() {
         let mut stats = DropStats::new(0.5);
-        
+
         // Record some data
         stats.record(true);
         stats.record(true);
-        
+
         // Reset and verify counters are zeroed
         stats.reset();
         assert_eq!(stats.total_packets, 0);

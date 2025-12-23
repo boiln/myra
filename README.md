@@ -29,7 +29,6 @@ Download the latest release from the [releases page](https://github.com/boiln/my
 ### Building from Source
 
 1. Install prerequisites:
-
     - [Node.js](https://nodejs.org/) (v18 or later)
     - [Rust](https://rustup.rs/) (latest stable)
     - [pnpm](https://pnpm.io/) (latest version)
@@ -76,7 +75,6 @@ pnpm tauri build
 ### Common Issues
 
 1. "DLL not found" errors:
-
     - Verify you're running as administrator (right-click -> Run as administrator)
     - Check that WinDivert.dll exists in the application directory
     - Check that WinDivert64.sys exists in the application directory

@@ -25,15 +25,18 @@ pub fn duplicate_packets(
     let mut duplicate_packets = Vec::with_capacity(packets.len() * count);
 
     for packet_data in packets.iter() {
-        if rng.random::<f64>() < probability.value() {
-            for _ in 1..=count {
-                duplicate_packets.push(PacketData::from(packet_data.packet.clone()));
-            }
-            stats.record(1 + count);
-        } else {
+        if rng.random::<f64>() >= probability.value() {
             stats.record(1);
+            continue;
         }
+
+        for _ in 1..=count {
+            duplicate_packets.push(PacketData::from(packet_data.packet.clone()));
+        }
+
+        stats.record(1 + count);
     }
+
     packets.extend(duplicate_packets);
 }
 

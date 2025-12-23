@@ -112,24 +112,23 @@ pub async fn start_processing(
     filter: Option<String>,
 ) -> Result<(), String> {
     let running = state.running.load(Ordering::SeqCst);
+
     if running {
         return Err("Packet processing already running".to_string());
     }
 
-    // Update settings and filter
     *state
         .settings
         .lock()
         .map_err(|e| format!("Failed to lock settings mutex: {}", e))? = settings;
+
     *state
         .filter
         .lock()
         .map_err(|e| format!("Failed to lock filter mutex: {}", e))? = filter;
 
-    // Create channel for packet communication
     let (packet_sender, packet_receiver) = mpsc::channel();
 
-    // Start packet receiving thread
     let running_recv = state.running.clone();
     let settings_recv = state.settings.clone();
     let filter_recv = state.filter.clone();
@@ -140,7 +139,6 @@ pub async fn start_processing(
         }
     });
 
-    // Start packet processing thread
     let running_proc = state.running.clone();
     let settings_proc = state.settings.clone();
     let statistics = state.statistics.clone();
@@ -155,6 +153,7 @@ pub async fn start_processing(
 
     state.running.store(true, Ordering::SeqCst);
     info!("Started packet processing");
+
     Ok(())
 }
 
@@ -177,22 +176,17 @@ pub async fn stop_processing(state: State<'_, PacketProcessingState>) -> Result<
         return Err("Packet processing not running".to_string());
     }
 
-    // First reset filter to ensure no new packets are captured
     *state
         .filter
         .lock()
         .map_err(|e| format!("Failed to lock filter mutex: {}", e))? = None;
 
-    // Give a small time for filter change to propagate
     thread::sleep(Duration::from_millis(100));
 
-    // Signal threads to stop
     state.running.store(false, Ordering::SeqCst);
 
-    // Give threads time to properly close their WinDivert handles and flush caches
     thread::sleep(Duration::from_millis(500));
 
-    // Try to force a final WFP cache flush using WinDivert directly
     use windivert::layer::NetworkLayer;
     use windivert::prelude::WinDivertFlags;
     use windivert::CloseAction;
@@ -231,11 +225,12 @@ pub async fn get_status(
     state: State<'_, PacketProcessingState>,
 ) -> Result<ProcessingStatus, String> {
     let running = state.running.load(Ordering::SeqCst);
-    let statistics = if running {
+
+    let statistics = if !running {
+        None
+    } else {
         let stats = state.statistics.read().map_err(|e| e.to_string())?;
         Some(format!("{:?}", stats))
-    } else {
-        None
     };
 
     let settings = state.settings.lock().map_err(|e| e.to_string())?;
@@ -415,10 +410,8 @@ pub async fn update_settings(
     state: State<'_, PacketProcessingState>,
     modules: Vec<ModuleInfo>,
 ) -> Result<(), String> {
-    // Create new packet manipulation settings
     let mut settings = PacketManipulationSettings::default();
 
-    // Process each module and update the corresponding settings
     for module in modules {
         match module.name.as_str() {
             "drop" => {
@@ -430,21 +423,21 @@ pub async fn update_settings(
                     duration_ms: module.config.duration_ms.unwrap_or(0),
                 });
             }
+
             "delay" => {
                 let probability = Probability::new(module.config.chance / 100.0)
                     .map_err(|e| format!("Invalid delay probability: {}", e))?;
 
-                // For Delay module: duration_ms is the delay time (how long to hold packets)
-                // The effect duration is always infinite (0)
                 let delay_time = module.config.duration_ms.unwrap_or(1000);
                 let delay_time = if delay_time == 0 { 1000 } else { delay_time };
 
                 settings.delay = Some(DelayOptions {
                     delay_ms: delay_time,
                     probability,
-                    duration_ms: 0, // Always infinite
+                    duration_ms: 0,
                 });
             }
+
             "throttle" => {
                 let probability = Probability::new(module.config.chance / 100.0)
                     .map_err(|e| format!("Invalid throttle probability: {}", e))?;
@@ -453,9 +446,10 @@ pub async fn update_settings(
                     probability,
                     throttle_ms: module.config.throttle_ms.unwrap_or(30),
                     duration_ms: module.config.duration_ms.unwrap_or(0),
-                    drop: false, // Default to false, can be updated if needed
+                    drop: false,
                 });
             }
+
             "duplicate" => {
                 let probability = Probability::new(module.config.chance / 100.0)
                     .map_err(|e| format!("Invalid duplicate probability: {}", e))?;
@@ -466,6 +460,7 @@ pub async fn update_settings(
                     duration_ms: module.config.duration_ms.unwrap_or(0),
                 });
             }
+
             "bandwidth" => {
                 let probability = Probability::new(module.config.chance / 100.0)
                     .map_err(|e| format!("Invalid bandwidth probability: {}", e))?;
@@ -478,11 +473,11 @@ pub async fn update_settings(
                     duration_ms: module.config.duration_ms.unwrap_or(0),
                 });
             }
+
             "tamper" => {
                 let probability = Probability::new(module.config.chance / 100.0)
                     .map_err(|e| format!("Invalid tamper probability: {}", e))?;
 
-                // Use 50% as the default tamper amount (how many bytes to modify per packet)
                 let amount = Probability::new(0.5).unwrap();
 
                 settings.tamper = Some(TamperOptions {
@@ -492,6 +487,7 @@ pub async fn update_settings(
                     recalculate_checksums: Some(true),
                 });
             }
+
             "reorder" => {
                 let probability = Probability::new(module.config.chance / 100.0)
                     .map_err(|e| format!("Invalid reorder probability: {}", e))?;
@@ -502,20 +498,22 @@ pub async fn update_settings(
                     duration_ms: module.config.duration_ms.unwrap_or(0),
                 });
             }
+
             _ => {
                 return Err(format!("Unknown module: {}", module.name));
             }
         }
     }
 
-    // Update the settings in the application state
     let mut state_settings = state
         .settings
         .lock()
         .map_err(|e| format!("Failed to lock settings mutex: {}", e))?;
+
     *state_settings = settings;
 
     info!("Settings updated successfully");
+
     Ok(())
 }
 

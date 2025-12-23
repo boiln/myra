@@ -13,7 +13,7 @@ pub struct TamperOptions {
     #[arg(long = "tamper-amount", default_value_t = Probability::new(0.1).unwrap(), id = "tamper-amount")]
     #[serde(default)]
     pub amount: Probability,
-    
+
     /// Duration for which the effect is applied in milliseconds (0 = infinite)
     #[arg(long = "tamper-duration", id = "tamper-duration", default_value_t = 0)]
     #[serde(default)]

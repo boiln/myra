@@ -48,10 +48,10 @@ impl ReorderStats {
     #[allow(dead_code)]
     pub fn total_reorder_rate(&self) -> f64 {
         if self.total_packets == 0 {
-            0.0
-        } else {
-            self.reordered_packets as f64 / self.total_packets as f64
+            return 0.0;
         }
+
+        self.reordered_packets as f64 / self.total_packets as f64
     }
 
     /// Returns the recent reorder rate based on the EWMA

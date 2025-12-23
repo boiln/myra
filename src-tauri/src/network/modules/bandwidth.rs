@@ -51,13 +51,12 @@ pub fn bandwidth_limiter<'a>(
     let incoming_packet_count = packets.len();
 
     stats.storage_packet_count += incoming_packet_count;
+
     add_packets_to_buffer(buffer, packets, total_buffer_size);
     maintain_buffer_size(buffer, total_buffer_size, stats);
 
     let now = Instant::now();
     let elapsed = now.duration_since(*last_send_time).as_secs_f64();
-
-    // Calculate bytes allowed based on bandwidth limit (KB/s * elapsed seconds = KB, * 1024 = bytes)
     let bytes_allowed = ((bandwidth_limit_kbps as f64) * 1024.0 * elapsed) as usize;
 
     let mut bytes_sent = 0;
@@ -65,10 +64,13 @@ pub fn bandwidth_limiter<'a>(
 
     while let Some(packet_data) = buffer.front() {
         let packet_size = packet_data.packet.data.len();
+
         if bytes_sent + packet_size > bytes_allowed {
             break;
         }
+
         bytes_sent += packet_size;
+
         if let Some(packet) = remove_packet_from_buffer(buffer, total_buffer_size, stats) {
             to_send.push(packet);
         }
@@ -76,10 +78,12 @@ pub fn bandwidth_limiter<'a>(
 
     packets.extend(to_send);
 
-    if bytes_sent > 0 {
-        stats.record(bytes_sent);
-        *last_send_time = now;
+    if bytes_sent == 0 {
+        return;
     }
+
+    stats.record(bytes_sent);
+    *last_send_time = now;
 }
 
 /// Adds a single packet to the buffer and updates the total buffer size
@@ -134,13 +138,12 @@ fn remove_packet_from_buffer<'a>(
     total_size: &mut usize,
     stats: &mut BandwidthStats,
 ) -> Option<PacketData<'a>> {
-    if let Some(packet) = buffer.pop_front() {
-        *total_size -= packet.packet.data.len();
-        stats.storage_packet_count = stats.storage_packet_count.saturating_sub(1);
-        Some(packet)
-    } else {
-        None
-    }
+    let packet = buffer.pop_front()?;
+
+    *total_size -= packet.packet.data.len();
+    stats.storage_packet_count = stats.storage_packet_count.saturating_sub(1);
+
+    Some(packet)
 }
 
 /// Ensures the buffer doesn't exceed the maximum size by removing packets if necessary
@@ -156,10 +159,8 @@ fn maintain_buffer_size(
     stats: &mut BandwidthStats,
 ) {
     while *total_size > MAX_BUFFER_SIZE {
-        if remove_packet_from_buffer(buffer, total_size, stats).is_some() {
-            // Packet removed from buffer to maintain size limit
-        } else {
-            break; // No more packets to remove
+        if remove_packet_from_buffer(buffer, total_size, stats).is_none() {
+            break;
         }
     }
 }

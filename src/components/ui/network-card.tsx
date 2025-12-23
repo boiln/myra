@@ -2,8 +2,10 @@ import { cn } from "@/lib/utils";
 import { motion, HTMLMotionProps } from "framer-motion";
 import React, { useState } from "react";
 
-interface NetworkCardProps
-    extends Omit<HTMLMotionProps<"div">, "initial" | "animate" | "transition" | "whileTap"> {
+interface NetworkCardProps extends Omit<
+    HTMLMotionProps<"div">,
+    "initial" | "animate" | "transition" | "whileTap"
+> {
     isActive?: boolean;
     isFeatured?: boolean;
     children: React.ReactNode;

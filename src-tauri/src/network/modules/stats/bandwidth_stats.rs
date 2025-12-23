@@ -13,19 +13,19 @@ use std::time::{Duration, Instant};
 pub struct BandwidthStats {
     /// Number of packets currently held in the bandwidth limiter's buffer
     pub(crate) storage_packet_count: usize,
-    
+
     /// Total number of bytes sent since this stats tracker was created
     pub(crate) total_byte_count: usize,
-    
+
     /// EWMA calculator for smoothing throughput measurements
     ewma: Ewma,
-    
+
     /// Bytes sent since the last EWMA update
     recent_byte_sent: usize,
-    
+
     /// Timer used to determine when to update the EWMA
     recent_timer: Instant,
-    
+
     /// Interval at which to update the EWMA
     update_interval: Duration,
 }
@@ -91,7 +91,7 @@ impl BandwidthStats {
     pub fn recent_throughput(&self) -> f64 {
         self.ewma.get().unwrap_or(0.0)
     }
-    
+
     /// Returns the total number of bytes sent
     ///
     /// # Returns
@@ -100,7 +100,7 @@ impl BandwidthStats {
     pub fn total_bytes(&self) -> usize {
         self.total_byte_count
     }
-    
+
     /// Returns the number of packets currently held in the buffer
     ///
     /// # Returns
@@ -109,7 +109,7 @@ impl BandwidthStats {
     pub fn buffered_packets(&self) -> usize {
         self.storage_packet_count
     }
-    
+
     /// Resets all statistics to zero
     ///
     /// This resets the packet count, byte count, and EWMA calculations.

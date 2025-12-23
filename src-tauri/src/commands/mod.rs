@@ -1,5 +1,5 @@
-use std::sync::{Arc, Mutex, RwLock};
 use std::sync::atomic::AtomicBool;
+use std::sync::{Arc, Mutex, RwLock};
 use tauri::Manager;
 
 use crate::network::modules::stats::PacketProcessingStatistics;
@@ -24,15 +24,15 @@ impl Default for PacketProcessingState {
     }
 }
 
-pub mod settings;
 pub mod config;
+pub mod settings;
 
 use tauri::App;
 
 pub fn register_commands(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
     // Initialize the packet processing state
     app.manage(PacketProcessingState::default());
-    
+
     // The commands are registered in main.rs through invoke_handler
     Ok(())
 }

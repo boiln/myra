@@ -2,7 +2,7 @@ use crate::network::core::packet_data::PacketData;
 use crate::network::modules::stats::tamper_stats::TamperStats;
 use crate::network::types::probability::Probability;
 use log::error;
-use rand::{Rng, rng};
+use rand::{rng, Rng};
 use std::collections::HashSet;
 use windivert_sys::ChecksumFlags;
 
@@ -46,7 +46,7 @@ pub fn tamper_packets(
 ) {
     let should_update_stats = stats.should_update();
     let mut rng = rng();
-    
+
     for packet_data in packets.iter_mut() {
         let should_skip = rng.random::<f64>() >= tamper_probability.value();
 
@@ -66,21 +66,23 @@ pub fn tamper_packets(
         };
 
         let total_header_len = match protocol {
-            17 => parse_udp_header(data, ip_header_len), // UDP
-            6 => parse_tcp_header(data, ip_header_len),  // TCP
-            _ => ip_header_len,                          // Unsupported protocols
+            17 => parse_udp_header(data, ip_header_len),
+            6 => parse_tcp_header(data, ip_header_len),
+            _ => ip_header_len,
         };
 
         let payload_offset = total_header_len;
         let payload_length = data.len() - payload_offset;
 
         if should_skip {
-            if should_update_stats {
-                stats.data = data[payload_offset..].to_owned();
-                stats.tamper_flags = vec![false; stats.data.len()];
-                stats.checksum_valid = true;
-                stats.updated();
+            if !should_update_stats {
+                continue;
             }
+
+            stats.data = data[payload_offset..].to_owned();
+            stats.tamper_flags = vec![false; stats.data.len()];
+            stats.checksum_valid = true;
+            stats.updated();
             continue;
         }
 
@@ -105,12 +107,14 @@ pub fn tamper_packets(
             }
         }
 
-        if should_update_stats {
-            stats.checksum_valid = packet_data.packet.address.ip_checksum()
-                && packet_data.packet.address.tcp_checksum()
-                && packet_data.packet.address.udp_checksum();
-            stats.updated();
+        if !should_update_stats {
+            continue;
         }
+
+        stats.checksum_valid = packet_data.packet.address.ip_checksum()
+            && packet_data.packet.address.tcp_checksum()
+            && packet_data.packet.address.udp_checksum();
+        stats.updated();
     }
 }
 

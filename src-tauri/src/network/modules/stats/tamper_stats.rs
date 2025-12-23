@@ -14,16 +14,16 @@ use std::time::{Duration, Instant};
 pub struct TamperStats {
     /// Raw payload data from the most recently tampered packet
     pub(crate) data: Vec<u8>,
-    
+
     /// Boolean flags indicating which bytes in the data were tampered with (true = tampered)
     pub(crate) tamper_flags: Vec<bool>,
-    
+
     /// Indicates whether packet checksums are still valid after tampering
     pub(crate) checksum_valid: bool,
-    
+
     /// When statistics were last updated
     pub last_update: Instant,
-    
+
     /// How often statistics should be updated
     pub update_interval: Duration,
 }
@@ -72,7 +72,7 @@ impl TamperStats {
     pub fn updated(&mut self) {
         self.last_update = Instant::now();
     }
-    
+
     /// Returns the raw payload data from the most recently tampered packet
     ///
     /// # Returns
@@ -81,7 +81,7 @@ impl TamperStats {
     pub fn data(&self) -> &[u8] {
         &self.data
     }
-    
+
     /// Returns the tamper flags indicating which bytes were modified
     ///
     /// # Returns
@@ -90,7 +90,7 @@ impl TamperStats {
     pub fn tamper_flags(&self) -> &[bool] {
         &self.tamper_flags
     }
-    
+
     /// Returns whether packet checksums are still valid after tampering
     ///
     /// # Returns
@@ -99,7 +99,7 @@ impl TamperStats {
     pub fn checksum_valid(&self) -> bool {
         self.checksum_valid
     }
-    
+
     /// Resets all statistics
     ///
     /// Clears the data and tamper flags and resets the checksum status.
@@ -109,21 +109,24 @@ impl TamperStats {
         self.checksum_valid = true;
         self.last_update = Instant::now();
     }
-    
+
     /// Returns the number of tampered bytes in the most recent packet
     ///
     /// # Returns
     ///
     /// The count of bytes that were tampered with
     pub fn tampered_byte_count(&self) -> usize {
-        self.tamper_flags.iter().filter(|&&tampered| tampered).count()
+        self.tamper_flags
+            .iter()
+            .filter(|&&tampered| tampered)
+            .count()
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_new() {
         let stats = TamperStats::new(Duration::from_millis(100));
@@ -131,25 +134,25 @@ mod tests {
         assert!(stats.tamper_flags.is_empty());
         assert!(stats.checksum_valid);
     }
-    
+
     #[test]
     fn test_should_update() {
         // Create with a refresh interval that's already elapsed
         let mut stats = TamperStats::new(Duration::from_millis(0));
         assert!(stats.should_update());
-        
+
         // Update and check again immediately
         stats.updated();
         stats.update_interval = Duration::from_secs(1);
         assert!(!stats.should_update());
     }
-    
+
     #[test]
     fn test_tampered_byte_count() {
         let mut stats = TamperStats::new(Duration::from_millis(100));
         stats.tamper_flags = vec![true, false, true, false, true];
         assert_eq!(stats.tampered_byte_count(), 3);
-        
+
         stats.tamper_flags = vec![false, false, false];
         assert_eq!(stats.tampered_byte_count(), 0);
     }

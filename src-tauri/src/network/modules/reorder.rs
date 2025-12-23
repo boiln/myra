@@ -40,26 +40,27 @@ pub fn reorder_packets<'a>(
         reorder_probability.value()
     );
 
-    let mut skipped_packets = Vec::new(); // Temporary storage for packets to be skipped
+    let mut skipped_packets = Vec::new();
     let mut rng = rng();
     let mut delayed_count = 0;
 
     for packet in packets.drain(..) {
         if rng.random::<f64>() >= reorder_probability.value() {
-            skipped_packets.push(packet); // Store skipped packets
+            skipped_packets.push(packet);
             stats.record(false);
             continue;
         }
 
-        // Calculate a random delay time between 0 and max_delay
         let delay_max = max_delay.as_millis() as u64;
         let delay_millis = rng.random_range(0..delay_max);
         let delay = Duration::from_millis(delay_millis);
         let delayed_packet = DelayedPacket::new(packet, delay);
+
         storage.push(delayed_packet);
         stats.record(true);
         delayed_count += 1;
     }
+
     stats.delayed_packets = storage.len();
 
     if delayed_count > 0 {
@@ -70,24 +71,24 @@ pub fn reorder_packets<'a>(
         );
     }
 
-    // Append skipped packets back to the original packets vector
     packets.append(&mut skipped_packets);
 
-    // Process packets whose delay time has elapsed
     let now = Instant::now();
     let mut released_count = 0;
+
     while let Some(delayed_packet) = storage.peek() {
-        if delayed_packet.delay_until <= now {
-            if let Some(delayed_packet) = storage.pop() {
-                packets.push(delayed_packet.packet);
-                released_count += 1;
-            } else {
-                error!("Expected a delayed packet, but none was found in storage.");
-                break;
-            }
-        } else {
+        if delayed_packet.delay_until > now {
             break;
         }
+
+        if let Some(delayed_packet) = storage.pop() {
+            packets.push(delayed_packet.packet);
+            released_count += 1;
+            continue;
+        }
+
+        error!("Expected a delayed packet, but none was found in storage.");
+        break;
     }
 
     if released_count > 0 {
