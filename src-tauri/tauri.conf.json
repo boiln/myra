@@ -2,7 +2,7 @@
     "$schema": "https://tauri.app/v1/manifest.schema.json",
     "identifier": "myra",
     "productName": "Myra",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "build": {
         "beforeDevCommand": "pnpm run dev",
         "beforeBuildCommand": "pnpm run build",
