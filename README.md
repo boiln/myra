@@ -13,6 +13,7 @@ https://github.com/user-attachments/assets/f30a2227-25e4-47ee-a7d2-51726436f23f
 ## Prerequisites
 
 Before running Myra, ensure you have the following installed:
+[WinDivert](https://github.com/basil00/WinDivert)
 
 **Administrator Privileges** - Required for network packet capture
 
