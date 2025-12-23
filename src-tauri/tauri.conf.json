@@ -47,7 +47,7 @@
         "longDescription": "",
         "shortDescription": "",
         "externalBin": [],
-        "resources": [],
+        "resources": ["WinDivert.dll", "WinDivert64.sys"],
         "windows": {
             "certificateThumbprint": null,
             "digestAlgorithm": "sha256",

@@ -13,3 +13,6 @@
 ncat -u -l -p 9999
 
 python C:\Users\vR\workflow\myra-tauri\scripts\send_udp_nums.py 127.0.0.1 9999
+
+cd ~/Desktop/myra; pnpm install; pnpm tauri dev
+cd ~/workflow/myra-tauri; pnpm install; pnpm tauri dev
