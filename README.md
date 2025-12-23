@@ -1,4 +1,4 @@
-[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/boiln/myra/releases)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/boiln/myra/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Windows Support](https://img.shields.io/badge/Windows-10%2F11-brightgreen)](https://www.microsoft.com/windows)
 
