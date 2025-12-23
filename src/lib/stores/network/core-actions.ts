@@ -20,7 +20,7 @@ export const createCoreSlice: StateCreator<
             const modules: ModuleInfo[] = [
                 {
                     name: "delay",
-                    display_name: "Freeze",
+                    display_name: "Delay",
                     enabled: !!settings.delay,
                     config: {
                         inbound: true,
@@ -32,7 +32,7 @@ export const createCoreSlice: StateCreator<
                 },
                 {
                     name: "drop",
-                    display_name: "Drop",
+                    display_name: "Freeze",
                     enabled: !!settings.drop,
                     config: {
                         inbound: true,

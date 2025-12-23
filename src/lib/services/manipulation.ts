@@ -25,11 +25,11 @@ export const ManipulationService = {
     createModulesFromSettings(settings: PacketManipulationSettings): any[] {
         const modules = [];
 
-        // Drop module
+        // Freeze module (Drop packets)
         if (settings.drop) {
             modules.push({
                 name: "drop",
-                display_name: "Drop",
+                display_name: "Freeze",
                 enabled: true,
                 config: {
                     inbound: true,
@@ -42,18 +42,18 @@ export const ManipulationService = {
             });
         }
 
-        // Freeze module (was Delay)
+        // Delay module
         if (settings.delay) {
             modules.push({
                 name: "delay",
-                display_name: "Freeze",
+                display_name: "Delay",
                 enabled: true,
                 config: {
                     inbound: true,
                     outbound: true,
                     chance: settings.delay.probability * 100,
                     enabled: true,
-                    duration_ms: settings.delay.duration_ms, // Freeze time
+                    duration_ms: settings.delay.duration_ms, // Delay time
                 },
                 params: null,
             });

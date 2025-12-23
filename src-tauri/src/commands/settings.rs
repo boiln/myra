@@ -241,11 +241,11 @@ pub async fn get_status(
     let settings = state.settings.lock().map_err(|e| e.to_string())?;
     let mut modules = Vec::new();
 
-    // Drop module
+    // Freeze module (Drop packets)
     if let Some(drop) = &settings.drop {
         modules.push(ModuleInfo {
             name: "drop".to_string(),
-            display_name: "Drop".to_string(),
+            display_name: "Freeze".to_string(),
             enabled: true,
             config: ModuleConfig {
                 inbound: true,
@@ -261,11 +261,11 @@ pub async fn get_status(
         });
     }
 
-    // Freeze module (was Delay)
+    // Delay module
     if let Some(delay) = &settings.delay {
         modules.push(ModuleInfo {
             name: "delay".to_string(),
-            display_name: "Freeze".to_string(),
+            display_name: "Delay".to_string(),
             enabled: true,
             config: ModuleConfig {
                 inbound: true,
@@ -434,13 +434,13 @@ pub async fn update_settings(
                 let probability = Probability::new(module.config.chance / 100.0)
                     .map_err(|e| format!("Invalid delay probability: {}", e))?;
 
-                // For Freeze module: duration_ms is the freeze time (how long to hold packets)
+                // For Delay module: duration_ms is the delay time (how long to hold packets)
                 // The effect duration is always infinite (0)
-                let freeze_time = module.config.duration_ms.unwrap_or(1000);
-                let freeze_time = if freeze_time == 0 { 1000 } else { freeze_time };
+                let delay_time = module.config.duration_ms.unwrap_or(1000);
+                let delay_time = if delay_time == 0 { 1000 } else { delay_time };
 
                 settings.delay = Some(DelayOptions {
-                    delay_ms: freeze_time,
+                    delay_ms: delay_time,
                     probability,
                     duration_ms: 0, // Always infinite
                 });
@@ -482,8 +482,8 @@ pub async fn update_settings(
                 let probability = Probability::new(module.config.chance / 100.0)
                     .map_err(|e| format!("Invalid tamper probability: {}", e))?;
 
-                // Default amount to 10% if not specified
-                let amount = Probability::new(0.1).unwrap_or_else(|_| Probability::default());
+                // Use 50% as the default tamper amount (how many bytes to modify per packet)
+                let amount = Probability::new(0.5).unwrap();
 
                 settings.tamper = Some(TamperOptions {
                     probability,
