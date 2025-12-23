@@ -1,0 +1,23 @@
+:root[data-theme="blue"] {
+    --background: 210 50% 10%;
+    --foreground: 0 0% 98%;
+    --card: 210 50% 15%;
+    --card-foreground: 0 0% 98%;
+    --popover: 210 50% 15%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 210 80% 60%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 210 50% 20%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 210 50% 25%;
+    --muted-foreground: 210 50% 70%;
+    --accent: 210 80% 60%;
+    --accent-foreground: 210 50% 15%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 210 50% 25%;
+    --input: 210 50% 20%;
+    --ring: 210 80% 60%;
+    --radius: 0.5rem;
+    --font-size-compact: 11px;
+}

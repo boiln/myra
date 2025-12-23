@@ -1,0 +1,23 @@
+:root[data-theme="red"] {
+    --background: 0 60% 15%;
+    --foreground: 0 0% 100%;
+    --card: 0 60% 25%;
+    --card-foreground: 0 0% 100%;
+    --popover: 0 60% 25%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 0 80% 70%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 60% 35%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 60% 45%;
+    --muted-foreground: 0 30% 85%;
+    --accent: 0 80% 70%;
+    --accent-foreground: 0 60% 25%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 60% 30%;
+    --input: 0 60% 35%;
+    --ring: 0 80% 70%;
+    --radius: 0.5rem;
+    --font-size-compact: 11px;
+}

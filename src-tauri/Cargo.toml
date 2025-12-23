@@ -1,0 +1,73 @@
+[package]
+name = "myra"
+version = "0.1.0"
+authors = ["boiln"]
+description = "A tool for simulating poor network conditions"
+repository = "https://github.com/boiln/myra"
+edition = "2021"
+rust-version = "1.70.0"  # Specify minimum Rust version
+license = "MIT"  # Add appropriate license
+keywords = ["clumsy", "network", "packet", "manipulation", "simulation"]
+categories = ["development-tools::testing", "simulation", "network-programming"]
+readme = "../README.md"
+
+[build-dependencies]
+tauri-build = { version = "2.0.0", features = [] }
+
+[dependencies]
+# Tauri framework
+tauri = { version = "2.0.0", features = [] }
+tauri-plugin-fs = "2.0.0"
+tauri-plugin-opener = "2.0.0"
+tauri-plugin-window-state = { version = "2.0.0" }
+
+# WinDivert for packet capture and manipulation
+windivert = { version = "0.6", features = ["vendored"] }
+windivert-sys = "0.10.0"
+
+# Windows API bindings
+winapi = { version = "0.3.9", features = ["securitybaseapi", "winnt"] }
+
+# Error handling and utilities
+thiserror = "2.0.12"
+lazy_static = "1.5.0"
+
+# Randomization and probability 
+rand = "0.9.0-alpha.2"
+
+# Serialization/Deserialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.8.19"
+
+# File system utilities
+dirs = "6.0.0"
+
+# Command-line argument parsing
+clap = { version = "4.5.11", features = ["derive"] }
+
+# Text handling
+tui-textarea = "0.7.0"
+regex = "1.10.5"
+
+# Process control
+ctrlc = "3.2"
+
+# Logging
+log = "0.4.22"
+env_logger = "0.11.5"
+
+# Time utilities
+chrono = "0.4.34"
+
+[profile.release]
+# Optimize for size and performance
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true  # Strip debug symbols
+
+[profile.dev.package."*"]
+# Optimize dependencies even in debug mode
+opt-level = 1

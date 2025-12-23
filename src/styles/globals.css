@@ -1,0 +1,256 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --background: 220 15% 9%;
+        --foreground: 0 0% 98%;
+        --card: 220 15% 11%;
+        --card-foreground: 0 0% 98%;
+        --popover: 220 15% 11%;
+        --popover-foreground: 0 0% 98%;
+        --primary: 220 30% 70%;
+        --primary-foreground: 0 0% 98%;
+        --secondary: 220 15% 13%;
+        --secondary-foreground: 0 0% 98%;
+        --muted: 220 15% 25%;
+        --muted-foreground: 220 15% 65%;
+        --accent: 220 30% 70%;
+        --accent-foreground: 220 15% 11%;
+        --destructive: 0 84.2% 60.2%;
+        --destructive-foreground: 0 0% 100%;
+        --border: 220 15% 22%;
+        --input: 220 15% 13%;
+        --ring: 220 30% 70%;
+        --radius: 0.5rem;
+        --font-size-compact: 11px;
+    }
+
+    /* Theme transitions */
+    *,
+    *::before,
+    *::after {
+        @apply border-border;
+        transition:
+            background-color 0.3s ease,
+            border-color 0.3s ease,
+            color 0.3s ease,
+            box-shadow 0.3s ease;
+    }
+
+    /* Apply theme styles to body */
+    body {
+        @apply bg-background text-foreground;
+        background-attachment: fixed;
+    }
+
+    /* Theme-specific component overrides */
+    .blue {
+        --primary-glow: rgba(47, 53, 128, 0.8);
+        --accent-glow: rgba(104, 113, 210, 0.6);
+    }
+
+    .red {
+        --primary-glow: rgba(128, 47, 47, 0.8);
+        --accent-glow: rgba(210, 104, 104, 0.6);
+    }
+
+    .green {
+        --primary-glow: rgba(47, 128, 98, 0.8);
+        --accent-glow: rgba(104, 210, 180, 0.6);
+    }
+
+    .dark {
+        --primary-glow: rgba(25, 28, 41, 0.8);
+        --accent-glow: rgba(70, 77, 99, 0.6);
+    }
+
+    .light {
+        --primary-glow: rgba(255, 255, 255, 0.8);
+        --accent-glow: rgba(220, 220, 220, 0.6);
+    }
+
+    /* Enhanced focus styles based on theme */
+    .blue :focus-visible {
+        @apply outline-offset-2 outline-primary/70;
+    }
+
+    .red :focus-visible {
+        @apply outline-offset-2 outline-red-500/70;
+    }
+
+    .green :focus-visible {
+        @apply outline-offset-2 outline-green-500/70;
+    }
+
+    .dark :focus-visible {
+        @apply outline-offset-2 outline-slate-500/70;
+    }
+
+    .light :focus-visible {
+        @apply outline-offset-2 outline-gray-500/70;
+    }
+
+    /* Theme-specific background styles */
+    body.blue {
+        background-image: linear-gradient(
+            to bottom right,
+            rgba(47, 53, 128, 0.3),
+            rgba(47, 53, 128, 0.1)
+        );
+    }
+
+    body.red {
+        background-image:
+            radial-gradient(circle at 15% 15%, rgba(255, 100, 100, 0.15) 0%, transparent 40%),
+            radial-gradient(circle at 85% 85%, rgba(255, 100, 100, 0.15) 0%, transparent 40%),
+            linear-gradient(to bottom right, rgba(128, 47, 47, 0.3), rgba(128, 47, 47, 0.1));
+    }
+
+    body.green {
+        background-image: linear-gradient(
+            to bottom right,
+            rgba(47, 128, 98, 0.3),
+            rgba(47, 128, 98, 0.1)
+        );
+    }
+
+    body.dark {
+        background-image: linear-gradient(
+            to bottom right,
+            rgba(25, 28, 41, 0.3),
+            rgba(25, 28, 41, 0.1)
+        );
+    }
+
+    body.light {
+        background-image: linear-gradient(
+            to bottom right,
+            rgba(255, 255, 255, 0.35),
+            rgba(255, 255, 255, 0.1)
+        );
+    }
+
+    /* Theme-specific scrollbar styles */
+    .blue ::-webkit-scrollbar-thumb {
+        @apply bg-primary/60 hover:bg-primary/80;
+    }
+
+    .red ::-webkit-scrollbar-thumb {
+        @apply bg-red-500/60 hover:bg-red-500/80;
+    }
+
+    .green ::-webkit-scrollbar-thumb {
+        @apply bg-green-500/60 hover:bg-green-500/80;
+    }
+
+    .dark ::-webkit-scrollbar-thumb {
+        @apply bg-slate-600/60 hover:bg-slate-600/80;
+    }
+
+    .light ::-webkit-scrollbar-thumb {
+        @apply bg-gray-400/60 hover:bg-gray-400/80;
+    }
+
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+        background: transparent;
+    }
+
+    ::-webkit-scrollbar-track {
+        @apply bg-background/50;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        @apply rounded-full bg-secondary hover:bg-secondary/80;
+    }
+
+    ::-webkit-scrollbar-corner {
+        background: transparent;
+    }
+
+    * {
+        scrollbar-width: auto;
+        scrollbar-color: hsl(var(--border)) transparent;
+    }
+}
+
+/* Theme-specific button styles */
+.blue .button-glow:hover,
+.blue .button-glow:focus-visible {
+    box-shadow: 0 0 10px var(--primary-glow);
+}
+
+.red .button-glow:hover,
+.red .button-glow:focus-visible {
+    box-shadow: 0 0 10px var(--primary-glow);
+}
+
+.green .button-glow:hover,
+.green .button-glow:focus-visible {
+    box-shadow: 0 0 10px var(--primary-glow);
+}
+
+.dark .button-glow:hover,
+.dark .button-glow:focus-visible {
+    box-shadow: 0 0 10px var(--primary-glow);
+}
+
+.light .button-glow:hover,
+.light .button-glow:focus-visible {
+    box-shadow: 0 0 10px var(--primary-glow);
+}
+
+@layer base {
+    body::before {
+        display: none;
+    }
+}
+
+@layer utilities {
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
+
+    .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+}
+
+::selection {
+    @apply bg-primary/20 text-primary;
+}
+
+::-moz-selection {
+    @apply bg-primary/20 text-primary;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+@layer base {
+    * {
+        @apply border-border outline-ring/50;
+    }
+    body {
+        @apply bg-background text-foreground;
+    }
+}
+
+.animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}

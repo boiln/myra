@@ -1,0 +1,59 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build outputs
+dist
+dist-ssr
+build
+target
+
+# Tauri
+src-tauri/target
+src-tauri/WixTools
+
+# Environment files
+.env
+.env.*
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Cache
+.cache
+.mf
+.rollup.cache
+tsconfig.tsbuildinfo
+
+# Test coverage
+coverage
+
+# Generated files
+*.generated.*
+*.gen.*
+
+# Exclusions
+.git
+pnpm-lock.yaml
+.cargo
+*lock.yaml
+*lock.json
+.next
+out
+public

@@ -1,0 +1,57 @@
+{
+    "$schema": "https://tauri.app/v1/manifest.schema.json",
+    "identifier": "myra",
+    "productName": "Myra",
+    "version": "0.1.0",
+    "build": {
+        "beforeDevCommand": "pnpm run dev",
+        "beforeBuildCommand": "pnpm run build",
+        "devUrl": "http://localhost:1420",
+        "frontendDist": "../dist"
+    },
+    "app": {
+        "withGlobalTauri": false,
+        "security": {
+            "csp": null,
+            "assetProtocol": {
+                "enable": false,
+                "scope": {
+                    "allow": []
+                }
+            }
+        },
+        "windows": [
+            {
+                "title": "Myra",
+                "width": 805,
+                "height": 590,
+                "minWidth": 805,
+                "minHeight": 590,
+                "fullscreen": false,
+                "resizable": true
+            }
+        ]
+    },
+    "bundle": {
+        "active": true,
+        "targets": "app",
+        "icon": [
+            "icons/32x32.png",
+            "icons/128x128.png",
+            "icons/128x128@2x.png",
+            "icons/icon.icns",
+            "icons/icon.ico"
+        ],
+        "category": "DeveloperTool",
+        "copyright": "",
+        "longDescription": "",
+        "shortDescription": "",
+        "externalBin": [],
+        "resources": [],
+        "windows": {
+            "certificateThumbprint": null,
+            "digestAlgorithm": "sha256",
+            "timestampUrl": ""
+        }
+    }
+}
