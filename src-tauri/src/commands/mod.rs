@@ -1,38 +1,28 @@
-use std::sync::atomic::AtomicBool;
-use std::sync::{Arc, Mutex, RwLock};
-use tauri::Manager;
-
-use crate::network::modules::stats::PacketProcessingStatistics;
-use crate::settings::packet_manipulation::PacketManipulationSettings;
-
-// Global state for the packet processing system
-pub struct PacketProcessingState {
-    pub running: Arc<AtomicBool>,
-    pub settings: Arc<Mutex<PacketManipulationSettings>>,
-    pub statistics: Arc<RwLock<PacketProcessingStatistics>>,
-    pub filter: Arc<Mutex<Option<String>>>,
-}
-
-impl Default for PacketProcessingState {
-    fn default() -> Self {
-        Self {
-            running: Arc::new(AtomicBool::new(false)),
-            settings: Arc::new(Mutex::new(PacketManipulationSettings::default())),
-            statistics: Arc::new(RwLock::new(PacketProcessingStatistics::default())),
-            filter: Arc::new(Mutex::new(None)),
-        }
-    }
-}
+//! Tauri command handlers.
+//!
+//! This module contains all Tauri commands exposed to the frontend,
+//! organized into submodules by functionality.
 
 pub mod config;
-pub mod settings;
+pub mod start;
+pub mod state;
+pub mod status;
+pub mod stop;
+pub mod types;
+pub mod update;
+
+// Re-export state for convenient access
+pub use state::PacketProcessingState;
+
+// Re-export all command functions for use in main.rs
+pub use start::start_processing;
+pub use status::{get_filter, get_settings, get_status, update_filter};
+pub use stop::stop_processing;
+pub use update::update_settings;
 
 use tauri::App;
 
+/// Registers the packet processing state with the Tauri application.
 pub fn register_commands(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
-    // Initialize the packet processing state
-    app.manage(PacketProcessingState::default());
-
-    // The commands are registered in main.rs through invoke_handler
-    Ok(())
+    state::register_state(app)
 }

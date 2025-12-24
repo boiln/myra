@@ -80,13 +80,13 @@ fn main() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            commands::settings::start_processing,
-            commands::settings::stop_processing,
-            commands::settings::get_status,
-            commands::settings::update_settings,
-            commands::settings::get_settings,
-            commands::settings::update_filter,
-            commands::settings::get_filter,
+            commands::start_processing,
+            commands::stop_processing,
+            commands::get_status,
+            commands::update_settings,
+            commands::get_settings,
+            commands::update_filter,
+            commands::get_filter,
             commands::config::save_config,
             commands::config::load_config,
             commands::config::list_configs,

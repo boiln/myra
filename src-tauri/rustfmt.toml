@@ -1,0 +1,34 @@
+# Rust formatting configuration for Myra
+# See https://rust-lang.github.io/rustfmt/ for all options
+
+# Maximum width of each line
+max_width = 100
+
+# Use 4 spaces for indentation
+tab_spaces = 4
+
+# Format doc comments
+format_code_in_doc_comments = true
+
+# Organize imports
+imports_granularity = "Module"
+group_imports = "StdExternalCrate"
+reorder_imports = true
+
+# Format strings
+format_strings = true
+
+# Format macro matchers
+format_macro_matchers = true
+
+# Use field init shorthand when possible
+use_field_init_shorthand = true
+
+# Use try shorthand (? operator)
+use_try_shorthand = true
+
+# Stable edition settings
+edition = "2021"
+
+# Don't use unstable features
+unstable_features = false
