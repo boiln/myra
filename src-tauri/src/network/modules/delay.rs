@@ -1,9 +1,9 @@
+use crate::error::Result;
 use crate::network::core::packet_data::PacketData;
 use crate::network::modules::stats::delay_stats::DelayStats;
 use crate::network::modules::traits::{ModuleContext, PacketModule};
 use crate::network::types::probability::Probability;
 use crate::settings::delay::DelayOptions;
-use log::error;
 use rand::{rng, Rng};
 use std::collections::VecDeque;
 use std::time::Duration;
@@ -40,11 +40,8 @@ impl PacketModule for DelayModule {
         options: &Self::Options,
         state: &mut Self::State,
         ctx: &mut ModuleContext,
-    ) {
-        let mut stats = ctx.statistics.write().unwrap_or_else(|e| {
-            error!("Failed to acquire write lock for delay statistics: {}", e);
-            panic!("Failed to acquire statistics lock");
-        });
+    ) -> Result<()> {
+        let mut stats = ctx.write_stats(self.name())?;
         
         // Safety: We need to transmute lifetimes here because the storage persists
         // across processing calls. The packets are owned by the storage until released.
@@ -59,6 +56,7 @@ impl PacketModule for DelayModule {
             options.probability,
             &mut stats.delay_stats,
         );
+        Ok(())
     }
 }
 

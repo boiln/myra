@@ -1,8 +1,8 @@
+use crate::error::Result;
 use crate::network::core::packet_data::PacketData;
 use crate::network::modules::stats::bandwidth_stats::BandwidthStats;
 use crate::network::modules::traits::{ModuleContext, PacketModule};
 use crate::settings::bandwidth::BandwidthOptions;
-use log::error;
 use std::collections::VecDeque;
 use std::time::Instant;
 
@@ -60,11 +60,8 @@ impl PacketModule for BandwidthModule {
         options: &Self::Options,
         state: &mut Self::State,
         ctx: &mut ModuleContext,
-    ) {
-        let mut stats = ctx.statistics.write().unwrap_or_else(|e| {
-            error!("Failed to acquire write lock for bandwidth statistics: {}", e);
-            panic!("Failed to acquire statistics lock");
-        });
+    ) -> Result<()> {
+        let mut stats = ctx.write_stats(self.name())?;
         
         // Safety: We need to transmute lifetimes here because the buffer persists
         // across processing calls.
@@ -80,6 +77,7 @@ impl PacketModule for BandwidthModule {
             options.limit,
             &mut stats.bandwidth_stats,
         );
+        Ok(())
     }
 }
 

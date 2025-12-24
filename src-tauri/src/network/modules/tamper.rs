@@ -1,3 +1,4 @@
+use crate::error::Result;
 use crate::network::core::packet_data::PacketData;
 use crate::network::modules::stats::tamper_stats::TamperStats;
 use crate::network::modules::traits::{ModuleContext, PacketModule};
@@ -37,11 +38,8 @@ impl PacketModule for TamperModule {
         options: &Self::Options,
         _state: &mut Self::State,
         ctx: &mut ModuleContext,
-    ) {
-        let mut stats = ctx.statistics.write().unwrap_or_else(|e| {
-            error!("Failed to acquire write lock for tamper statistics: {}", e);
-            panic!("Failed to acquire statistics lock");
-        });
+    ) -> Result<()> {
+        let mut stats = ctx.write_stats(self.name())?;
         
         tamper_packets(
             packets,
@@ -50,6 +48,7 @@ impl PacketModule for TamperModule {
             options.recalculate_checksums.unwrap_or(true),
             &mut stats.tamper_stats,
         );
+        Ok(())
     }
 }
 

@@ -3,6 +3,7 @@
 //! This module provides a unified interface for all packet manipulation
 //! modules, enabling consistent behavior and easier extensibility.
 
+use crate::error::{MyraError, Result};
 use crate::network::core::packet_data::PacketData;
 use crate::network::modules::stats::PacketProcessingStatistics;
 use std::sync::{Arc, RwLock};
@@ -19,6 +20,26 @@ pub struct ModuleContext<'a, 'b> {
     pub has_packets: bool,
     /// Reference to effect start time for duration tracking
     pub effect_start: &'b mut Instant,
+}
+
+impl<'a, 'b> ModuleContext<'a, 'b> {
+    /// Acquires a write lock on the statistics, returning a Result instead of panicking.
+    ///
+    /// # Arguments
+    ///
+    /// * `module_name` - Name of the module requesting the lock (for error messages)
+    ///
+    /// # Returns
+    ///
+    /// A write guard to the statistics or a MyraError if the lock is poisoned.
+    pub fn write_stats(
+        &self,
+        module_name: &str,
+    ) -> Result<std::sync::RwLockWriteGuard<'_, PacketProcessingStatistics>> {
+        self.statistics
+            .write()
+            .map_err(|_| MyraError::stats_lock(module_name))
+    }
 }
 
 /// Trait for packet manipulation modules.
@@ -45,8 +66,9 @@ pub struct ModuleContext<'a, 'b> {
 ///         options: &Self::Options,
 ///         state: &mut Self::State,
 ///         ctx: &mut ModuleContext,
-///     ) {
+///     ) -> Result<()> {
 ///         // Implementation
+///         Ok(())
 ///     }
 /// }
 /// ```
@@ -73,13 +95,17 @@ pub trait PacketModule {
     /// * `options` - Module configuration options
     /// * `state` - Mutable module state persisted between calls
     /// * `ctx` - Processing context with shared resources
+    ///
+    /// # Returns
+    ///
+    /// `Ok(())` on success, or a `MyraError` if processing fails.
     fn process<'a>(
         &self,
         packets: &mut Vec<PacketData<'a>>,
         options: &Self::Options,
         state: &mut Self::State,
         ctx: &mut ModuleContext,
-    );
+    ) -> Result<()>;
 
     /// Returns the duration setting from options, if applicable.
     /// Returns 0 for infinite duration.

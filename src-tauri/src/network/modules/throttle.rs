@@ -1,9 +1,9 @@
+use crate::error::Result;
 use crate::network::core::packet_data::PacketData;
 use crate::network::modules::stats::throttle_stats::ThrottleStats;
 use crate::network::modules::traits::{ModuleContext, PacketModule};
 use crate::network::types::probability::Probability;
 use crate::settings::throttle::ThrottleOptions;
-use log::error;
 use rand::Rng;
 use std::collections::VecDeque;
 use std::time::{Duration, Instant};
@@ -52,14 +52,9 @@ impl PacketModule for ThrottleModule {
         options: &Self::Options,
         state: &mut Self::State,
         ctx: &mut ModuleContext,
-    ) {
-        let mut stats = ctx.statistics.write().unwrap_or_else(|e| {
-            error!("Failed to acquire write lock for throttle statistics: {}", e);
-            panic!("Failed to acquire statistics lock");
-        });
+    ) -> Result<()> {
+        let mut stats = ctx.write_stats(self.name())?;
         
-        // Safety: We need to transmute lifetimes here because the storage persists
-        // across processing calls.
         let storage: &mut VecDeque<PacketData<'a>> = unsafe {
             std::mem::transmute(&mut state.storage)
         };
@@ -73,6 +68,7 @@ impl PacketModule for ThrottleModule {
             options.drop,
             &mut stats.throttle_stats,
         );
+        Ok(())
     }
 }
 

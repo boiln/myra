@@ -1,9 +1,9 @@
+use crate::error::Result;
 use crate::network::core::packet_data::PacketData;
 use crate::network::modules::stats::duplicate_stats::DuplicateStats;
 use crate::network::modules::traits::{ModuleContext, PacketModule};
 use crate::network::types::probability::Probability;
 use crate::settings::duplicate::DuplicateOptions;
-use log::error;
 use rand::Rng;
 use std::vec::Vec;
 
@@ -40,11 +40,8 @@ impl PacketModule for DuplicateModule {
         options: &Self::Options,
         _state: &mut Self::State,
         ctx: &mut ModuleContext,
-    ) {
-        let mut stats = ctx.statistics.write().unwrap_or_else(|e| {
-            error!("Failed to acquire write lock for duplicate statistics: {}", e);
-            panic!("Failed to acquire statistics lock");
-        });
+    ) -> Result<()> {
+        let mut stats = ctx.write_stats(self.name())?;
         
         duplicate_packets(
             packets,
@@ -52,6 +49,7 @@ impl PacketModule for DuplicateModule {
             options.probability,
             &mut stats.duplicate_stats,
         );
+        Ok(())
     }
 }
 

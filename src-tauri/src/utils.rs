@@ -1,5 +1,4 @@
 use log::info;
-use std::fmt;
 
 /// Logs packet statistics including received count, sent count, and drop percentage.
 ///
@@ -60,41 +59,6 @@ pub fn format_bytes(bytes: u64) -> String {
     }
 
     format!("{} B", bytes)
-}
-
-/// A generic result type for functions that can return various errors.
-pub type Result<T> = std::result::Result<T, Error>;
-
-/// Error types for the application.
-#[derive(Debug)]
-pub enum Error {
-    /// I/O errors from the standard library
-    Io(std::io::Error),
-    /// WinDivert-specific errors
-    WinDivert(String),
-    /// Configuration errors
-    Config(String),
-    /// Other general errors
-    Other(String),
-}
-
-impl std::error::Error for Error {}
-
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Error::Io(err) => write!(f, "I/O error: {}", err),
-            Error::WinDivert(msg) => write!(f, "WinDivert error: {}", msg),
-            Error::Config(msg) => write!(f, "Configuration error: {}", msg),
-            Error::Other(msg) => write!(f, "Error: {}", msg),
-        }
-    }
-}
-
-impl From<std::io::Error> for Error {
-    fn from(err: std::io::Error) -> Self {
-        Error::Io(err)
-    }
 }
 
 /// Checks if a module effect is still active based on its duration and start time

@@ -1,3 +1,4 @@
+use crate::error::{MyraError, Result};
 use crate::network::core::packet_data::PacketData;
 use crate::network::modules::stats::PacketProcessingStatistics;
 use crate::network::modules::traits::ModuleContext;
@@ -14,7 +15,6 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::Receiver;
 use std::sync::{Arc, Mutex, RwLock};
 use std::time::{Duration, Instant};
-use windivert::error::WinDivertError;
 use windivert::layer::NetworkLayer;
 use windivert::{CloseAction, WinDivert};
 use windivert_sys::WinDivertFlags;
@@ -38,13 +38,13 @@ use windivert_sys::WinDivertFlags;
 ///
 /// # Returns
 ///
-/// Result indicating success or a WinDivertError if something fails
+/// Result indicating success or a MyraError if something fails
 pub fn start_packet_processing(
     settings: Arc<Mutex<PacketManipulationSettings>>,
     packet_receiver: Receiver<PacketData>,
     running: Arc<AtomicBool>,
     statistics: Arc<RwLock<PacketProcessingStatistics>>,
-) -> Result<(), WinDivertError> {
+) -> Result<()> {
     // Initialize WinDivert for sending packets only
     let mut wd = WinDivert::<NetworkLayer>::network(
         "false",
@@ -54,7 +54,7 @@ pub fn start_packet_processing(
     .map_err(|e| {
         error!("Failed to initialize WinDivert: {}", e);
         error!("WinDivert error detailed: {:?}", e);
-        e
+        MyraError::WinDivert(e)
     })?;
 
     let log_interval = Duration::from_secs(2);
@@ -79,12 +79,15 @@ pub fn start_packet_processing(
         }
 
         // Apply packet manipulations according to current settings
-        if let Ok(settings) = settings.lock() {
-            process_packets(&settings, &mut packets, &mut state, &statistics);
-        }
-
-        if settings.lock().is_err() {
-            error!("Failed to acquire lock on packet manipulation settings");
+        match settings.lock() {
+            Ok(settings) => {
+                if let Err(e) = process_packets(&settings, &mut packets, &mut state, &statistics) {
+                    error!("Error processing packets: {}", e);
+                }
+            }
+            Err(e) => {
+                error!("Failed to acquire lock on packet manipulation settings: {}", e);
+            }
         }
 
         // Send the processed packets
@@ -157,12 +160,16 @@ pub fn start_packet_processing(
 /// * `packets` - Vector of packets to process
 /// * `state` - Current state of the packet processor
 /// * `statistics` - Statistics tracker to record manipulation metrics
+///
+/// # Returns
+///
+/// `Ok(())` on success, or `MyraError` if any module fails to process.
 pub fn process_packets<'a>(
     settings: &PacketManipulationSettings,
     packets: &mut Vec<PacketData<'a>>,
     state: &mut PacketProcessingState,
     statistics: &Arc<RwLock<PacketProcessingStatistics>>,
-) {
+) -> Result<()> {
     let has_packets = !packets.is_empty();
 
     // Process each module using the trait-based approach
@@ -174,7 +181,7 @@ pub fn process_packets<'a>(
         &mut state.effect_start_times.drop,
         statistics,
         has_packets,
-    );
+    )?;
 
     process_module(
         &DelayModule,
@@ -184,7 +191,7 @@ pub fn process_packets<'a>(
         &mut state.effect_start_times.delay,
         statistics,
         has_packets,
-    );
+    )?;
 
     process_module(
         &ThrottleModule,
@@ -194,7 +201,7 @@ pub fn process_packets<'a>(
         &mut state.effect_start_times.throttle,
         statistics,
         has_packets,
-    );
+    )?;
 
     process_module(
         &ReorderModule,
@@ -204,7 +211,7 @@ pub fn process_packets<'a>(
         &mut state.effect_start_times.reorder,
         statistics,
         has_packets,
-    );
+    )?;
 
     process_module(
         &TamperModule,
@@ -214,7 +221,7 @@ pub fn process_packets<'a>(
         &mut state.effect_start_times.tamper,
         statistics,
         has_packets,
-    );
+    )?;
 
     process_module(
         &DuplicateModule,
@@ -224,7 +231,7 @@ pub fn process_packets<'a>(
         &mut state.effect_start_times.duplicate,
         statistics,
         has_packets,
-    );
+    )?;
 
     process_module(
         &BandwidthModule,
@@ -234,7 +241,9 @@ pub fn process_packets<'a>(
         &mut state.effect_start_times.bandwidth,
         statistics,
         has_packets,
-    );
+    )?;
+
+    Ok(())
 }
 
 /// Generic function to process a single module.
@@ -255,6 +264,10 @@ pub fn process_packets<'a>(
 /// * `effect_start` - When the effect started (for duration tracking)
 /// * `statistics` - Shared statistics
 /// * `has_packets` - Whether there are packets to process
+///
+/// # Returns
+///
+/// `Ok(())` on success, or `MyraError` if processing fails.
 fn process_module<'a, M>(
     module: &M,
     options: Option<&M::Options>,
@@ -263,16 +276,17 @@ fn process_module<'a, M>(
     effect_start: &mut Instant,
     statistics: &Arc<RwLock<PacketProcessingStatistics>>,
     has_packets: bool,
-) where
+) -> Result<()>
+where
     M: PacketModule,
 {
     let Some(opts) = options else {
-        return;
+        return Ok(());
     };
 
     // Check if module should be skipped based on its options
     if module.should_skip(opts) {
-        return;
+        return Ok(());
     }
 
     let duration_ms = module.get_duration_ms(opts);
@@ -285,7 +299,7 @@ fn process_module<'a, M>(
     }
 
     if !effect_active {
-        return;
+        return Ok(());
     }
 
     // Create context and process
@@ -295,5 +309,5 @@ fn process_module<'a, M>(
         effect_start,
     };
 
-    module.process(packets, opts, module_state, &mut ctx);
+    module.process(packets, opts, module_state, &mut ctx)
 }

@@ -1,9 +1,9 @@
+use crate::error::Result;
 use crate::network::core::packet_data::PacketData;
 use crate::network::modules::stats::drop_stats::DropStats;
 use crate::network::modules::traits::{ModuleContext, PacketModule};
 use crate::network::types::probability::Probability;
 use crate::settings::drop::DropOptions;
-use log::error;
 use rand::{rng, Rng};
 
 /// Unit struct for the Drop packet module.
@@ -35,12 +35,10 @@ impl PacketModule for DropModule {
         options: &Self::Options,
         _state: &mut Self::State,
         ctx: &mut ModuleContext,
-    ) {
-        let mut stats = ctx.statistics.write().unwrap_or_else(|e| {
-            error!("Failed to acquire write lock for drop statistics: {}", e);
-            panic!("Failed to acquire statistics lock");
-        });
+    ) -> Result<()> {
+        let mut stats = ctx.write_stats(self.name())?;
         drop_packets(packets, options.probability, &mut stats.drop_stats);
+        Ok(())
     }
 }
 

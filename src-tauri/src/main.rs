@@ -10,6 +10,7 @@ use std::path::PathBuf;
 use winapi::um::securitybaseapi::FreeSid;
 
 mod commands;
+mod error;
 mod network;
 mod settings;
 mod utils;
