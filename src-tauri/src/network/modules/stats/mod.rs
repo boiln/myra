@@ -5,7 +5,6 @@ use crate::network::modules::stats::duplicate_stats::DuplicateStats;
 use crate::network::modules::stats::reorder_stats::ReorderStats;
 use crate::network::modules::stats::tamper_stats::TamperStats;
 use crate::network::modules::stats::throttle_stats::ThrottleStats;
-use std::sync::{Arc, RwLock};
 use std::time::Duration;
 
 pub mod bandwidth_stats;
@@ -51,13 +50,4 @@ impl Default for PacketProcessingStatistics {
             bandwidth_stats: BandwidthStats::new(0.005),
         }
     }
-}
-
-/// Initialize statistics for packet processing with default values
-///
-/// Creates a thread-safe, reference-counted statistics container
-/// with reasonable default values for all statistics modules.
-#[allow(dead_code)]
-pub fn initialize_statistics() -> Arc<RwLock<PacketProcessingStatistics>> {
-    Arc::new(RwLock::new(PacketProcessingStatistics::default()))
 }

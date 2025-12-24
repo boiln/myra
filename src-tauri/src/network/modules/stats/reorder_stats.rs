@@ -41,24 +41,4 @@ impl ReorderStats {
         let current_reorder_rate = if reordered { 1.0 } else { 0.0 };
         self.ewma.update(current_reorder_rate);
     }
-
-    /// Returns the total reorder rate (ratio of reordered to total packets)
-    ///
-    /// Returns 0.0 if no packets have been processed.
-    #[allow(dead_code)]
-    pub fn total_reorder_rate(&self) -> f64 {
-        if self.total_packets == 0 {
-            return 0.0;
-        }
-
-        self.reordered_packets as f64 / self.total_packets as f64
-    }
-
-    /// Returns the recent reorder rate based on the EWMA
-    ///
-    /// Returns 0.0 if no data available.
-    #[allow(dead_code)]
-    pub fn recent_reorder_rate(&self) -> f64 {
-        self.ewma.get().unwrap_or(0.0)
-    }
 }

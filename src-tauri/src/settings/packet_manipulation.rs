@@ -6,9 +6,6 @@ use crate::settings::reorder::ReorderOptions;
 use crate::settings::tamper::TamperOptions;
 use crate::settings::throttle::ThrottleOptions;
 use serde::{Deserialize, Serialize, Serializer};
-use std::io::Write;
-use std::path::Path;
-use std::{fs, io};
 
 /// Custom serializer for Option<T> values in configuration.
 ///
@@ -60,74 +57,4 @@ pub struct PacketManipulationSettings {
     pub bandwidth: Option<BandwidthOptions>,
 }
 
-impl PacketManipulationSettings {
-    /// Loads configuration from a TOML file.
-    ///
-    /// # Arguments
-    ///
-    /// * `path` - Path to the TOML configuration file
-    ///
-    /// # Returns
-    ///
-    /// * `io::Result<Self>` - The loaded configuration or an IO error
-    #[allow(dead_code)]
-    pub fn load_from_file<P: AsRef<Path>>(path: P) -> io::Result<Self> {
-        let content = fs::read_to_string(path)?;
-        let config =
-            toml::from_str(&content).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-        Ok(config)
-    }
 
-    /// Saves current configuration to a TOML file.
-    ///
-    /// # Arguments
-    ///
-    /// * `path` - Path where the configuration will be saved
-    ///
-    /// # Returns
-    ///
-    /// * `io::Result<()>` - Success or an IO error
-    #[allow(dead_code)]
-    pub fn save_to_file<P: AsRef<Path>>(&self, path: P) -> io::Result<()> {
-        let content = toml::to_string_pretty(self)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-        let mut file = fs::File::create(path)?;
-        file.write_all(content.as_bytes())?;
-        Ok(())
-    }
-
-    /// Creates a default configuration file with all fields set to default values
-    /// but commented out for user guidance.
-    ///
-    /// # Arguments
-    ///
-    /// * `path` - Path where the template configuration will be saved
-    ///
-    /// # Returns
-    ///
-    /// * `io::Result<()>` - Success or an IO error
-    #[allow(dead_code)]
-    pub fn create_default_config_file<P: AsRef<Path>>(path: P) -> io::Result<()> {
-        let default_config = Self::default();
-
-        // serialize the default configuration to TOML
-        let serialized = toml::to_string_pretty(&default_config)
-            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-
-        let commented_out = serialized
-            .lines()
-            .map(|line| {
-                if line.trim().is_empty() || line.starts_with('[') {
-                    return line.to_string();
-                }
-
-                format!("# {}", line)
-            })
-            .collect::<Vec<String>>()
-            .join("\n");
-
-        let mut file = fs::File::create(path)?;
-        file.write_all(commented_out.as_bytes())?;
-        Ok(())
-    }
-}

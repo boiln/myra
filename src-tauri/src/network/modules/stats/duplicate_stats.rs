@@ -37,24 +37,4 @@ impl DuplicateStats {
         let current_duplication_multiplier = outgoing_count as f64;
         self.ewma.update(current_duplication_multiplier);
     }
-
-    /// Returns the total duplication multiplier (ratio of outgoing to incoming packets)
-    ///
-    /// Returns 1.0 if no packets have been processed.
-    #[allow(dead_code)]
-    pub fn total_duplication_multiplier(&self) -> f64 {
-        if self.incoming_packet_count == 0 {
-            return 1.0;
-        }
-
-        self.outgoing_packet_count as f64 / self.incoming_packet_count as f64
-    }
-
-    /// Returns the recent duplication multiplier based on the EWMA
-    ///
-    /// Returns 1.0 if no data available.
-    #[allow(dead_code)]
-    pub fn recent_duplication_multiplier(&self) -> f64 {
-        self.ewma.get().unwrap_or(1.0)
-    }
 }

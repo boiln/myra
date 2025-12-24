@@ -79,19 +79,6 @@ impl BandwidthStats {
         }
     }
 
-    /// Returns the recent throughput in kilobytes per second
-    ///
-    /// The throughput is calculated using an exponential weighted moving average (EWMA)
-    /// to smooth out short-term fluctuations.
-    ///
-    /// # Returns
-    ///
-    /// The recent throughput in KB/s, or 0.0 if no data is available
-    #[allow(dead_code)]
-    pub fn recent_throughput(&self) -> f64 {
-        self.ewma.get().unwrap_or(0.0)
-    }
-
     /// Returns the total number of bytes sent
     ///
     /// # Returns
