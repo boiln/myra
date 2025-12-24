@@ -21,6 +21,19 @@
 //!
 //! The core functionality relies on WinDivert to intercept and inject
 //! network packets on Windows systems.
+//!
+//! ## Quick Start
+//!
+//! ```rust,ignore
+//! use myra::prelude::*;
+//!
+//! // Build settings using the fluent builder API
+//! let settings = SettingsBuilder::new()
+//!     .drop(25.0)     // 25% packet drop rate
+//!     .delay(100)     // 100ms delay
+//!     .with_delay_chance(50.0)  // 50% chance of delay
+//!     .build();
+//! ```
 
 /// Commands exposed to the Tauri frontend
 pub mod commands;
@@ -28,6 +41,8 @@ pub mod commands;
 pub mod error;
 /// Network packet manipulation functionality
 pub mod network;
+/// Prelude for convenient imports
+pub mod prelude;
 /// Configuration settings for packet manipulation
 pub mod settings;
 /// Shared utility functions

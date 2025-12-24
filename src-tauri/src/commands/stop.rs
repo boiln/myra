@@ -6,13 +6,11 @@ use std::sync::atomic::Ordering;
 use std::thread;
 use std::time::Duration;
 
-use log::{debug, info};
+use log::info;
 use tauri::State;
-use windivert::layer::NetworkLayer;
-use windivert::prelude::WinDivertFlags;
-use windivert::{CloseAction, WinDivert};
 
 use crate::commands::state::PacketProcessingState;
+use crate::network::core::flush_wfp_cache;
 
 /// Stops packet processing.
 ///
@@ -48,21 +46,4 @@ pub async fn stop_processing(state: State<'_, PacketProcessingState>) -> Result<
 
     info!("Stopped packet processing and cleaned up resources");
     Ok(())
-}
-
-/// Flushes the Windows Filtering Platform (WFP) cache.
-///
-/// Attempts to clear any cached state in the WFP by opening and closing
-/// WinDivert handles with different priorities.
-fn flush_wfp_cache() {
-    for priority in [0, 1000, -1000] {
-        if let Ok(mut handle) = WinDivert::<NetworkLayer>::network(
-            "false", // Filter that matches nothing
-            priority,
-            WinDivertFlags::new(),
-        ) {
-            let _ = handle.close(CloseAction::Nothing);
-            debug!("Successfully flushed WFP cache with priority {}", priority);
-        }
-    }
 }

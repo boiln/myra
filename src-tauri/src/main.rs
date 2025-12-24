@@ -2,11 +2,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 #![warn(clippy::all)]
 
-// main entry point
 use log::{error, info, LevelFilter, SetLoggerError};
-use std::env;
 use std::io::{self, Write};
-use std::path::PathBuf;
 use winapi::um::securitybaseapi::FreeSid;
 
 mod commands;
@@ -96,30 +93,7 @@ fn main() {
         .expect("error while running tauri application");
 }
 
-/// Verify that WinDivert files are present in the expected locations
-///
-/// Logs the presence or absence of critical WinDivert files
-fn check_windivert_files() {
-    let current_exe = env::current_exe().unwrap_or_else(|e| {
-        error!("Failed to get current executable path: {}", e);
-        PathBuf::new()
-    });
-
-    let exe_dir = current_exe.parent().unwrap_or_else(|| {
-        error!("Failed to get parent directory of executable");
-        std::path::Path::new(".")
-    });
-
-    let dll_path = exe_dir.join("WinDivert.dll");
-    let sys_path = exe_dir.join("WinDivert64.sys");
-
-    info!("Looking for WinDivert.dll at: {:?}", dll_path);
-    info!("Looking for WinDivert64.sys at: {:?}", sys_path);
-    info!("WinDivert.dll exists: {}", dll_path.exists());
-    info!("WinDivert64.sys exists: {}", sys_path.exists());
-}
-
-/// Check if the current process is running with administrator privileges
+/// Check if the current process is running with administrator privileges.
 ///
 /// Uses Windows API to determine if the current process has admin rights,
 /// which are required for packet manipulation.
