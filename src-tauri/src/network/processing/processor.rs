@@ -85,7 +85,10 @@ pub fn start_packet_processing(
                 }
             }
             Err(e) => {
-                error!("Failed to acquire lock on packet manipulation settings: {}", e);
+                error!(
+                    "Failed to acquire lock on packet manipulation settings: {}",
+                    e
+                );
             }
         }
 
@@ -170,6 +173,21 @@ pub fn process_packets<'a>(
     statistics: &Arc<RwLock<PacketProcessingStatistics>>,
 ) -> Result<()> {
     let has_packets = !packets.is_empty();
+
+    // Debug: log active modules
+    if has_packets {
+        debug!(
+            "Processing {} packets. Active modules: drop={}, delay={}, throttle={}, reorder={}, tamper={}, duplicate={}, bandwidth={}",
+            packets.len(),
+            settings.drop.is_some(),
+            settings.delay.is_some(),
+            settings.throttle.is_some(),
+            settings.reorder.is_some(),
+            settings.tamper.is_some(),
+            settings.duplicate.is_some(),
+            settings.bandwidth.is_some()
+        );
+    }
 
     // Process each module using the trait-based approach
     process_module(

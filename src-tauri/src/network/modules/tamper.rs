@@ -1,5 +1,5 @@
 use crate::error::Result;
-use crate::network::core::packet_data::PacketData;
+use crate::network::core::PacketData;
 use crate::network::modules::stats::tamper_stats::TamperStats;
 use crate::network::modules::traits::{ModuleContext, PacketModule};
 use crate::network::types::probability::Probability;
@@ -40,7 +40,7 @@ impl PacketModule for TamperModule {
         ctx: &mut ModuleContext,
     ) -> Result<()> {
         let mut stats = ctx.write_stats(self.name())?;
-        
+
         tamper_packets(
             packets,
             options.probability,

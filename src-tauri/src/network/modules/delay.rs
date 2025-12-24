@@ -1,5 +1,5 @@
 use crate::error::Result;
-use crate::network::core::packet_data::PacketData;
+use crate::network::core::PacketData;
 use crate::network::modules::stats::delay_stats::DelayStats;
 use crate::network::modules::traits::{ModuleContext, PacketModule};
 use crate::network::types::probability::Probability;
@@ -10,7 +10,7 @@ use std::time::Duration;
 
 /// Unit struct for the Delay packet module.
 ///
-/// This module simulates network latency by holding packets for a 
+/// This module simulates network latency by holding packets for a
 /// specified duration before releasing them.
 #[derive(Debug, Default)]
 pub struct DelayModule;
@@ -42,13 +42,11 @@ impl PacketModule for DelayModule {
         ctx: &mut ModuleContext,
     ) -> Result<()> {
         let mut stats = ctx.write_stats(self.name())?;
-        
+
         // Safety: We need to transmute lifetimes here because the storage persists
         // across processing calls. The packets are owned by the storage until released.
-        let storage: &mut VecDeque<PacketData<'a>> = unsafe {
-            std::mem::transmute(state)
-        };
-        
+        let storage: &mut VecDeque<PacketData<'a>> = unsafe { std::mem::transmute(state) };
+
         delay_packets(
             packets,
             storage,

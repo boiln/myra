@@ -6,6 +6,7 @@ use std::path::PathBuf;
 use tauri::State;
 
 use crate::commands::PacketProcessingState;
+use crate::settings::manipulation::PacketManipulationSettings;
 use crate::settings::Settings;
 
 /// Configuration file structure for storing application settings

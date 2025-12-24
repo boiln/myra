@@ -1,5 +1,5 @@
 use crate::error::Result;
-use crate::network::core::packet_data::PacketData;
+use crate::network::core::PacketData;
 use crate::network::modules::stats::bandwidth_stats::BandwidthStats;
 use crate::network::modules::traits::{ModuleContext, PacketModule};
 use crate::settings::bandwidth::BandwidthOptions;
@@ -18,6 +18,7 @@ const MAX_BUFFER_SIZE: usize = 10 * 1024 * 1024; // 10 MB in bytes
 pub struct BandwidthModule;
 
 /// State maintained by the bandwidth module between processing calls.
+#[derive(Debug)]
 pub struct BandwidthState {
     pub buffer: VecDeque<PacketData<'static>>,
     pub total_buffer_size: usize,
@@ -62,13 +63,12 @@ impl PacketModule for BandwidthModule {
         ctx: &mut ModuleContext,
     ) -> Result<()> {
         let mut stats = ctx.write_stats(self.name())?;
-        
+
         // Safety: We need to transmute lifetimes here because the buffer persists
         // across processing calls.
-        let buffer: &mut VecDeque<PacketData<'a>> = unsafe {
-            std::mem::transmute(&mut state.buffer)
-        };
-        
+        let buffer: &mut VecDeque<PacketData<'a>> =
+            unsafe { std::mem::transmute(&mut state.buffer) };
+
         bandwidth_limiter(
             packets,
             buffer,

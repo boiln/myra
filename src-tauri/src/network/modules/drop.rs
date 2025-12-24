@@ -1,5 +1,5 @@
 use crate::error::Result;
-use crate::network::core::packet_data::PacketData;
+use crate::network::core::PacketData;
 use crate::network::modules::stats::drop_stats::DropStats;
 use crate::network::modules::traits::{ModuleContext, PacketModule};
 use crate::network::types::probability::Probability;

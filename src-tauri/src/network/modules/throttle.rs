@@ -1,5 +1,5 @@
 use crate::error::Result;
-use crate::network::core::packet_data::PacketData;
+use crate::network::core::PacketData;
 use crate::network::modules::stats::throttle_stats::ThrottleStats;
 use crate::network::modules::traits::{ModuleContext, PacketModule};
 use crate::network::types::probability::Probability;
@@ -16,6 +16,7 @@ use std::time::{Duration, Instant};
 pub struct ThrottleModule;
 
 /// State maintained by the throttle module between processing calls.
+#[derive(Debug)]
 pub struct ThrottleState {
     pub storage: VecDeque<PacketData<'static>>,
     pub throttled_start_time: Instant,
@@ -54,11 +55,10 @@ impl PacketModule for ThrottleModule {
         ctx: &mut ModuleContext,
     ) -> Result<()> {
         let mut stats = ctx.write_stats(self.name())?;
-        
-        let storage: &mut VecDeque<PacketData<'a>> = unsafe {
-            std::mem::transmute(&mut state.storage)
-        };
-        
+
+        let storage: &mut VecDeque<PacketData<'a>> =
+            unsafe { std::mem::transmute(&mut state.storage) };
+
         throttle_packages(
             packets,
             storage,

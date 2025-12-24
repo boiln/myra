@@ -69,10 +69,8 @@ impl HandleConfig {
     /// Builds the final filter string with any exclusions applied.
     fn build_filter(&self) -> String {
         if self.exclude_tauri_port {
-            let exclusion = format!(
-                "(tcp.DstPort != {0} and tcp.SrcPort != {0} and udp.DstPort != {0} and udp.SrcPort != {0})",
-                TAURI_PORT
-            );
+            // Use localPort/remotePort which work for both TCP and UDP
+            let exclusion = format!("localPort != {0} and remotePort != {0}", TAURI_PORT);
 
             if self.filter.is_empty() || self.filter == "true" {
                 exclusion
@@ -275,14 +273,23 @@ pub fn flush_wfp_cache() {
 pub fn construct_filter_with_exclusions(user_filter: &Option<String>) -> Option<String> {
     user_filter.as_ref()?;
 
-    let tauri_exclusion = format!(
-        "(tcp.DstPort != {0} and tcp.SrcPort != {0} and udp.DstPort != {0} and udp.SrcPort != {0})",
-        TAURI_PORT
-    );
+    // Use localPort/remotePort which work for both TCP and UDP
+    let tauri_exclusion = format!("localPort != {0} and remotePort != {0}", TAURI_PORT);
 
     Some(match user_filter {
         Some(filter) if !filter.is_empty() => {
-            format!("({}) and {}", filter, tauri_exclusion)
+            // Fix common mistakes: "outbound and inbound" is impossible (packet can't be both)
+            // Replace with "true" to capture all traffic
+            let corrected_filter = if filter.to_lowercase().contains("outbound")
+                && filter.to_lowercase().contains("inbound")
+                && filter.to_lowercase().contains(" and ")
+            {
+                log::warn!("Filter '{}' is invalid: a packet cannot be both outbound AND inbound. Using 'true' to capture all traffic.", filter);
+                "true".to_string()
+            } else {
+                filter.clone()
+            };
+            format!("({}) and {}", corrected_filter, tauri_exclusion)
         }
         _ => tauri_exclusion,
     })

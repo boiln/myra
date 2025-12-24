@@ -52,6 +52,9 @@ pub async fn start_processing(
 
     let (packet_sender, packet_receiver) = mpsc::channel();
 
+    // Set running flag BEFORE spawning threads so they don't exit immediately
+    state.running.store(true, Ordering::SeqCst);
+
     let running_recv = state.running.clone();
     let settings_recv = state.settings.clone();
     let filter_recv = state.filter.clone();
@@ -74,7 +77,6 @@ pub async fn start_processing(
         }
     });
 
-    state.running.store(true, Ordering::SeqCst);
     info!("Started packet processing");
 
     Ok(())

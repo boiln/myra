@@ -10,6 +10,7 @@ use tauri::State;
 
 use crate::commands::state::PacketProcessingState;
 use crate::commands::types::{ModuleConfig, ModuleInfo, ModuleParams, ProcessingStatus};
+use crate::settings::manipulation::PacketManipulationSettings;
 use crate::settings::Settings;
 
 /// Gets the current status of the processing engine.

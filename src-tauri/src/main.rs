@@ -6,11 +6,8 @@ use log::{error, info, LevelFilter, SetLoggerError};
 use std::io::{self, Write};
 use winapi::um::securitybaseapi::FreeSid;
 
-mod commands;
-mod error;
-mod network;
-mod settings;
-mod utils;
+// Use the library crate modules
+use myra::commands;
 
 // Simple console logger implementation
 struct SimpleLogger;

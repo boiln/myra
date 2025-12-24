@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNetworkStore } from "@/lib/stores/network";
 import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export function FilterControl() {
     const [localFilter, setLocalFilter] = useState<string>("");
@@ -45,12 +46,25 @@ export function FilterControl() {
 
     return (
         <div className="flex flex-1 items-center">
-            <Label
-                htmlFor="filter"
-                className="mr-2 whitespace-nowrap text-sm font-medium text-foreground"
-            >
-                Filter:
-            </Label>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <Label
+                        htmlFor="filter"
+                        className="mr-2 cursor-help whitespace-nowrap text-sm font-medium text-foreground"
+                    >
+                        Filter:
+                    </Label>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-xs">
+                    <p className="text-xs">
+                        WinDivert filter syntax. Examples:
+                        <br />• <code>outbound</code> - outgoing traffic only
+                        <br />• <code>inbound</code> - incoming traffic only
+                        <br />• <code>true</code> - all traffic
+                        <br />• <code>tcp.DstPort == 80</code> - HTTP traffic
+                    </p>
+                </TooltipContent>
+            </Tooltip>
             <div className="relative flex-1">
                 <Input
                     id="filter"
@@ -59,10 +73,10 @@ export function FilterControl() {
                     onKeyDown={handleFilterKeyDown}
                     onFocus={handleFocus}
                     onBlur={handleBlur}
-                    placeholder="ip"
+                    placeholder="outbound"
                     className={cn(
                         "h-9 text-sm transition-all duration-200",
-                        "border-border bg-background/80 text-foreground",
+                        "border-border bg-background text-foreground",
                         "hover:border-border focus:border-primary focus:ring-1 focus:ring-primary/30",
                         isActive && "cursor-not-allowed opacity-70",
                         isFocused && "border-primary/50"

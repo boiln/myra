@@ -35,7 +35,7 @@ pub fn receive_packets(
     _settings: Arc<Mutex<Settings>>,
     filter: Arc<Mutex<Option<String>>>,
 ) -> Result<(), WinDivertError> {
-    let mut buffer = vec![0u8; 1500]; // Standard MTU size
+    let mut buffer = vec![0u8; 65535]; // Max packet size
     let mut last_filter: Option<String> = None;
     let mut handle_manager = HandleManager::new();
     let mut logged_missing_handle = false;
@@ -60,8 +60,9 @@ pub fn receive_packets(
             match &current_filter {
                 Some(filter_str) => {
                     let config = HandleConfig::with_filter(filter_str)
-                        .recv_only(true)
-                        .exclude_tauri_port(false); // Already excluded by construct_filter_with_exclusions
+                        .priority(0)
+                        .recv_only(false)
+                        .exclude_tauri_port(false); // Already excluded in construct_filter_with_exclusions
 
                     if let Err(e) = handle_manager.open(config) {
                         error!("Failed to open WinDivert handle: {}", e);
@@ -79,7 +80,9 @@ pub fn receive_packets(
 
         // Process packets if WinDivert handle exists
         if let Some(wd_handle) = handle_manager.handle() {
-            logged_missing_handle = false;
+            if logged_missing_handle {
+                logged_missing_handle = false;
+            }
             match wd_handle.recv(Some(&mut buffer)) {
                 Ok(packet) => {
                     let packet_data = PacketData::from(packet.into_owned());

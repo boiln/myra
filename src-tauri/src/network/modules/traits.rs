@@ -4,7 +4,7 @@
 //! modules, enabling consistent behavior and easier extensibility.
 
 use crate::error::{MyraError, Result};
-use crate::network::core::packet_data::PacketData;
+use crate::network::core::PacketData;
 use crate::network::modules::stats::PacketProcessingStatistics;
 use std::sync::{Arc, RwLock};
 use std::time::Instant;
@@ -75,7 +75,7 @@ impl<'a, 'b> ModuleContext<'a, 'b> {
 pub trait PacketModule {
     /// Configuration options for this module
     type Options;
-    
+
     /// Persistent state maintained between processing calls
     type State;
 

@@ -118,12 +118,16 @@ export const createCoreSlice: StateCreator<
                 },
             ];
 
+            // Preserve current filter if backend returns null - don't reset to default
+            const { filter: existingFilter } = get();
+            const newFilter = currentFilter || existingFilter || DEFAULT_FILTER;
+
             set({
                 isActive: status.running,
-                filter: currentFilter || DEFAULT_FILTER,
+                filter: newFilter,
                 manipulationStatus: {
                     active: status.running,
-                    filter: currentFilter || DEFAULT_FILTER,
+                    filter: newFilter,
                     modules: modules,
                 },
             });

@@ -1,4 +1,4 @@
-use crate::network::core::packet_data::PacketData;
+use crate::network::core::PacketData;
 use std::cmp::Ordering;
 use std::time::{Duration, Instant};
 

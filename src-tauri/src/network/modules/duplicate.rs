@@ -1,5 +1,5 @@
 use crate::error::Result;
-use crate::network::core::packet_data::PacketData;
+use crate::network::core::PacketData;
 use crate::network::modules::stats::duplicate_stats::DuplicateStats;
 use crate::network::modules::traits::{ModuleContext, PacketModule};
 use crate::network::types::probability::Probability;
@@ -42,7 +42,7 @@ impl PacketModule for DuplicateModule {
         ctx: &mut ModuleContext,
     ) -> Result<()> {
         let mut stats = ctx.write_stats(self.name())?;
-        
+
         duplicate_packets(
             packets,
             options.count,

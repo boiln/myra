@@ -1,5 +1,5 @@
 use crate::error::Result;
-use crate::network::core::packet_data::PacketData;
+use crate::network::core::PacketData;
 use crate::network::modules::stats::reorder_stats::ReorderStats;
 use crate::network::modules::traits::{ModuleContext, PacketModule};
 use crate::network::types::delayed_packet::DelayedPacket;
@@ -44,13 +44,11 @@ impl PacketModule for ReorderModule {
         ctx: &mut ModuleContext,
     ) -> Result<()> {
         let mut stats = ctx.write_stats(self.name())?;
-        
+
         // Safety: We need to transmute lifetimes here because the storage persists
         // across processing calls.
-        let storage: &mut BinaryHeap<DelayedPacket<'a>> = unsafe {
-            std::mem::transmute(state)
-        };
-        
+        let storage: &mut BinaryHeap<DelayedPacket<'a>> = unsafe { std::mem::transmute(state) };
+
         reorder_packets(
             packets,
             storage,
