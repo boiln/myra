@@ -1,11 +1,67 @@
 use crate::network::core::packet_data::PacketData;
 use crate::network::modules::stats::reorder_stats::ReorderStats;
+use crate::network::modules::traits::{ModuleContext, PacketModule};
 use crate::network::types::delayed_packet::DelayedPacket;
 use crate::network::types::probability::Probability;
+use crate::settings::reorder::ReorderOptions;
 use log::{debug, error, warn};
 use rand::{rng, Rng};
 use std::collections::BinaryHeap;
 use std::time::{Duration, Instant};
+
+/// Unit struct for the Reorder packet module.
+///
+/// This module simulates packet reordering by delaying packets
+/// by random amounts, causing them to arrive out of order.
+#[derive(Debug, Default)]
+pub struct ReorderModule;
+
+/// State maintained by the reorder module between processing calls.
+pub type ReorderState = BinaryHeap<DelayedPacket<'static>>;
+
+impl PacketModule for ReorderModule {
+    type Options = ReorderOptions;
+    type State = ReorderState;
+
+    fn name(&self) -> &'static str {
+        "reorder"
+    }
+
+    fn display_name(&self) -> &'static str {
+        "Packet Reorder"
+    }
+
+    fn get_duration_ms(&self, options: &Self::Options) -> u64 {
+        options.duration_ms
+    }
+
+    fn process<'a>(
+        &self,
+        packets: &mut Vec<PacketData<'a>>,
+        options: &Self::Options,
+        state: &mut Self::State,
+        ctx: &mut ModuleContext,
+    ) {
+        let mut stats = ctx.statistics.write().unwrap_or_else(|e| {
+            error!("Failed to acquire write lock for reorder statistics: {}", e);
+            panic!("Failed to acquire statistics lock");
+        });
+        
+        // Safety: We need to transmute lifetimes here because the storage persists
+        // across processing calls.
+        let storage: &mut BinaryHeap<DelayedPacket<'a>> = unsafe {
+            std::mem::transmute(state)
+        };
+        
+        reorder_packets(
+            packets,
+            storage,
+            options.probability,
+            Duration::from_millis(options.max_delay),
+            &mut stats.reorder_stats,
+        );
+    }
+}
 
 /// Reorders packets based on specified probability and delay parameters
 ///

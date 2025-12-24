@@ -1,10 +1,57 @@
 use crate::network::core::packet_data::PacketData;
 use crate::network::modules::stats::tamper_stats::TamperStats;
+use crate::network::modules::traits::{ModuleContext, PacketModule};
 use crate::network::types::probability::Probability;
+use crate::settings::tamper::TamperOptions;
 use log::error;
 use rand::{rng, Rng};
 use std::collections::HashSet;
 use windivert_sys::ChecksumFlags;
+
+/// Unit struct for the Tamper packet module.
+///
+/// This module simulates packet corruption by randomly modifying
+/// packet payload data.
+#[derive(Debug, Default)]
+pub struct TamperModule;
+
+impl PacketModule for TamperModule {
+    type Options = TamperOptions;
+    type State = ();
+
+    fn name(&self) -> &'static str {
+        "tamper"
+    }
+
+    fn display_name(&self) -> &'static str {
+        "Packet Tamper"
+    }
+
+    fn get_duration_ms(&self, options: &Self::Options) -> u64 {
+        options.duration_ms
+    }
+
+    fn process<'a>(
+        &self,
+        packets: &mut Vec<PacketData<'a>>,
+        options: &Self::Options,
+        _state: &mut Self::State,
+        ctx: &mut ModuleContext,
+    ) {
+        let mut stats = ctx.statistics.write().unwrap_or_else(|e| {
+            error!("Failed to acquire write lock for tamper statistics: {}", e);
+            panic!("Failed to acquire statistics lock");
+        });
+        
+        tamper_packets(
+            packets,
+            options.probability,
+            options.amount,
+            options.recalculate_checksums.unwrap_or(true),
+            &mut stats.tamper_stats,
+        );
+    }
+}
 
 /// Randomly tampers with packet data based on specified probabilities
 ///

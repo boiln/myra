@@ -1,12 +1,10 @@
 use crate::network::core::packet_data::PacketData;
-use crate::network::modules::bandwidth::bandwidth_limiter;
-use crate::network::modules::delay::delay_packets;
-use crate::network::modules::drop::drop_packets;
-use crate::network::modules::duplicate::duplicate_packets;
-use crate::network::modules::reorder::reorder_packets;
 use crate::network::modules::stats::PacketProcessingStatistics;
-use crate::network::modules::tamper::tamper_packets;
-use crate::network::modules::throttle::throttle_packages;
+use crate::network::modules::traits::ModuleContext;
+use crate::network::modules::{
+    BandwidthModule, DelayModule, DropModule, DuplicateModule, PacketModule, ReorderModule,
+    TamperModule, ThrottleModule,
+};
 use crate::network::processing::packet_processing_state::PacketProcessingState;
 use crate::settings::packet_manipulation::PacketManipulationSettings;
 use crate::utils::is_effect_active;
@@ -162,213 +160,140 @@ pub fn start_packet_processing(
 pub fn process_packets<'a>(
     settings: &PacketManipulationSettings,
     packets: &mut Vec<PacketData<'a>>,
-    state: &mut PacketProcessingState<'a>,
+    state: &mut PacketProcessingState,
     statistics: &Arc<RwLock<PacketProcessingStatistics>>,
 ) {
-    // Apply packet dropping if enabled
-    if let Some(drop) = &settings.drop {
-        let effect_active = is_effect_active(drop.duration_ms, state.effect_start_times.drop_start);
+    let has_packets = !packets.is_empty();
 
-        if !effect_active && !packets.is_empty() {
-            state.effect_start_times.drop_start = Instant::now();
-        }
+    // Process each module using the trait-based approach
+    process_module(
+        &DropModule,
+        settings.drop.as_ref(),
+        packets,
+        &mut (),
+        &mut state.effect_start_times.drop,
+        statistics,
+        has_packets,
+    );
 
-        if effect_active {
-            drop_packets(
-                packets,
-                drop.probability,
-                &mut statistics
-                    .write()
-                    .unwrap_or_else(|_| {
-                        error!("Failed to acquire write lock for drop statistics");
-                        panic!("Failed to acquire statistics lock");
-                    })
-                    .drop_stats,
-            );
-        }
+    process_module(
+        &DelayModule,
+        settings.delay.as_ref(),
+        packets,
+        &mut state.delay,
+        &mut state.effect_start_times.delay,
+        statistics,
+        has_packets,
+    );
+
+    process_module(
+        &ThrottleModule,
+        settings.throttle.as_ref(),
+        packets,
+        &mut state.throttle,
+        &mut state.effect_start_times.throttle,
+        statistics,
+        has_packets,
+    );
+
+    process_module(
+        &ReorderModule,
+        settings.reorder.as_ref(),
+        packets,
+        &mut state.reorder,
+        &mut state.effect_start_times.reorder,
+        statistics,
+        has_packets,
+    );
+
+    process_module(
+        &TamperModule,
+        settings.tamper.as_ref(),
+        packets,
+        &mut (),
+        &mut state.effect_start_times.tamper,
+        statistics,
+        has_packets,
+    );
+
+    process_module(
+        &DuplicateModule,
+        settings.duplicate.as_ref(),
+        packets,
+        &mut (),
+        &mut state.effect_start_times.duplicate,
+        statistics,
+        has_packets,
+    );
+
+    process_module(
+        &BandwidthModule,
+        settings.bandwidth.as_ref(),
+        packets,
+        &mut state.bandwidth,
+        &mut state.effect_start_times.bandwidth,
+        statistics,
+        has_packets,
+    );
+}
+
+/// Generic function to process a single module.
+///
+/// Handles the common logic of checking if a module should run,
+/// managing effect duration, and invoking the module's process function.
+///
+/// # Type Parameters
+///
+/// * `M` - The module type implementing `PacketModule`
+///
+/// # Arguments
+///
+/// * `module` - The module instance to use for processing
+/// * `options` - Optional configuration for the module
+/// * `packets` - Vector of packets to process
+/// * `module_state` - Module-specific state
+/// * `effect_start` - When the effect started (for duration tracking)
+/// * `statistics` - Shared statistics
+/// * `has_packets` - Whether there are packets to process
+fn process_module<'a, M>(
+    module: &M,
+    options: Option<&M::Options>,
+    packets: &mut Vec<PacketData<'a>>,
+    module_state: &mut M::State,
+    effect_start: &mut Instant,
+    statistics: &Arc<RwLock<PacketProcessingStatistics>>,
+    has_packets: bool,
+) where
+    M: PacketModule,
+{
+    let Some(opts) = options else {
+        return;
+    };
+
+    // Check if module should be skipped based on its options
+    if module.should_skip(opts) {
+        return;
     }
 
-    if let Some(delay) = &settings.delay {
-        debug!(
-            "Delay module check: duration_ms={}, elapsed={:?}, active={}",
-            delay.duration_ms,
-            state.effect_start_times.delay_start.elapsed(),
-            is_effect_active(delay.duration_ms, state.effect_start_times.delay_start)
-        );
+    let duration_ms = module.get_duration_ms(opts);
+    let effect_active = is_effect_active(duration_ms, *effect_start);
 
-        let effect_active =
-            is_effect_active(delay.duration_ms, state.effect_start_times.delay_start);
-
-        if !effect_active && !packets.is_empty() {
-            debug!("Delay module deactivated, resetting start time");
-            state.effect_start_times.delay_start = Instant::now();
-        }
-
-        if effect_active {
-            delay_packets(
-                packets,
-                &mut state.delay_storage,
-                Duration::from_millis(delay.delay_ms),
-                delay.probability,
-                &mut statistics
-                    .write()
-                    .unwrap_or_else(|_| {
-                        error!("Failed to acquire write lock for delay statistics");
-                        panic!("Failed to acquire statistics lock");
-                    })
-                    .delay_stats,
-            );
-        }
+    // Reset effect start time when effect becomes inactive and there are packets
+    if !effect_active && has_packets {
+        debug!("{} effect inactive, resetting start time", module.name());
+        *effect_start = Instant::now();
     }
 
-    if let Some(throttle) = &settings.throttle {
-        let effect_active = is_effect_active(
-            throttle.duration_ms,
-            state.effect_start_times.throttle_start,
-        );
-
-        if !effect_active && !packets.is_empty() {
-            state.effect_start_times.throttle_start = Instant::now();
-        }
-
-        if effect_active {
-            throttle_packages(
-                packets,
-                &mut state.throttle_storage,
-                &mut state.throttled_start_time,
-                throttle.probability,
-                Duration::from_millis(throttle.throttle_ms),
-                throttle.drop,
-                &mut statistics
-                    .write()
-                    .unwrap_or_else(|_| {
-                        error!("Failed to acquire write lock for throttle statistics");
-                        panic!("Failed to acquire statistics lock");
-                    })
-                    .throttle_stats,
-            );
-        }
+    if !effect_active {
+        return;
     }
 
-    if let Some(reorder) = &settings.reorder {
-        let effect_active =
-            is_effect_active(reorder.duration_ms, state.effect_start_times.reorder_start);
+    // Create context and process
+    let mut ctx = ModuleContext {
+        statistics,
+        has_packets,
+        effect_start,
+    };
 
-        debug!(
-            "Reorder check: duration_ms={}, effect_active={}, max_delay={}",
-            reorder.duration_ms, effect_active, reorder.max_delay
-        );
-
-        if !effect_active && !packets.is_empty() {
-            debug!("Reorder effect inactive, resetting start time");
-            state.effect_start_times.reorder_start = Instant::now();
-        }
-
-        if effect_active {
-            reorder_packets(
-                packets,
-                &mut state.reorder_storage,
-                reorder.probability,
-                Duration::from_millis(reorder.max_delay),
-                &mut statistics
-                    .write()
-                    .unwrap_or_else(|_| {
-                        error!("Failed to acquire write lock for reorder statistics");
-                        panic!("Failed to acquire statistics lock");
-                    })
-                    .reorder_stats,
-            );
-        }
-    }
-
-    if let Some(tamper) = &settings.tamper {
-        let effect_active =
-            is_effect_active(tamper.duration_ms, state.effect_start_times.tamper_start);
-
-        if !effect_active && !packets.is_empty() {
-            state.effect_start_times.tamper_start = Instant::now();
-        }
-
-        if effect_active {
-            tamper_packets(
-                packets,
-                tamper.probability,
-                tamper.amount,
-                tamper.recalculate_checksums.unwrap_or(true),
-                &mut statistics
-                    .write()
-                    .unwrap_or_else(|_| {
-                        error!("Failed to acquire write lock for tamper statistics");
-                        panic!("Failed to acquire statistics lock");
-                    })
-                    .tamper_stats,
-            );
-        }
-    }
-
-    if let Some(duplicate) = &settings.duplicate {
-        let should_skip = duplicate.count <= 1 || duplicate.probability.value() <= 0.0;
-        if should_skip {
-            // Skip - no duplication needed
-        }
-
-        let effect_active = !should_skip
-            && is_effect_active(
-                duplicate.duration_ms,
-                state.effect_start_times.duplicate_start,
-            );
-
-        if !should_skip && !effect_active && !packets.is_empty() {
-            state.effect_start_times.duplicate_start = Instant::now();
-        }
-
-        if effect_active {
-            duplicate_packets(
-                packets,
-                duplicate.count,
-                duplicate.probability,
-                &mut statistics
-                    .write()
-                    .unwrap_or_else(|_| {
-                        error!("Failed to acquire write lock for duplicate statistics");
-                        panic!("Failed to acquire statistics lock");
-                    })
-                    .duplicate_stats,
-            );
-        }
-    }
-
-    if let Some(bandwidth) = &settings.bandwidth {
-        let should_skip = bandwidth.limit == 0;
-        if should_skip {
-            // Skip - no bandwidth limit
-        }
-
-        let effect_active = !should_skip
-            && is_effect_active(
-                bandwidth.duration_ms,
-                state.effect_start_times.bandwidth_start,
-            );
-
-        if !should_skip && !effect_active && !packets.is_empty() {
-            state.effect_start_times.bandwidth_start = Instant::now();
-        }
-
-        if effect_active {
-            bandwidth_limiter(
-                packets,
-                &mut state.bandwidth_limit_storage,
-                &mut state.bandwidth_storage_total_size,
-                &mut state.last_sent_package_time,
-                bandwidth.limit,
-                &mut statistics
-                    .write()
-                    .unwrap_or_else(|_| {
-                        error!("Failed to acquire write lock for bandwidth statistics");
-                        panic!("Failed to acquire statistics lock");
-                    })
-                    .bandwidth_stats,
-            );
-        }
-    }
+    module.process(packets, opts, module_state, &mut ctx);
 }

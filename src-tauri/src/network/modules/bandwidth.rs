@@ -1,11 +1,87 @@
 use crate::network::core::packet_data::PacketData;
 use crate::network::modules::stats::bandwidth_stats::BandwidthStats;
+use crate::network::modules::traits::{ModuleContext, PacketModule};
+use crate::settings::bandwidth::BandwidthOptions;
+use log::error;
 use std::collections::VecDeque;
 use std::time::Instant;
 
 /// Maximum size of the packet buffer in bytes (10 MB)
 /// When this limit is exceeded, packets will be dropped from the buffer
 const MAX_BUFFER_SIZE: usize = 10 * 1024 * 1024; // 10 MB in bytes
+
+/// Unit struct for the Bandwidth packet module.
+///
+/// This module simulates bandwidth limitations using a token bucket
+/// algorithm to control the rate at which packets are released.
+#[derive(Debug, Default)]
+pub struct BandwidthModule;
+
+/// State maintained by the bandwidth module between processing calls.
+pub struct BandwidthState {
+    pub buffer: VecDeque<PacketData<'static>>,
+    pub total_buffer_size: usize,
+    pub last_send_time: Instant,
+}
+
+impl Default for BandwidthState {
+    fn default() -> Self {
+        Self {
+            buffer: VecDeque::new(),
+            total_buffer_size: 0,
+            last_send_time: Instant::now(),
+        }
+    }
+}
+
+impl PacketModule for BandwidthModule {
+    type Options = BandwidthOptions;
+    type State = BandwidthState;
+
+    fn name(&self) -> &'static str {
+        "bandwidth"
+    }
+
+    fn display_name(&self) -> &'static str {
+        "Bandwidth Limit"
+    }
+
+    fn get_duration_ms(&self, options: &Self::Options) -> u64 {
+        options.duration_ms
+    }
+
+    fn should_skip(&self, options: &Self::Options) -> bool {
+        options.limit == 0
+    }
+
+    fn process<'a>(
+        &self,
+        packets: &mut Vec<PacketData<'a>>,
+        options: &Self::Options,
+        state: &mut Self::State,
+        ctx: &mut ModuleContext,
+    ) {
+        let mut stats = ctx.statistics.write().unwrap_or_else(|e| {
+            error!("Failed to acquire write lock for bandwidth statistics: {}", e);
+            panic!("Failed to acquire statistics lock");
+        });
+        
+        // Safety: We need to transmute lifetimes here because the buffer persists
+        // across processing calls.
+        let buffer: &mut VecDeque<PacketData<'a>> = unsafe {
+            std::mem::transmute(&mut state.buffer)
+        };
+        
+        bandwidth_limiter(
+            packets,
+            buffer,
+            &mut state.total_buffer_size,
+            &mut state.last_send_time,
+            options.limit,
+            &mut stats.bandwidth_stats,
+        );
+    }
+}
 
 /// Limits network bandwidth by controlling the rate at which packets are released
 ///

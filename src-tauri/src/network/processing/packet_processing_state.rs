@@ -1,75 +1,79 @@
-use crate::network::core::packet_data::PacketData;
-use crate::network::types::delayed_packet::DelayedPacket;
-use std::collections::{BinaryHeap, VecDeque};
+use crate::network::modules::bandwidth::BandwidthState;
+use crate::network::modules::delay::DelayState;
+use crate::network::modules::reorder::ReorderState;
+use crate::network::modules::throttle::ThrottleState;
 use std::time::Instant;
 
-/// Maintains state for the packet processing operations
+/// Maintains state for the packet processing operations.
+///
+/// This struct holds all module-specific state that needs to persist
+/// between processing iterations.
 #[derive(Debug)]
-pub struct PacketProcessingState<'a> {
-    pub delay_storage: VecDeque<PacketData<'a>>,
-    pub reorder_storage: BinaryHeap<DelayedPacket<'a>>,
-    pub bandwidth_limit_storage: VecDeque<PacketData<'a>>,
-    pub bandwidth_storage_total_size: usize,
-    pub throttle_storage: VecDeque<PacketData<'a>>,
-    pub throttled_start_time: Instant,
-    pub last_sent_package_time: Instant,
+pub struct PacketProcessingState {
+    /// State for the delay module
+    pub delay: DelayState,
+    /// State for the reorder module
+    pub reorder: ReorderState,
+    /// State for the bandwidth module
+    pub bandwidth: BandwidthState,
+    /// State for the throttle module
+    pub throttle: ThrottleState,
 
     /// Time when each module's effect was started
     pub effect_start_times: ModuleEffectStartTimes,
 }
 
-/// Tracks when each module's effect was started
+/// Tracks when each module's effect was started.
+///
+/// Used to implement duration-based effects that automatically
+/// disable after a certain time period.
 #[derive(Debug)]
 pub struct ModuleEffectStartTimes {
     /// Time when drop effect was started
-    pub drop_start: Instant,
-
+    pub drop: Instant,
     /// Time when delay effect was started  
-    pub delay_start: Instant,
-
+    pub delay: Instant,
     /// Time when throttle effect was started
-    pub throttle_start: Instant,
-
+    pub throttle: Instant,
     /// Time when duplicate effect was started
-    pub duplicate_start: Instant,
-
+    pub duplicate: Instant,
     /// Time when tamper effect was started
-    pub tamper_start: Instant,
-
+    pub tamper: Instant,
     /// Time when reorder effect was started
-    pub reorder_start: Instant,
-
+    pub reorder: Instant,
     /// Time when bandwidth effect was started
-    pub bandwidth_start: Instant,
+    pub bandwidth: Instant,
 }
 
 impl Default for ModuleEffectStartTimes {
     fn default() -> Self {
         let now = Instant::now();
         Self {
-            drop_start: now,
-            delay_start: now,
-            throttle_start: now,
-            duplicate_start: now,
-            tamper_start: now,
-            reorder_start: now,
-            bandwidth_start: now,
+            drop: now,
+            delay: now,
+            throttle: now,
+            duplicate: now,
+            tamper: now,
+            reorder: now,
+            bandwidth: now,
         }
     }
 }
 
-impl<'a> PacketProcessingState<'a> {
+impl PacketProcessingState {
     pub fn new() -> Self {
-        let now = Instant::now();
         Self {
-            delay_storage: VecDeque::new(),
-            reorder_storage: BinaryHeap::new(),
-            bandwidth_limit_storage: VecDeque::new(),
-            bandwidth_storage_total_size: 0,
-            throttle_storage: VecDeque::new(),
-            throttled_start_time: now,
-            last_sent_package_time: now,
+            delay: DelayState::default(),
+            reorder: ReorderState::default(),
+            bandwidth: BandwidthState::default(),
+            throttle: ThrottleState::default(),
             effect_start_times: ModuleEffectStartTimes::default(),
         }
+    }
+}
+
+impl Default for PacketProcessingState {
+    fn default() -> Self {
+        Self::new()
     }
 }

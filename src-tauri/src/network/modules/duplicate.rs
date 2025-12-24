@@ -1,8 +1,59 @@
 use crate::network::core::packet_data::PacketData;
 use crate::network::modules::stats::duplicate_stats::DuplicateStats;
+use crate::network::modules::traits::{ModuleContext, PacketModule};
 use crate::network::types::probability::Probability;
+use crate::settings::duplicate::DuplicateOptions;
+use log::error;
 use rand::Rng;
 use std::vec::Vec;
+
+/// Unit struct for the Duplicate packet module.
+///
+/// This module simulates packet duplication by creating copies of
+/// packets based on a configured probability and count.
+#[derive(Debug, Default)]
+pub struct DuplicateModule;
+
+impl PacketModule for DuplicateModule {
+    type Options = DuplicateOptions;
+    type State = ();
+
+    fn name(&self) -> &'static str {
+        "duplicate"
+    }
+
+    fn display_name(&self) -> &'static str {
+        "Packet Duplicate"
+    }
+
+    fn get_duration_ms(&self, options: &Self::Options) -> u64 {
+        options.duration_ms
+    }
+
+    fn should_skip(&self, options: &Self::Options) -> bool {
+        options.count <= 1 || options.probability.value() <= 0.0
+    }
+
+    fn process<'a>(
+        &self,
+        packets: &mut Vec<PacketData<'a>>,
+        options: &Self::Options,
+        _state: &mut Self::State,
+        ctx: &mut ModuleContext,
+    ) {
+        let mut stats = ctx.statistics.write().unwrap_or_else(|e| {
+            error!("Failed to acquire write lock for duplicate statistics: {}", e);
+            panic!("Failed to acquire statistics lock");
+        });
+        
+        duplicate_packets(
+            packets,
+            options.count,
+            options.probability,
+            &mut stats.duplicate_stats,
+        );
+    }
+}
 
 /// Duplicates packets according to a probability
 ///

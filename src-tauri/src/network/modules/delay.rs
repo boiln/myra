@@ -1,9 +1,66 @@
 use crate::network::core::packet_data::PacketData;
 use crate::network::modules::stats::delay_stats::DelayStats;
+use crate::network::modules::traits::{ModuleContext, PacketModule};
 use crate::network::types::probability::Probability;
+use crate::settings::delay::DelayOptions;
+use log::error;
 use rand::{rng, Rng};
 use std::collections::VecDeque;
 use std::time::Duration;
+
+/// Unit struct for the Delay packet module.
+///
+/// This module simulates network latency by holding packets for a 
+/// specified duration before releasing them.
+#[derive(Debug, Default)]
+pub struct DelayModule;
+
+/// State maintained by the delay module between processing calls.
+pub type DelayState = VecDeque<PacketData<'static>>;
+
+impl PacketModule for DelayModule {
+    type Options = DelayOptions;
+    type State = DelayState;
+
+    fn name(&self) -> &'static str {
+        "delay"
+    }
+
+    fn display_name(&self) -> &'static str {
+        "Packet Delay"
+    }
+
+    fn get_duration_ms(&self, options: &Self::Options) -> u64 {
+        options.duration_ms
+    }
+
+    fn process<'a>(
+        &self,
+        packets: &mut Vec<PacketData<'a>>,
+        options: &Self::Options,
+        state: &mut Self::State,
+        ctx: &mut ModuleContext,
+    ) {
+        let mut stats = ctx.statistics.write().unwrap_or_else(|e| {
+            error!("Failed to acquire write lock for delay statistics: {}", e);
+            panic!("Failed to acquire statistics lock");
+        });
+        
+        // Safety: We need to transmute lifetimes here because the storage persists
+        // across processing calls. The packets are owned by the storage until released.
+        let storage: &mut VecDeque<PacketData<'a>> = unsafe {
+            std::mem::transmute(state)
+        };
+        
+        delay_packets(
+            packets,
+            storage,
+            Duration::from_millis(options.delay_ms),
+            options.probability,
+            &mut stats.delay_stats,
+        );
+    }
+}
 
 /// Simulates network delay by holding packets for a specified duration.
 ///

@@ -1,7 +1,48 @@
 use crate::network::core::packet_data::PacketData;
 use crate::network::modules::stats::drop_stats::DropStats;
+use crate::network::modules::traits::{ModuleContext, PacketModule};
 use crate::network::types::probability::Probability;
+use crate::settings::drop::DropOptions;
+use log::error;
 use rand::{rng, Rng};
+
+/// Unit struct for the Drop packet module.
+///
+/// This module simulates packet loss by randomly dropping packets
+/// based on a configured probability.
+#[derive(Debug, Default)]
+pub struct DropModule;
+
+impl PacketModule for DropModule {
+    type Options = DropOptions;
+    type State = ();
+
+    fn name(&self) -> &'static str {
+        "drop"
+    }
+
+    fn display_name(&self) -> &'static str {
+        "Packet Drop"
+    }
+
+    fn get_duration_ms(&self, options: &Self::Options) -> u64 {
+        options.duration_ms
+    }
+
+    fn process<'a>(
+        &self,
+        packets: &mut Vec<PacketData<'a>>,
+        options: &Self::Options,
+        _state: &mut Self::State,
+        ctx: &mut ModuleContext,
+    ) {
+        let mut stats = ctx.statistics.write().unwrap_or_else(|e| {
+            error!("Failed to acquire write lock for drop statistics: {}", e);
+            panic!("Failed to acquire statistics lock");
+        });
+        drop_packets(packets, options.probability, &mut stats.drop_stats);
+    }
+}
 
 /// Simulates packet dropping based on a specified probability.
 ///

@@ -1,9 +1,80 @@
 use crate::network::core::packet_data::PacketData;
 use crate::network::modules::stats::throttle_stats::ThrottleStats;
+use crate::network::modules::traits::{ModuleContext, PacketModule};
 use crate::network::types::probability::Probability;
+use crate::settings::throttle::ThrottleOptions;
+use log::error;
 use rand::Rng;
 use std::collections::VecDeque;
 use std::time::{Duration, Instant};
+
+/// Unit struct for the Throttle packet module.
+///
+/// This module simulates network throttling by either dropping packets
+/// or storing them temporarily during throttle periods.
+#[derive(Debug, Default)]
+pub struct ThrottleModule;
+
+/// State maintained by the throttle module between processing calls.
+pub struct ThrottleState {
+    pub storage: VecDeque<PacketData<'static>>,
+    pub throttled_start_time: Instant,
+}
+
+impl Default for ThrottleState {
+    fn default() -> Self {
+        Self {
+            storage: VecDeque::new(),
+            throttled_start_time: Instant::now(),
+        }
+    }
+}
+
+impl PacketModule for ThrottleModule {
+    type Options = ThrottleOptions;
+    type State = ThrottleState;
+
+    fn name(&self) -> &'static str {
+        "throttle"
+    }
+
+    fn display_name(&self) -> &'static str {
+        "Network Throttle"
+    }
+
+    fn get_duration_ms(&self, options: &Self::Options) -> u64 {
+        options.duration_ms
+    }
+
+    fn process<'a>(
+        &self,
+        packets: &mut Vec<PacketData<'a>>,
+        options: &Self::Options,
+        state: &mut Self::State,
+        ctx: &mut ModuleContext,
+    ) {
+        let mut stats = ctx.statistics.write().unwrap_or_else(|e| {
+            error!("Failed to acquire write lock for throttle statistics: {}", e);
+            panic!("Failed to acquire statistics lock");
+        });
+        
+        // Safety: We need to transmute lifetimes here because the storage persists
+        // across processing calls.
+        let storage: &mut VecDeque<PacketData<'a>> = unsafe {
+            std::mem::transmute(&mut state.storage)
+        };
+        
+        throttle_packages(
+            packets,
+            storage,
+            &mut state.throttled_start_time,
+            options.probability,
+            Duration::from_millis(options.throttle_ms),
+            options.drop,
+            &mut stats.throttle_stats,
+        );
+    }
+}
 
 /// Throttles network packets by either dropping them or storing them temporarily
 ///
