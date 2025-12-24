@@ -9,7 +9,7 @@ use std::sync::{Arc, Mutex, RwLock};
 use tauri::{App, Manager};
 
 use crate::network::modules::stats::PacketProcessingStatistics;
-use crate::settings::packet_manipulation::PacketManipulationSettings;
+use crate::settings::Settings;
 
 /// Global state for the packet processing system.
 ///
@@ -19,7 +19,7 @@ pub struct PacketProcessingState {
     /// Flag indicating whether packet processing is currently active
     pub running: Arc<AtomicBool>,
     /// Current packet manipulation settings
-    pub settings: Arc<Mutex<PacketManipulationSettings>>,
+    pub settings: Arc<Mutex<Settings>>,
     /// Statistics collected during packet processing
     pub statistics: Arc<RwLock<PacketProcessingStatistics>>,
     /// Current WinDivert filter expression
@@ -30,7 +30,7 @@ impl Default for PacketProcessingState {
     fn default() -> Self {
         Self {
             running: Arc::new(AtomicBool::new(false)),
-            settings: Arc::new(Mutex::new(PacketManipulationSettings::default())),
+            settings: Arc::new(Mutex::new(Settings::default())),
             statistics: Arc::new(RwLock::new(PacketProcessingStatistics::default())),
             filter: Arc::new(Mutex::new(None)),
         }

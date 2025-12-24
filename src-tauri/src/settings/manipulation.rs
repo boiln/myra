@@ -27,7 +27,7 @@ where
 /// This struct contains all the different types of network condition simulations
 /// that can be applied to packets, each as an optional setting.
 #[derive(Debug, Serialize, Deserialize, Default, Clone)]
-pub struct PacketManipulationSettings {
+pub struct Settings {
     /// Controls random packet dropping
     #[serde(serialize_with = "serialize_option")]
     pub drop: Option<DropOptions>,
@@ -56,5 +56,8 @@ pub struct PacketManipulationSettings {
     #[serde(serialize_with = "serialize_option")]
     pub bandwidth: Option<BandwidthOptions>,
 }
+
+/// Type alias for backward compatibility.
+pub type PacketManipulationSettings = Settings;
 
 

@@ -23,7 +23,7 @@ pub use crate::network::modules::stats::PacketProcessingStatistics;
 pub use crate::network::types::probability::Probability;
 
 // Settings
-pub use crate::settings::{PacketManipulationSettings, SettingsBuilder};
+pub use crate::settings::{Settings, SettingsBuilder};
 
 // Individual module options (for advanced usage)
 pub use crate::settings::{

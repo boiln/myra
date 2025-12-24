@@ -10,7 +10,7 @@ use tauri::State;
 
 use crate::commands::state::PacketProcessingState;
 use crate::commands::types::{ModuleConfig, ModuleInfo, ModuleParams, ProcessingStatus};
-use crate::settings::packet_manipulation::PacketManipulationSettings;
+use crate::settings::Settings;
 
 /// Gets the current status of the processing engine.
 ///
@@ -114,7 +114,7 @@ pub async fn update_filter(
 }
 
 /// Builds a list of ModuleInfo from the current settings.
-fn build_module_info_list(settings: &PacketManipulationSettings) -> Vec<ModuleInfo> {
+fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
     let mut modules = Vec::new();
 
     // Drop module (Freeze)

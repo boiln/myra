@@ -6,7 +6,7 @@ use std::path::PathBuf;
 use tauri::State;
 
 use crate::commands::PacketProcessingState;
-use crate::settings::packet_manipulation::PacketManipulationSettings;
+use crate::settings::Settings;
 
 /// Configuration file structure for storing application settings
 ///
@@ -15,7 +15,7 @@ use crate::settings::packet_manipulation::PacketManipulationSettings;
 #[derive(Serialize, Deserialize)]
 struct ConfigFile {
     /// Packet manipulation settings
-    settings: PacketManipulationSettings,
+    settings: Settings,
     /// WinDivert filter string
     filter: Option<String>,
 }

@@ -19,11 +19,11 @@ pub mod builder;
 pub mod delay;
 pub mod drop;
 pub mod duplicate;
-pub mod packet_manipulation;
+pub mod manipulation;
 pub mod reorder;
 pub mod tamper;
 pub mod throttle;
 
 // Re-export commonly used types
 pub use builder::SettingsBuilder;
-pub use packet_manipulation::PacketManipulationSettings;
+pub use manipulation::Settings;

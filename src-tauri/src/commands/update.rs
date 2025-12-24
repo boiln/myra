@@ -12,10 +12,10 @@ use crate::settings::bandwidth::BandwidthOptions;
 use crate::settings::delay::DelayOptions;
 use crate::settings::drop::DropOptions;
 use crate::settings::duplicate::DuplicateOptions;
-use crate::settings::packet_manipulation::PacketManipulationSettings;
 use crate::settings::reorder::ReorderOptions;
 use crate::settings::tamper::TamperOptions;
 use crate::settings::throttle::ThrottleOptions;
+use crate::settings::Settings;
 
 /// Updates the packet manipulation settings.
 ///
@@ -50,9 +50,9 @@ pub async fn update_settings(
     Ok(())
 }
 
-/// Builds PacketManipulationSettings from a list of ModuleInfo.
-fn build_settings_from_modules(modules: Vec<ModuleInfo>) -> Result<PacketManipulationSettings, String> {
-    let mut settings = PacketManipulationSettings::default();
+/// Builds Settings from a list of ModuleInfo.
+fn build_settings_from_modules(modules: Vec<ModuleInfo>) -> Result<Settings, String> {
+    let mut settings = Settings::default();
 
     for module in modules {
         match module.name.as_str() {

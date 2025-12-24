@@ -1,15 +1,14 @@
 use crate::error::{MyraError, Result};
-use crate::network::core::packet_data::PacketData;
+use crate::network::core::PacketData;
 use crate::network::modules::stats::PacketProcessingStatistics;
 use crate::network::modules::traits::ModuleContext;
 use crate::network::modules::{
     BandwidthModule, DelayModule, DropModule, DuplicateModule, PacketModule, ReorderModule,
     TamperModule, ThrottleModule,
 };
-use crate::network::processing::packet_processing_state::ModuleProcessingState;
-use crate::settings::packet_manipulation::PacketManipulationSettings;
-use crate::utils::is_effect_active;
-use crate::utils::log_statistics;
+use crate::network::processing::module_state::ModuleProcessingState;
+use crate::settings::Settings;
+use crate::utils::{is_effect_active, log_statistics};
 use log::{debug, error, info};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::Receiver;
@@ -40,7 +39,7 @@ use windivert_sys::WinDivertFlags;
 ///
 /// Result indicating success or a MyraError if something fails
 pub fn start_packet_processing(
-    settings: Arc<Mutex<PacketManipulationSettings>>,
+    settings: Arc<Mutex<Settings>>,
     packet_receiver: Receiver<PacketData>,
     running: Arc<AtomicBool>,
     statistics: Arc<RwLock<PacketProcessingStatistics>>,
@@ -165,7 +164,7 @@ pub fn start_packet_processing(
 ///
 /// `Ok(())` on success, or `MyraError` if any module fails to process.
 pub fn process_packets<'a>(
-    settings: &PacketManipulationSettings,
+    settings: &Settings,
     packets: &mut Vec<PacketData<'a>>,
     state: &mut ModuleProcessingState,
     statistics: &Arc<RwLock<PacketProcessingStatistics>>,

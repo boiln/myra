@@ -1,7 +1,7 @@
 //! Packet manipulation settings.
 //!
 //! This module provides a fluent builder API for constructing
-//! `PacketManipulationSettings` in a type-safe and ergonomic way.
+//! `Settings` in a type-safe and ergonomic way.
 //!
 //! # Example
 //!
@@ -21,17 +21,17 @@ use crate::settings::bandwidth::BandwidthOptions;
 use crate::settings::delay::DelayOptions;
 use crate::settings::drop::DropOptions;
 use crate::settings::duplicate::DuplicateOptions;
-use crate::settings::packet_manipulation::PacketManipulationSettings;
+use crate::settings::manipulation::Settings;
 use crate::settings::reorder::ReorderOptions;
 use crate::settings::tamper::TamperOptions;
 use crate::settings::throttle::ThrottleOptions;
 
-/// Builder for constructing `PacketManipulationSettings`.
+/// Builder for constructing `Settings`.
 ///
 /// Provides a fluent API for configuring network condition simulations.
 #[derive(Debug, Default)]
 pub struct SettingsBuilder {
-    settings: PacketManipulationSettings,
+    settings: Settings,
 }
 
 impl SettingsBuilder {
@@ -262,18 +262,18 @@ impl SettingsBuilder {
 
     /// Clears all settings, resetting to default.
     pub fn clear(mut self) -> Self {
-        self.settings = PacketManipulationSettings::default();
+        self.settings = Settings::default();
         self
     }
 
-    /// Builds and returns the configured `PacketManipulationSettings`.
-    pub fn build(self) -> PacketManipulationSettings {
+    /// Builds and returns the configured `Settings`.
+    pub fn build(self) -> Settings {
         self.settings
     }
 }
 
-/// Extension trait for `PacketManipulationSettings`.
-impl PacketManipulationSettings {
+/// Extension trait for `Settings`.
+impl Settings {
     /// Creates a new builder from existing settings.
     pub fn builder() -> SettingsBuilder {
         SettingsBuilder::new()

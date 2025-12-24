@@ -10,9 +10,8 @@ use log::{error, info};
 use tauri::State;
 
 use crate::commands::state::PacketProcessingState;
-use crate::network::processing::packet_processing::start_packet_processing;
-use crate::network::processing::packet_receiving::receive_packets;
-use crate::settings::packet_manipulation::PacketManipulationSettings;
+use crate::network::processing::{receive_packets, start_packet_processing};
+use crate::settings::Settings;
 
 /// Starts packet processing with the given settings and filter.
 ///
@@ -32,7 +31,7 @@ use crate::settings::packet_manipulation::PacketManipulationSettings;
 #[tauri::command]
 pub async fn start_processing(
     state: State<'_, PacketProcessingState>,
-    settings: PacketManipulationSettings,
+    settings: Settings,
     filter: Option<String>,
 ) -> Result<(), String> {
     let running = state.running.load(Ordering::SeqCst);

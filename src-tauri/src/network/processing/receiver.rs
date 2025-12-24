@@ -3,11 +3,10 @@
 //! This module handles receiving network packets using WinDivert
 //! and forwarding them to the processing thread.
 
-use crate::network::core::handle_manager::{
-    construct_filter_with_exclusions, flush_wfp_cache, HandleConfig, HandleManager,
+use crate::network::core::{
+    construct_filter_with_exclusions, flush_wfp_cache, HandleConfig, HandleManager, PacketData,
 };
-use crate::network::core::PacketData;
-use crate::settings::packet_manipulation::PacketManipulationSettings;
+use crate::settings::Settings;
 use log::{debug, error, info};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{mpsc, Arc, Mutex};
@@ -33,7 +32,7 @@ use windivert::error::WinDivertError;
 pub fn receive_packets(
     packet_sender: mpsc::Sender<PacketData<'_>>,
     running: Arc<AtomicBool>,
-    _settings: Arc<Mutex<PacketManipulationSettings>>,
+    _settings: Arc<Mutex<Settings>>,
     filter: Arc<Mutex<Option<String>>>,
 ) -> Result<(), WinDivertError> {
     let mut buffer = vec![0u8; 1500]; // Standard MTU size
