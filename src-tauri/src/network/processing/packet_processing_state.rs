@@ -4,12 +4,12 @@ use crate::network::modules::reorder::ReorderState;
 use crate::network::modules::throttle::ThrottleState;
 use std::time::Instant;
 
-/// Maintains state for the packet processing operations.
+/// Maintains state for the packet processing modules.
 ///
 /// This struct holds all module-specific state that needs to persist
-/// between processing iterations.
+/// between processing iterations, such as queued packets and timing info.
 #[derive(Debug)]
-pub struct PacketProcessingState {
+pub struct ModuleProcessingState {
     /// State for the delay module
     pub delay: DelayState,
     /// State for the reorder module
@@ -60,7 +60,7 @@ impl Default for ModuleEffectStartTimes {
     }
 }
 
-impl PacketProcessingState {
+impl ModuleProcessingState {
     pub fn new() -> Self {
         Self {
             delay: DelayState::default(),
@@ -72,7 +72,7 @@ impl PacketProcessingState {
     }
 }
 
-impl Default for PacketProcessingState {
+impl Default for ModuleProcessingState {
     fn default() -> Self {
         Self::new()
     }

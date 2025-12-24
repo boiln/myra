@@ -6,7 +6,7 @@ use crate::network::modules::{
     BandwidthModule, DelayModule, DropModule, DuplicateModule, PacketModule, ReorderModule,
     TamperModule, ThrottleModule,
 };
-use crate::network::processing::packet_processing_state::PacketProcessingState;
+use crate::network::processing::packet_processing_state::ModuleProcessingState;
 use crate::settings::packet_manipulation::PacketManipulationSettings;
 use crate::utils::is_effect_active;
 use crate::utils::log_statistics;
@@ -63,8 +63,8 @@ pub fn start_packet_processing(
     let mut received_packet_count = 0;
     let mut sent_packet_count = 0;
 
-    // Initialize packet processing state
-    let mut state = PacketProcessingState::new();
+    // Initialize module processing state
+    let mut state = ModuleProcessingState::new();
 
     info!("Starting packet interception.");
 
@@ -167,7 +167,7 @@ pub fn start_packet_processing(
 pub fn process_packets<'a>(
     settings: &PacketManipulationSettings,
     packets: &mut Vec<PacketData<'a>>,
-    state: &mut PacketProcessingState,
+    state: &mut ModuleProcessingState,
     statistics: &Arc<RwLock<PacketProcessingStatistics>>,
 ) -> Result<()> {
     let has_packets = !packets.is_empty();
