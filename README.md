@@ -6,7 +6,7 @@
 
 # Myra
 
-Powerful network condition simulator that gives you some control over your connection behavior.
+Network condition simulator that gives you some control over your connection behavior.
 
 https://github.com/user-attachments/assets/f30a2227-25e4-47ee-a7d2-51726436f23f
 
