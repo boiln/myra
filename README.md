@@ -95,7 +95,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Acknowledgments
 
-- [Clumsy]](https://github.com/jagt/clumsy)
+- [Clumsy](https://github.com/jagt/clumsy)
 - [WinDivert](https://reqrypt.org/windivert.html) for network capture and manipulation capabilities
 - [Tauri](https://tauri.app/) for the amazing framework
 - All contributors and users of this project
