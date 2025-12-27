@@ -55,7 +55,7 @@ export function ModulePanel() {
     };
 
     return (
-        <div className="flex flex-col">
+        <div className="relative z-10 flex flex-col">
             <Card className="border-border bg-card/90">
                 <CardHeader className="rounded-t-lg bg-card/90 pb-2">
                     <div className="flex">
