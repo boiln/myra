@@ -1,0 +1,526 @@
+import { useState, useEffect, useCallback } from "react";
+import { invoke } from "@tauri-apps/api/core";
+import {
+    Globe,
+    Monitor,
+    Gamepad2,
+    Code,
+    RefreshCw,
+    Wifi,
+    ChevronDown,
+    ChevronUp,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useNetworkStore } from "@/lib/stores/network";
+import { FilterTargetMode, ProcessInfo, NetworkDevice } from "@/types";
+import { motion, AnimatePresence } from "framer-motion";
+import { ProcessSelector } from "@/components/ui/process-selector";
+import { ProcessIcon } from "@/components/ui/process-icon";
+
+interface FilterTargetSelectorProps {
+    disabled?: boolean;
+}
+
+export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
+    const { isActive, filter, updateFilter, filterTarget, setFilterTarget } = useNetworkStore();
+    const [mode, setMode] = useState<FilterTargetMode>(filterTarget?.mode || "all");
+    const [processes, setProcesses] = useState<ProcessInfo[]>([]);
+    const [devices, setDevices] = useState<NetworkDevice[]>([]);
+    const [loadingProcesses, setLoadingProcesses] = useState(false);
+    const [loadingDevices, setLoadingDevices] = useState(false);
+    const [selectedProcess, setSelectedProcess] = useState<string>(
+        filterTarget?.processId?.toString() || ""
+    );
+    const [selectedDevice, setSelectedDevice] = useState<string>(filterTarget?.deviceIp || "");
+    const [customFilter, setCustomFilter] = useState(
+        filterTarget?.customFilter || filter || "outbound"
+    );
+    const [isExpanded, setIsExpanded] = useState(false);
+
+    // Sync local state with store's filterTarget when it changes (e.g., after loading a preset)
+    useEffect(() => {
+        if (filterTarget) {
+            setMode(filterTarget.mode);
+            if (filterTarget.processId) {
+                setSelectedProcess(filterTarget.processId.toString());
+            }
+            if (filterTarget.deviceIp) {
+                setSelectedDevice(filterTarget.deviceIp);
+            }
+            if (filterTarget.customFilter) {
+                setCustomFilter(filterTarget.customFilter);
+            }
+        }
+    }, [filterTarget]);
+
+    // Load processes
+    const loadProcesses = useCallback(async () => {
+        setLoadingProcesses(true);
+        try {
+            const result = await invoke<ProcessInfo[]>("list_processes");
+            setProcesses(result);
+        } catch (error) {
+            console.error("Failed to load processes:", error);
+        } finally {
+            setLoadingProcesses(false);
+        }
+    }, []);
+
+    // Load network devices
+    const loadDevices = useCallback(async () => {
+        setLoadingDevices(true);
+        try {
+            const result = await invoke<NetworkDevice[]>("scan_network_devices");
+            setDevices(result);
+        } catch (error) {
+            console.error("Failed to scan devices:", error);
+        } finally {
+            setLoadingDevices(false);
+        }
+    }, []);
+
+    // Load data when mode changes
+    useEffect(() => {
+        if (mode === "process" && processes.length === 0) {
+            loadProcesses();
+        } else if (mode === "device" && devices.length === 0) {
+            loadDevices();
+        }
+    }, [mode, processes.length, devices.length, loadProcesses, loadDevices]);
+
+    // Build and apply filter when selection changes
+    const applyFilter = useCallback(async () => {
+        if (isActive) return;
+
+        let newFilter = "outbound";
+
+        try {
+            switch (mode) {
+                case "all":
+                    newFilter = "outbound";
+                    setFilterTarget({ mode: "all" });
+                    break;
+
+                case "process":
+                    if (selectedProcess) {
+                        const pid = parseInt(selectedProcess);
+                        const process = processes.find((p) => p.pid === pid);
+                        newFilter = await invoke<string>("build_process_filter", {
+                            pid,
+                            includeInbound: true,
+                            includeOutbound: true,
+                        });
+                        setFilterTarget({
+                            mode: "process",
+                            processId: pid,
+                            processName: process?.name,
+                        });
+                    }
+                    break;
+
+                case "device":
+                    if (selectedDevice) {
+                        const device = devices.find((d) => d.ip === selectedDevice);
+                        newFilter = await invoke<string>("build_device_filter", {
+                            ip: selectedDevice,
+                            includeInbound: true,
+                            includeOutbound: true,
+                        });
+                        setFilterTarget({
+                            mode: "device",
+                            deviceIp: selectedDevice,
+                            deviceName: device?.hostname || device?.device_type,
+                        });
+                    }
+                    break;
+
+                case "custom":
+                    newFilter = customFilter || "outbound";
+                    setFilterTarget({
+                        mode: "custom",
+                        customFilter: newFilter,
+                    });
+                    break;
+            }
+
+            await updateFilter(newFilter);
+        } catch (error) {
+            console.error("Failed to apply filter:", error);
+        }
+    }, [
+        mode,
+        selectedProcess,
+        selectedDevice,
+        customFilter,
+        isActive,
+        processes,
+        devices,
+        updateFilter,
+        setFilterTarget,
+    ]);
+
+    // Apply filter when selection changes (debounced for custom input)
+    useEffect(() => {
+        if (mode !== "custom") {
+            applyFilter();
+        }
+    }, [mode, selectedProcess, selectedDevice]);
+
+    const getModeIcon = (m: FilterTargetMode) => {
+        switch (m) {
+            case "all":
+                return <Globe className="h-4 w-4" />;
+            case "process":
+                return <Monitor className="h-4 w-4" />;
+            case "device":
+                return <Gamepad2 className="h-4 w-4" />;
+            case "custom":
+                return <Code className="h-4 w-4" />;
+        }
+    };
+
+    const getModeLabel = (m: FilterTargetMode) => {
+        switch (m) {
+            case "all":
+                return "All Traffic";
+            case "process":
+                return "PC";
+            case "device":
+                return "Console / Device";
+            case "custom":
+                return "Custom";
+        }
+    };
+
+    const getModeDescription = (m: FilterTargetMode) => {
+        switch (m) {
+            case "all":
+                return "Affect all outbound network traffic";
+            case "process":
+                return "Target a specific application by process";
+            case "device":
+                return "Target a console or network device by IP";
+            case "custom":
+                return "Write a custom WinDivert filter";
+        }
+    };
+
+    const getDeviceIcon = (device: NetworkDevice) => {
+        const type = device.device_type?.toLowerCase();
+        if (type?.includes("playstation")) return "🎮";
+        if (type?.includes("xbox")) return "🎮";
+        if (type?.includes("nintendo")) return "🎮";
+        return "📱";
+    };
+
+    return (
+        <div className="space-y-2">
+            {/* Collapsed Header */}
+            <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                disabled={disabled || isActive}
+                className={cn(
+                    "flex w-full items-center justify-between rounded-md border border-border bg-background/50 px-3 py-2 text-sm transition-colors",
+                    "hover:bg-accent/50",
+                    (disabled || isActive) && "cursor-not-allowed opacity-60"
+                )}
+            >
+                <div className="flex items-center gap-2">
+                    {getModeIcon(mode)}
+                    <span className="font-medium">{getModeLabel(mode)}</span>
+                    {mode === "process" &&
+                        selectedProcess &&
+                        (() => {
+                            const proc = processes.find((p) => p.pid === parseInt(selectedProcess));
+                            return proc ? (
+                                <span className="flex items-center gap-1.5 text-muted-foreground">
+                                    —
+                                    <ProcessIcon
+                                        icon={proc.icon}
+                                        name={proc.name}
+                                        className="h-4 w-4"
+                                    />
+                                    {proc.name}
+                                </span>
+                            ) : null;
+                        })()}
+                    {mode === "device" && selectedDevice && (
+                        <span className="text-muted-foreground">
+                            — {selectedDevice}
+                            {devices.find((d) => d.ip === selectedDevice)?.device_type &&
+                                ` (${devices.find((d) => d.ip === selectedDevice)?.device_type})`}
+                        </span>
+                    )}
+                </div>
+                {isExpanded ? (
+                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                )}
+            </button>
+
+            {/* Expanded Content */}
+            <AnimatePresence>
+                {isExpanded && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-visible"
+                    >
+                        <div className="relative space-y-3 rounded-md border border-border bg-card/50 p-3">
+                            {/* Mode Selection */}
+                            <div className="grid grid-cols-4 gap-2">
+                                {(["all", "process", "device", "custom"] as FilterTargetMode[]).map(
+                                    (m) => (
+                                        <Tooltip key={m}>
+                                            <TooltipTrigger asChild>
+                                                <button
+                                                    onClick={() => setMode(m)}
+                                                    disabled={disabled || isActive}
+                                                    className={cn(
+                                                        "flex flex-col items-center gap-1 rounded-md border p-2 text-xs transition-all",
+                                                        mode === m
+                                                            ? "border-primary bg-primary/10 text-primary"
+                                                            : "border-border bg-background hover:border-primary/50 hover:bg-accent/50",
+                                                        (disabled || isActive) &&
+                                                            "cursor-not-allowed opacity-60"
+                                                    )}
+                                                >
+                                                    {getModeIcon(m)}
+                                                    <span className="font-medium">
+                                                        {getModeLabel(m)}
+                                                    </span>
+                                                </button>
+                                            </TooltipTrigger>
+                                            <TooltipContent side="bottom">
+                                                <p>{getModeDescription(m)}</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    )
+                                )}
+                            </div>
+
+                            {/* Mode-specific content */}
+                            <div className="relative min-h-[60px]">
+                                {/* All Traffic */}
+                                {mode === "all" && (
+                                    <div className="flex items-center gap-2 rounded-md bg-muted/50 p-3 text-sm text-muted-foreground">
+                                        <Globe className="h-5 w-5" />
+                                        <p>
+                                            All outbound traffic will be affected. Use this for
+                                            general network testing.
+                                        </p>
+                                    </div>
+                                )}
+
+                                {/* Process Selection */}
+                                {mode === "process" && (
+                                    <div className="space-y-2">
+                                        <div className="flex items-center gap-2">
+                                            <div className="min-w-0 flex-1">
+                                                <ProcessSelector
+                                                    processes={processes}
+                                                    value={selectedProcess}
+                                                    onValueChange={setSelectedProcess}
+                                                    disabled={
+                                                        disabled || isActive || loadingProcesses
+                                                    }
+                                                    placeholder="Select a process..."
+                                                />
+                                            </div>
+                                            <Button
+                                                variant="outline"
+                                                size="icon"
+                                                className="h-9 w-9 flex-shrink-0"
+                                                onClick={loadProcesses}
+                                                disabled={loadingProcesses || isActive}
+                                            >
+                                                <RefreshCw
+                                                    className={cn(
+                                                        "h-4 w-4",
+                                                        loadingProcesses && "animate-spin"
+                                                    )}
+                                                />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Device Selection */}
+                                {mode === "device" && (
+                                    <div className="space-y-2">
+                                        <div className="flex items-center gap-2">
+                                            <Select
+                                                value={selectedDevice}
+                                                onValueChange={setSelectedDevice}
+                                                disabled={disabled || isActive || loadingDevices}
+                                            >
+                                                <SelectTrigger className="h-9 flex-1">
+                                                    <SelectValue placeholder="Select a device..." />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {devices.map((d) => (
+                                                        <SelectItem key={d.ip} value={d.ip}>
+                                                            <div className="flex items-center gap-2">
+                                                                <span>{getDeviceIcon(d)}</span>
+                                                                <span className="font-mono">
+                                                                    {d.ip}
+                                                                </span>
+                                                                {d.device_type && (
+                                                                    <span className="rounded bg-primary/10 px-1.5 py-0.5 text-xs text-primary">
+                                                                        {d.device_type}
+                                                                    </span>
+                                                                )}
+                                                                {d.hostname && (
+                                                                    <span className="text-muted-foreground">
+                                                                        ({d.hostname})
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </SelectItem>
+                                                    ))}
+                                                    {devices.length === 0 && !loadingDevices && (
+                                                        <SelectItem value="" disabled>
+                                                            No devices found
+                                                        </SelectItem>
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={loadDevices}
+                                                disabled={loadingDevices || isActive}
+                                            >
+                                                <RefreshCw
+                                                    className={cn(
+                                                        "h-4 w-4",
+                                                        loadingDevices && "animate-spin"
+                                                    )}
+                                                />
+                                            </Button>
+                                        </div>
+
+                                        {/* Manual IP input */}
+                                        <div className="flex items-center gap-2">
+                                            <Label className="text-xs text-muted-foreground">
+                                                Or enter IP:
+                                            </Label>
+                                            <Input
+                                                placeholder="192.168.1.100"
+                                                className="h-8 flex-1 font-mono text-sm"
+                                                disabled={disabled || isActive}
+                                                onChange={(e) => {
+                                                    const ip = e.target.value;
+                                                    if (
+                                                        /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(
+                                                            ip
+                                                        )
+                                                    ) {
+                                                        setSelectedDevice(ip);
+                                                    }
+                                                }}
+                                            />
+                                        </div>
+
+                                        <div className="rounded-md bg-muted/50 p-2 text-xs text-muted-foreground">
+                                            <p className="flex items-center gap-1 font-medium">
+                                                <Wifi className="h-3 w-3" />
+                                                Console Setup Required
+                                            </p>
+                                            <p className="mt-1">
+                                                Your console must route traffic through this PC.
+                                                Enable{" "}
+                                                <span className="font-medium">
+                                                    Internet Connection Sharing
+                                                </span>{" "}
+                                                or use a network bridge.
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Custom Filter */}
+                                {mode === "custom" && (
+                                    <div className="space-y-2">
+                                        <div className="flex items-center gap-2">
+                                            <Input
+                                                value={customFilter}
+                                                onChange={(e) => setCustomFilter(e.target.value)}
+                                                onBlur={applyFilter}
+                                                onKeyDown={(e) =>
+                                                    e.key === "Enter" && applyFilter()
+                                                }
+                                                placeholder="outbound and tcp.DstPort == 443"
+                                                className="h-9 font-mono text-sm"
+                                                disabled={disabled || isActive}
+                                            />
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={applyFilter}
+                                                disabled={isActive}
+                                            >
+                                                Apply
+                                            </Button>
+                                        </div>
+                                        <div className="rounded-md bg-muted/50 p-2 text-xs">
+                                            <p className="font-medium text-foreground">
+                                                WinDivert Filter Syntax
+                                            </p>
+                                            <div className="mt-1 space-y-0.5 text-muted-foreground">
+                                                <p>
+                                                    <code className="rounded bg-background px-1">
+                                                        outbound
+                                                    </code>{" "}
+                                                    — Outgoing traffic
+                                                </p>
+                                                <p>
+                                                    <code className="rounded bg-background px-1">
+                                                        inbound
+                                                    </code>{" "}
+                                                    — Incoming traffic
+                                                </p>
+                                                <p>
+                                                    <code className="rounded bg-background px-1">
+                                                        tcp.DstPort == 80
+                                                    </code>{" "}
+                                                    — HTTP traffic
+                                                </p>
+                                                <p>
+                                                    <code className="rounded bg-background px-1">
+                                                        udp and outbound
+                                                    </code>{" "}
+                                                    — UDP outbound
+                                                </p>
+                                                <p>
+                                                    <code className="rounded bg-background px-1">
+                                                        processId == 1234
+                                                    </code>{" "}
+                                                    — Specific process
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+}
