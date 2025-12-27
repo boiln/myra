@@ -99,6 +99,46 @@ export interface ProcessingStatus {
     modules: ModuleInfo[];
 }
 
+// Filter target types for the filter selector
+export type FilterTargetMode = "all" | "process" | "device" | "custom";
+
+export interface FilterTarget {
+    mode: FilterTargetMode;
+    processId?: number;
+    processName?: string;
+    deviceIp?: string;
+    deviceName?: string;
+    customFilter?: string;
+}
+
+export interface ProcessInfo {
+    pid: number;
+    name: string;
+    path?: string;
+    window_title?: string;
+    icon?: string;
+}
+
+export interface LoadConfigResponse {
+    settings: PacketManipulationSettings;
+    filter?: string;
+    filter_target?: {
+        mode: string;
+        process_id?: number;
+        process_name?: string;
+        device_ip?: string;
+        device_name?: string;
+        custom_filter?: string;
+    };
+}
+
+export interface NetworkDevice {
+    ip: string;
+    mac?: string;
+    hostname?: string;
+    device_type?: string;
+}
+
 declare global {
     interface Window {
         __TAURI__: {
