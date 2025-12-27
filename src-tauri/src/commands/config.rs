@@ -120,7 +120,7 @@ pub async fn list_configs() -> Result<Vec<String>, String> {
     for entry in std::fs::read_dir(config_dir).map_err(|e| e.to_string())? {
         let entry = entry.map_err(|e| e.to_string())?;
         let path = entry.path();
-        if path.is_file() && path.extension().map_or(false, |ext| ext == "toml") {
+        if path.is_file() && path.extension().is_some_and(|ext| ext == "toml") {
             if let Some(name) = path.file_stem() {
                 if let Some(name) = name.to_str() {
                     configs.push(name.to_string());

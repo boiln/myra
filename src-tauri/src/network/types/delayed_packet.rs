@@ -25,8 +25,7 @@ impl<'a> Eq for DelayedPacket<'a> {}
 
 impl<'a> PartialOrd for DelayedPacket<'a> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        // Note: We flip the ordering here to turn BinaryHeap into a min-heap based on delay_until
-        Some(other.delay_until.cmp(&self.delay_until))
+        Some(self.cmp(other))
     }
 }
 

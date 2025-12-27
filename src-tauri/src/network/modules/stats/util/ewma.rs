@@ -8,7 +8,7 @@
 ///
 /// * `alpha` - The smoothing factor, between 0 and 1. A higher value discounts older observations faster.
 /// * `current_value` - The current value of the EWMA after processing the latest input.
-///                     Initially, this will be `None` until the first value is processed.
+///   Initially, this will be `None` until the first value is processed.
 ///
 /// # Example
 ///
@@ -32,7 +32,7 @@ impl Ewma {
     /// # Arguments
     ///
     /// * `alpha` - A smoothing factor between 0.0 (exclusive) and 1.0 (inclusive).
-    ///             Higher values give more weight to recent observations.
+    ///   Higher values give more weight to recent observations.
     ///
     /// # Panics
     ///

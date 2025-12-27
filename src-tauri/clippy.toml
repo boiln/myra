@@ -1,35 +1,18 @@
 # Clippy lint configuration for Myra
 # See https://rust-lang.github.io/rust-clippy/master/index.html for all lints
+#
+# NOTE: Lint levels (warn, allow, deny) should be configured using
+# #![warn(...)], #![allow(...)], #![deny(...)] attributes in lib.rs,
+# not in clippy.toml. This file is for clippy configuration settings only.
 
-# Warn on all pedantic lints
-warn = [
-    "clippy::all",
-    "clippy::pedantic",
-]
+# Avoid false positives for functions with many boolean parameters
+max-fn-params-bools = 4
 
-# Allow certain pedantic lints that are too strict for this project
-allow = [
-    # Module naming
-    "clippy::module_name_repetitions",
-    # Too strict for Tauri command returns
-    "clippy::missing_errors_doc",
-    # We use panic for truly unrecoverable errors
-    "clippy::missing_panics_doc",
-    # Allow must_use attributes to be optional
-    "clippy::must_use_candidate",
-    # Allow casting between integer types where safe
-    "clippy::cast_possible_truncation",
-    "clippy::cast_sign_loss",
-    "clippy::cast_precision_loss",
-    "clippy::cast_lossless",
-]
+# Be more permissive with struct booleans
+max-struct-bools = 5
 
-# Deny these problematic patterns
-deny = [
-    # Unsafe code should be carefully audited
-    "clippy::undocumented_unsafe_blocks",
-    # Avoid unwrap in library code
-    "clippy::unwrap_used",
-    # Avoid panicking in library code
-    "clippy::expect_used",
-]
+# Cognitive complexity threshold
+cognitive-complexity-threshold = 30
+
+# Allow more trait bounds for complex generic code
+max-trait-bounds = 5

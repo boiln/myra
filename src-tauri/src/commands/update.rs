@@ -150,7 +150,7 @@ fn build_tamper_options(module: &ModuleInfo) -> Result<TamperOptions, String> {
     let probability = Probability::new(module.config.chance / 100.0)
         .map_err(|e| format!("Invalid tamper probability: {}", e))?;
 
-    let amount = Probability::new(0.5).unwrap();
+    let amount = Probability::new(0.5).unwrap_or_default();
 
     Ok(TamperOptions {
         probability,
