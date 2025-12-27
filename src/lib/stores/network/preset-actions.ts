@@ -28,9 +28,10 @@ export const createPresetSlice: StateCreator<
         try {
             const settings = await ManipulationService.getSettings();
             const filter = await ManipulationService.getFilter();
+            const filterTarget = get().filterTarget;
             await ManipulationService.updateSettings(settings);
             await ManipulationService.updateFilter(filter);
-            await ManipulationService.saveConfig(name);
+            await ManipulationService.saveConfig(name, filterTarget || undefined);
             await get().loadPresets();
             set({ currentPreset: name });
         } catch (error) {
@@ -40,14 +41,33 @@ export const createPresetSlice: StateCreator<
 
     loadPreset: async (name: string) => {
         try {
-            const settings = await ManipulationService.loadConfig(name);
+            const response = await ManipulationService.loadConfig(name);
 
-            if (!settings) return;
+            if (!response) return;
 
-            await ManipulationService.updateSettings(settings);
+            await ManipulationService.updateSettings(response.settings);
 
-            const filter = await ManipulationService.getFilter();
-            await ManipulationService.updateFilter(filter);
+            if (response.filter) {
+                await ManipulationService.updateFilter(response.filter);
+            }
+
+            // Restore filter target if present
+            if (response.filter_target) {
+                set({
+                    filterTarget: {
+                        mode: response.filter_target.mode as
+                            | "all"
+                            | "process"
+                            | "device"
+                            | "custom",
+                        processId: response.filter_target.process_id,
+                        processName: response.filter_target.process_name,
+                        deviceIp: response.filter_target.device_ip,
+                        deviceName: response.filter_target.device_name,
+                        customFilter: response.filter_target.custom_filter,
+                    },
+                });
+            }
 
             await get().loadStatus();
             set({ currentPreset: name });
@@ -79,10 +99,11 @@ export const createPresetSlice: StateCreator<
 
             const settings = await ManipulationService.getSettings();
             const filter = await ManipulationService.getFilter();
+            const filterTarget = get().filterTarget;
 
             await ManipulationService.updateSettings(settings);
             await ManipulationService.updateFilter(filter);
-            await ManipulationService.saveConfig(DEFAULT_PRESET_NAME);
+            await ManipulationService.saveConfig(DEFAULT_PRESET_NAME, filterTarget || undefined);
 
             await get().loadPresets();
         } catch (error) {
