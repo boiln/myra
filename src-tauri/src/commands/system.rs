@@ -355,22 +355,71 @@ fn detect_device_type(mac: &str) -> Option<String> {
     None
 }
 
+/// Get active network connections for a specific process
+/// Returns a list of local ports being used by the process
+fn get_process_ports(pid: u32) -> Vec<u16> {
+    let output = Command::new("netstat").args(["-ano"]).output();
+
+    let Ok(output) = output else {
+        return Vec::new();
+    };
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let mut ports = Vec::new();
+
+    for line in stdout.lines() {
+        let parts: Vec<&str> = line.split_whitespace().collect();
+
+        // netstat output: Proto  Local Address  Foreign Address  State  PID
+        if parts.len() < 5 {
+            continue;
+        }
+
+        let Some(line_pid) = parts.last().and_then(|p| p.parse::<u32>().ok()) else {
+            continue;
+        };
+
+        if line_pid != pid {
+            continue;
+        }
+
+        // Parse local address (e.g., "192.168.1.100:54321")
+        let local = parts[1];
+        if let Some(port) = local.rsplit(':').next().and_then(|p| p.parse::<u16>().ok()) {
+            // Skip common system ports and listening-only ports
+            if port > 1024 {
+                ports.push(port);
+            }
+        }
+    }
+
+    ports.sort();
+    ports.dedup();
+    ports
+}
+
 /// Build a WinDivert filter string for a specific process ID
+/// Note: processId is NOT available at Network layer, so we use port-based filtering
 #[tauri::command]
-pub fn build_process_filter(pid: u32, include_inbound: bool, include_outbound: bool) -> String {
-    if !include_inbound && !include_outbound {
-        return "false".to_string();
+pub fn build_process_filter(pid: u32, _include_inbound: bool, _include_outbound: bool) -> String {
+    let ports = get_process_ports(pid);
+
+    // If no ports found, fall back to all outbound traffic
+    if ports.is_empty() {
+        return "outbound".to_string();
     }
 
-    if include_outbound && include_inbound {
-        return format!("processId == {}", pid);
+    // Build filter based on local ports
+    let port_filters: Vec<String> = ports
+        .iter()
+        .map(|port| format!("localPort == {}", port))
+        .collect();
+
+    if port_filters.len() == 1 {
+        return format!("outbound and {}", port_filters[0]);
     }
 
-    if include_outbound {
-        return format!("outbound and processId == {}", pid);
-    }
-
-    format!("inbound and processId == {}", pid)
+    format!("outbound and ({})", port_filters.join(" or "))
 }
 
 /// Build a WinDivert filter string for a specific IP address (console/device)
