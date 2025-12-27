@@ -2,13 +2,13 @@ import { StateCreator } from "zustand";
 import { NetworkStore } from "@/lib/stores/network/types";
 import { ManipulationService } from "@/lib/services/manipulation";
 import { DEFAULT_FILTER } from "@/lib/stores/network/constants";
-import { ModuleInfo } from "@/types";
+import { FilterTarget, ModuleInfo } from "@/types";
 
 export const createCoreSlice: StateCreator<
     NetworkStore,
     [],
     [],
-    Pick<NetworkStore, "toggleActive" | "updateFilter" | "loadStatus">
+    Pick<NetworkStore, "toggleActive" | "updateFilter" | "setFilterTarget" | "loadStatus">
 > = (set, get) => ({
     loadStatus: async () => {
         try {
@@ -185,5 +185,9 @@ export const createCoreSlice: StateCreator<
         } finally {
             set({ isUpdatingFilter: false });
         }
+    },
+
+    setFilterTarget: (target: FilterTarget) => {
+        set({ filterTarget: target });
     },
 });

@@ -6,6 +6,7 @@ export const DEFAULT_FILTER = "outbound";
 export const initialState: NetworkState = {
     isActive: false,
     filter: DEFAULT_FILTER,
+    filterTarget: { mode: "all" },
     manipulationStatus: {
         active: false,
         filter: "",

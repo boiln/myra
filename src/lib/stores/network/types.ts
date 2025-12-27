@@ -1,9 +1,15 @@
-import { ManipulationStatus, ModuleConfig, PacketManipulationSettings } from "@/types";
+import {
+    FilterTarget,
+    ManipulationStatus,
+    ModuleConfig,
+    PacketManipulationSettings,
+} from "@/types";
 
 export interface NetworkState {
     // Status
     isActive: boolean;
     filter: string;
+    filterTarget: FilterTarget | null;
     manipulationStatus: ManipulationStatus;
     isUpdatingFilter: boolean;
     isTogglingActive: boolean;
@@ -16,6 +22,7 @@ export interface NetworkActions {
     // Core actions
     toggleActive: () => Promise<void>;
     updateFilter: (newFilter: string) => Promise<void>;
+    setFilterTarget: (target: FilterTarget) => void;
     loadStatus: () => Promise<void>;
 
     // Module actions
