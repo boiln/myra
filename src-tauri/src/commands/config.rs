@@ -6,8 +6,34 @@ use std::path::PathBuf;
 use tauri::State;
 
 use crate::commands::PacketProcessingState;
-use crate::settings::manipulation::PacketManipulationSettings;
 use crate::settings::Settings;
+
+/// Filter target mode for targeting specific processes or devices
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum FilterTargetMode {
+    #[default]
+    All,
+    Process,
+    Device,
+    Custom,
+}
+
+/// Filter target configuration for saving/loading
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct FilterTarget {
+    pub mode: FilterTargetMode,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub process_id: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub process_name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub device_ip: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub device_name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub custom_filter: Option<String>,
+}
 
 /// Configuration file structure for storing application settings
 ///
@@ -19,6 +45,9 @@ struct ConfigFile {
     settings: Settings,
     /// WinDivert filter string
     filter: Option<String>,
+    /// Filter target configuration (process, device, etc.)
+    #[serde(default)]
+    filter_target: Option<FilterTarget>,
 }
 
 /// Saves the current configuration to a named file
@@ -27,6 +56,7 @@ struct ConfigFile {
 ///
 /// * `state` - The application state containing settings to save
 /// * `name` - The name to use for the configuration file
+/// * `filter_target` - Optional filter target configuration
 ///
 /// # Returns
 ///
@@ -36,6 +66,7 @@ struct ConfigFile {
 pub async fn save_config(
     state: State<'_, PacketProcessingState>,
     name: String,
+    filter_target: Option<FilterTarget>,
 ) -> Result<(), String> {
     let settings = state
         .settings
@@ -51,7 +82,11 @@ pub async fn save_config(
 
     let config_path = get_config_path(&name)?;
 
-    let config = ConfigFile { settings, filter };
+    let config = ConfigFile {
+        settings,
+        filter,
+        filter_target,
+    };
 
     let content = toml::to_string_pretty(&config)
         .map_err(|e| format!("Failed to serialize config: {}", e))?;
@@ -67,6 +102,14 @@ pub async fn save_config(
     Ok(())
 }
 
+/// Response structure for load_config that includes filter target
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LoadConfigResponse {
+    pub settings: Settings,
+    pub filter: Option<String>,
+    pub filter_target: Option<FilterTarget>,
+}
+
 /// Loads a named configuration file and updates application state
 ///
 /// # Arguments
@@ -76,13 +119,13 @@ pub async fn save_config(
 ///
 /// # Returns
 ///
-/// * `Ok(PacketManipulationSettings)` - The loaded settings
+/// * `Ok(LoadConfigResponse)` - The loaded settings and filter target
 /// * `Err(String)` - If there was an error loading the configuration
 #[tauri::command]
 pub async fn load_config(
     state: State<'_, PacketProcessingState>,
     name: String,
-) -> Result<PacketManipulationSettings, String> {
+) -> Result<LoadConfigResponse, String> {
     let config_path = get_config_path(&name)?;
 
     let content = fs::read_to_string(&config_path)
@@ -103,7 +146,11 @@ pub async fn load_config(
 
     info!("Loaded configuration from {}", name);
 
-    Ok(config.settings)
+    Ok(LoadConfigResponse {
+        settings: config.settings,
+        filter: config.filter,
+        filter_target: config.filter_target,
+    })
 }
 
 /// Lists all available configuration files
