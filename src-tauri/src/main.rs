@@ -85,6 +85,11 @@ fn main() {
             commands::config::load_config,
             commands::config::list_configs,
             commands::config::delete_config,
+            commands::list_processes,
+            commands::scan_network_devices,
+            commands::build_process_filter,
+            commands::build_device_filter,
+            commands::validate_filter,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

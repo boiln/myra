@@ -8,6 +8,7 @@ pub mod start;
 pub mod state;
 pub mod status;
 pub mod stop;
+pub mod system;
 pub mod types;
 pub mod update;
 
@@ -21,6 +22,11 @@ pub use status::{
     get_settings, get_status, update_filter,
 };
 pub use stop::{__cmd__stop_processing, stop_processing};
+pub use system::{
+    __cmd__build_device_filter, __cmd__build_process_filter, __cmd__list_processes,
+    __cmd__scan_network_devices, __cmd__validate_filter, build_device_filter, build_process_filter,
+    list_processes, scan_network_devices, validate_filter,
+};
 pub use update::{__cmd__update_settings, update_settings};
 
 use tauri::App;
