@@ -8,7 +8,7 @@
 
 Network condition simulator that gives you some control over your connection behavior.
 
-https://github.com/user-attachments/assets/f30a2227-25e4-47ee-a7d2-51726436f23f
+https://github.com/user-attachments/assets/6f7021b3-1a25-4ca8-b915-4ef1693a91af
 
 ## Prerequisites
 
