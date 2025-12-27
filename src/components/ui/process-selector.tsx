@@ -27,7 +27,6 @@ export function ProcessSelector({
     const listRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
-    // Filter and sort processes
     const filteredProcesses = useMemo(() => {
         const searchLower = search.toLowerCase();
         return processes.filter(
@@ -37,7 +36,6 @@ export function ProcessSelector({
         );
     }, [processes, search]);
 
-    // Group processes
     const { gameProcesses, otherProcesses, allFiltered } = useMemo(() => {
         const games = filteredProcesses.filter((p) => {
             const name = p.name.toLowerCase();
@@ -60,16 +58,13 @@ export function ProcessSelector({
 
         const others = filteredProcesses.filter((p) => !games.includes(p));
 
-        // Combine for flat list navigation
         const all = [...games, ...others];
 
         return { gameProcesses: games, otherProcesses: others, allFiltered: all };
     }, [filteredProcesses]);
 
-    // Get selected process info
     const selectedProcess = processes.find((p) => p.pid.toString() === value);
 
-    // Handle keyboard navigation
     const handleKeyDown = useCallback(
         (e: React.KeyboardEvent) => {
             if (!isOpen) {
