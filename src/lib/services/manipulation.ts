@@ -1,5 +1,10 @@
 import { invoke } from "@tauri-apps/api/core";
-import { PacketManipulationSettings, ProcessingStatus } from "@/types";
+import {
+    FilterTarget,
+    LoadConfigResponse,
+    PacketManipulationSettings,
+    ProcessingStatus,
+} from "@/types";
 
 export const ManipulationService = {
     async startProcessing(settings: PacketManipulationSettings, filter?: string): Promise<void> {
@@ -163,11 +168,11 @@ export const ManipulationService = {
         return invoke("get_filter");
     },
 
-    async saveConfig(name: string): Promise<void> {
-        return invoke("save_config", { name });
+    async saveConfig(name: string, filterTarget?: FilterTarget): Promise<void> {
+        return invoke("save_config", { name, filterTarget });
     },
 
-    async loadConfig(name: string): Promise<PacketManipulationSettings> {
+    async loadConfig(name: string): Promise<LoadConfigResponse> {
         return invoke("load_config", { name });
     },
 
