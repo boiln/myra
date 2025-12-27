@@ -28,9 +28,9 @@ function App() {
 
     return (
         <TooltipProvider>
-            <div className="flex min-h-[520px] min-w-[800px] flex-col bg-muted/30">
+            <div className="flex h-screen min-h-[520px] min-w-[800px] flex-col bg-muted/30">
                 <Header />
-                <main className="flex-1 overflow-y-auto px-2 py-1">
+                <main className="flex-1 overflow-y-auto px-2 py-1 pb-8">
                     <div className="mx-auto flex w-full flex-col space-y-2 xl:max-w-7xl">
                         <div className="space-y-1.5">
                             <PresetManager />
