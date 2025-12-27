@@ -26,7 +26,7 @@ windivert = { version = "0.6", features = ["vendored"] }
 windivert-sys = "0.10.0"
 
 # Windows API bindings
-winapi = { version = "0.3.9", features = ["securitybaseapi", "winnt"] }
+winapi = { version = "0.3.9", features = ["securitybaseapi", "winnt", "shellapi", "winuser", "wingdi", "windef"] }
 
 # Error handling and utilities
 thiserror = "2.0.12"
@@ -39,6 +39,7 @@ rand = "0.9.0-alpha.2"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 toml = "0.8.19"
+base64 = "0.22"
 
 # File system utilities
 dirs = "6.0.0"
@@ -52,6 +53,9 @@ regex = "1.10.5"
 
 # Process control
 ctrlc = "3.2"
+
+# System information (process listing)
+sysinfo = "0.32"
 
 # Logging
 log = "0.4.22"
