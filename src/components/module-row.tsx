@@ -204,7 +204,7 @@ export function ModuleRow({
                     checked={module.config.inbound}
                     onCheckedChange={() => onDirectionToggle(module, "inbound")}
                     disabled={!module.enabled}
-                    label="Inbound"
+                    label="Download"
                     labelClassName={`text-xs text-foreground ${!module.enabled ? "opacity-50" : ""}`}
                 />
                 <MyraCheckbox
@@ -212,7 +212,7 @@ export function ModuleRow({
                     checked={module.config.outbound}
                     onCheckedChange={() => onDirectionToggle(module, "outbound")}
                     disabled={!module.enabled}
-                    label="Outbound"
+                    label="Upload"
                     labelClassName={`text-xs text-foreground ${!module.enabled ? "opacity-50" : ""}`}
                 />
             </div>
