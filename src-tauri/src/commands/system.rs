@@ -89,7 +89,6 @@ pub async fn scan_network_devices() -> Result<Vec<NetworkDevice>, String> {
     let arp_output = String::from_utf8_lossy(&output.stdout);
     let mut devices = Vec::new();
 
-    // Add this PC first
     if let Some(local_ip) = get_local_ip() {
         devices.push(NetworkDevice {
             ip: local_ip,

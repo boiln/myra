@@ -9,6 +9,7 @@ import {
     Wifi,
     ChevronDown,
     ChevronUp,
+    AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -47,6 +48,13 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
         filterTarget?.customFilter || filter || "outbound"
     );
     const [isExpanded, setIsExpanded] = useState(false);
+
+    // Collapse when network manipulation starts
+    useEffect(() => {
+        if (isActive) {
+            setIsExpanded(false);
+        }
+    }, [isActive]);
 
     // Sync local state with store's filterTarget when it changes (e.g., after loading a preset)
     useEffect(() => {
@@ -426,20 +434,41 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                                             />
                                         </div>
 
-                                        <div className="rounded-md bg-muted/50 p-2 text-xs text-muted-foreground">
-                                            <p className="flex items-center gap-1 font-medium">
-                                                <Wifi className="h-3 w-3" />
-                                                Console Setup Required
-                                            </p>
-                                            <p className="mt-1">
-                                                Your console must route traffic through this PC.
-                                                Enable{" "}
-                                                <span className="font-medium">
-                                                    Internet Connection Sharing
-                                                </span>{" "}
-                                                or use a network bridge.
-                                            </p>
-                                        </div>
+                                        {/* Warning for non-PC devices */}
+                                        {selectedDevice &&
+                                            (() => {
+                                                const device = devices.find(
+                                                    (d) => d.ip === selectedDevice
+                                                );
+                                                const isThisPC = device?.hostname === "This PC";
+                                                const isRouter =
+                                                    device?.hostname === "Router / Gateway";
+
+                                                if (isThisPC) return null;
+
+                                                return (
+                                                    <div
+                                                        className={cn(
+                                                            "rounded-md p-2 text-xs",
+                                                            isRouter
+                                                                ? "border border-yellow-500/30 bg-yellow-500/10 text-yellow-200"
+                                                                : "border border-red-500/30 bg-red-500/10 text-red-200"
+                                                        )}
+                                                    >
+                                                        <p className="flex items-center gap-1 font-medium">
+                                                            <AlertTriangle className="h-3 w-3" />
+                                                            {isRouter
+                                                                ? "Limited Capture"
+                                                                : "Traffic Not Routed"}
+                                                        </p>
+                                                        <p className="mt-1 opacity-80">
+                                                            {isRouter
+                                                                ? "Router traffic capture may be limited. Only traffic destined for your PC will be captured."
+                                                                : `Traffic from ${device?.hostname || selectedDevice} does not route through this PC. Enable Internet Connection Sharing or set this PC as the device's gateway.`}
+                                                        </p>
+                                                    </div>
+                                                );
+                                            })()}
                                     </div>
                                 )}
 

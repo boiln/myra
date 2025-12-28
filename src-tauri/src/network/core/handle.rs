@@ -279,10 +279,10 @@ pub fn construct_filter_with_exclusions(user_filter: &Option<String>) -> Option<
     Some(match user_filter {
         Some(filter) if !filter.is_empty() => {
             // Fix common mistakes: "outbound and inbound" is impossible (packet can't be both)
-            // Replace with "true" to capture all traffic
-            let corrected_filter = if filter.to_lowercase().contains("outbound")
-                && filter.to_lowercase().contains("inbound")
-                && filter.to_lowercase().contains(" and ")
+            // But "(outbound and X) or (inbound and Y)" is valid
+            let filter_lower = filter.to_lowercase();
+            let corrected_filter = if filter_lower.contains("outbound and inbound")
+                || filter_lower.contains("inbound and outbound")
             {
                 log::warn!("Filter '{}' is invalid: a packet cannot be both outbound AND inbound. Using 'true' to capture all traffic.", filter);
                 "true".to_string()
