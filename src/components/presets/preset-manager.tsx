@@ -183,7 +183,7 @@ export function PresetManager() {
                                     disabled={!presetName.trim() || isLoading}
                                     className="bg-secondary text-secondary-foreground hover:bg-secondary/90"
                                 >
-                                    {isLoading ? "Saving..." : "Save"}
+                                    {isLoading ? "Saving .." : "Save"}
                                 </Button>
                             </DialogFooter>
                         </DialogContent>

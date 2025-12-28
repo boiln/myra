@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import {
     Globe,
@@ -6,7 +6,6 @@ import {
     Gamepad2,
     Code,
     RefreshCw,
-    Wifi,
     ChevronDown,
     ChevronUp,
     AlertTriangle,
@@ -48,6 +47,18 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
         filterTarget?.customFilter || filter || "outbound"
     );
     const [isExpanded, setIsExpanded] = useState(false);
+
+    // Compute placeholder IP based on the local subnet from "This PC" device
+    const subnetPlaceholder = useMemo(() => {
+        const thisPC = devices.find((d) => d.hostname === "This PC");
+        if (thisPC?.ip) {
+            const parts = thisPC.ip.split(".");
+            if (parts.length === 4) {
+                return `${parts[0]}.${parts[1]}.${parts[2]}.100`;
+            }
+        }
+        return "192.168.1.100";
+    }, [devices]);
 
     // Collapse when network manipulation starts
     useEffect(() => {
@@ -338,7 +349,7 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                                                     disabled={
                                                         disabled || isActive || loadingProcesses
                                                     }
-                                                    placeholder="Select a process..."
+                                                    placeholder="Select a process .."
                                                 />
                                             </div>
                                             <Button
@@ -369,7 +380,7 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                                                 disabled={disabled || isActive || loadingDevices}
                                             >
                                                 <SelectTrigger className="h-9 flex-1">
-                                                    <SelectValue placeholder="Select a device..." />
+                                                    <SelectValue placeholder="Select a device .." />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {devices.map((d) => (
@@ -418,7 +429,7 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                                                 Or enter IP:
                                             </Label>
                                             <Input
-                                                placeholder="192.168.1.100"
+                                                placeholder={subnetPlaceholder}
                                                 className="h-8 flex-1 font-mono text-sm"
                                                 disabled={disabled || isActive}
                                                 onChange={(e) => {

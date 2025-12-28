@@ -18,7 +18,7 @@ export function ProcessSelector({
     value,
     onValueChange,
     disabled,
-    placeholder = "Select a process...",
+    placeholder = "Select a process ..",
 }: ProcessSelectorProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [search, setSearch] = useState("");
@@ -227,7 +227,7 @@ export function ProcessSelector({
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 onKeyDown={handleKeyDown}
-                                placeholder="Search or type letter to jump..."
+                                placeholder="Search or type letter to jump .."
                                 className="h-8 pl-8 text-sm"
                                 autoFocus
                             />

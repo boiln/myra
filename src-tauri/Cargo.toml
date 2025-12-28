@@ -29,7 +29,7 @@ windivert-sys = "0.10.0"
 winapi = { version = "0.3.9", features = ["securitybaseapi", "winnt", "shellapi", "winuser", "wingdi", "windef"] }
 
 # Error handling and utilities
-thiserror = "2.0.12"
+thiserror = "2.0.17"
 lazy_static = "1.5.0"
 
 # Randomization and probability 
@@ -37,8 +37,8 @@ rand = "0.9.0-alpha.2"
 
 # Serialization/Deserialization
 serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-toml = "0.8.19"
+serde_json = "1.0.148"
+toml = "0.9.8"
 base64 = "0.22"
 
 # File system utilities
@@ -55,10 +55,13 @@ regex = "1.10.5"
 ctrlc = "3.2"
 
 # System information (process listing)
-sysinfo = "0.32"
+sysinfo = "0.37.2"
 
 # HTTP client for API requests (async)
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
+
+# mDNS/Bonjour device discovery
+mdns-sd = "0.17.1"
 
 # Logging
 log = "0.4.22"
