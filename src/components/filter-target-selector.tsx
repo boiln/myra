@@ -216,14 +216,6 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
         }
     };
 
-    const getDeviceIcon = (device: NetworkDevice) => {
-        const type = device.device_type?.toLowerCase();
-        if (type?.includes("playstation")) return "🎮";
-        if (type?.includes("xbox")) return "🎮";
-        if (type?.includes("nintendo")) return "🎮";
-        return "📱";
-    };
-
     return (
         <div className="space-y-2">
             {/* Collapsed Header */}
@@ -373,20 +365,18 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {devices.map((d) => (
-                                                        <SelectItem key={d.ip} value={d.ip}>
+                                                        <SelectItem
+                                                            key={d.ip}
+                                                            value={d.ip}
+                                                            className="focus:bg-primary/20 focus:text-foreground"
+                                                        >
                                                             <div className="flex items-center gap-2">
-                                                                <span>{getDeviceIcon(d)}</span>
                                                                 <span className="font-mono">
                                                                     {d.ip}
                                                                 </span>
-                                                                {d.device_type && (
-                                                                    <span className="rounded bg-primary/10 px-1.5 py-0.5 text-xs text-primary">
-                                                                        {d.device_type}
-                                                                    </span>
-                                                                )}
                                                                 {d.hostname && (
-                                                                    <span className="text-muted-foreground">
-                                                                        ({d.hostname})
+                                                                    <span className="text-xs opacity-60">
+                                                                        {d.hostname}
                                                                     </span>
                                                                 )}
                                                             </div>
