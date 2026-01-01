@@ -35,6 +35,14 @@ pub struct FilterTarget {
     pub custom_filter: Option<String>,
 }
 
+/// Hotkey binding configuration
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct HotkeyBinding {
+    pub action: String,
+    pub shortcut: Option<String>,
+    pub enabled: bool,
+}
+
 /// Configuration file structure for storing application settings
 ///
 /// Contains both the packet manipulation settings and the active filter string.
@@ -48,6 +56,9 @@ struct ConfigFile {
     /// Filter target configuration (process, device, etc.)
     #[serde(default)]
     filter_target: Option<FilterTarget>,
+    /// Hotkey bindings
+    #[serde(default)]
+    hotkeys: Option<Vec<HotkeyBinding>>,
 }
 
 /// Saves the current configuration to a named file
@@ -67,6 +78,7 @@ pub async fn save_config(
     state: State<'_, PacketProcessingState>,
     name: String,
     filter_target: Option<FilterTarget>,
+    hotkeys: Option<Vec<HotkeyBinding>>,
 ) -> Result<(), String> {
     let settings = state
         .settings
@@ -86,6 +98,7 @@ pub async fn save_config(
         settings,
         filter,
         filter_target,
+        hotkeys,
     };
 
     let content = toml::to_string_pretty(&config)
@@ -108,6 +121,7 @@ pub struct LoadConfigResponse {
     pub settings: Settings,
     pub filter: Option<String>,
     pub filter_target: Option<FilterTarget>,
+    pub hotkeys: Option<Vec<HotkeyBinding>>,
 }
 
 /// Loads a named configuration file and updates application state
@@ -150,6 +164,7 @@ pub async fn load_config(
         settings: config.settings,
         filter: config.filter,
         filter_target: config.filter_target,
+        hotkeys: config.hotkeys,
     })
 }
 

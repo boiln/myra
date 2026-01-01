@@ -130,6 +130,11 @@ export interface LoadConfigResponse {
         device_name?: string;
         custom_filter?: string;
     };
+    hotkeys?: {
+        action: string;
+        shortcut: string | null;
+        enabled: boolean;
+    }[];
 }
 
 export interface NetworkDevice {

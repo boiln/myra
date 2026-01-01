@@ -168,8 +168,12 @@ export const ManipulationService = {
         return invoke("get_filter");
     },
 
-    async saveConfig(name: string, filterTarget?: FilterTarget): Promise<void> {
-        return invoke("save_config", { name, filterTarget });
+    async saveConfig(
+        name: string,
+        filterTarget?: FilterTarget,
+        hotkeys?: { action: string; shortcut: string | null; enabled: boolean }[]
+    ): Promise<void> {
+        return invoke("save_config", { name, filterTarget, hotkeys });
     },
 
     async loadConfig(name: string): Promise<LoadConfigResponse> {

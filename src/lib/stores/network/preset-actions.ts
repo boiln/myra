@@ -2,6 +2,7 @@ import { StateCreator } from "zustand";
 import { NetworkStore } from "@/lib/stores/network/types";
 import { ManipulationService } from "@/lib/services/manipulation";
 import { DEFAULT_PRESET_NAME } from "@/lib/stores/network/constants";
+import { useHotkeyStore } from "@/lib/stores/hotkey-store";
 
 export const createPresetSlice: StateCreator<
     NetworkStore,
@@ -29,9 +30,18 @@ export const createPresetSlice: StateCreator<
             const settings = await ManipulationService.getSettings();
             const filter = await ManipulationService.getFilter();
             const filterTarget = get().filterTarget;
+            
+            // Get hotkey bindings
+            const hotkeyBindings = useHotkeyStore.getState().bindings;
+            const hotkeys = Object.values(hotkeyBindings).map((binding) => ({
+                action: binding.action,
+                shortcut: binding.shortcut,
+                enabled: binding.enabled,
+            }));
+            
             await ManipulationService.updateSettings(settings);
             await ManipulationService.updateFilter(filter);
-            await ManipulationService.saveConfig(name, filterTarget || undefined);
+            await ManipulationService.saveConfig(name, filterTarget || undefined, hotkeys);
             await get().loadPresets();
             set({ currentPreset: name });
         } catch (error) {
@@ -67,6 +77,11 @@ export const createPresetSlice: StateCreator<
                         customFilter: response.filter_target.custom_filter,
                     },
                 });
+            }
+
+            // Restore hotkey bindings if present
+            if (response.hotkeys && response.hotkeys.length > 0) {
+                await useHotkeyStore.getState().restoreBindings(response.hotkeys);
             }
 
             await get().loadStatus();
