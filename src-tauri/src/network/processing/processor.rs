@@ -309,12 +309,8 @@ where
     let duration_ms = module.get_duration_ms(opts);
     let effect_active = is_effect_active(duration_ms, *effect_start);
 
-    // Reset effect start time when effect becomes inactive and there are packets
-    if !effect_active && has_packets {
-        debug!("{} effect inactive, resetting start time", module.name());
-        *effect_start = Instant::now();
-    }
-
+    // If effect duration has expired, don't process
+    // Effect will reset when filter is restarted
     if !effect_active {
         return Ok(());
     }
