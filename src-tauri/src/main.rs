@@ -91,6 +91,10 @@ fn main() {
             commands::build_process_filter,
             commands::build_device_filter,
             commands::validate_filter,
+            commands::start_flow_tracking,
+            commands::stop_flow_tracking,
+            commands::get_flow_filter,
+            commands::is_flow_tracking,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

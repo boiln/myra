@@ -23,9 +23,11 @@ pub use status::{
 };
 pub use stop::{__cmd__stop_processing, stop_processing};
 pub use system::{
-    __cmd__build_device_filter, __cmd__build_process_filter, __cmd__list_processes,
-    __cmd__scan_network_devices, __cmd__validate_filter, build_device_filter, build_process_filter,
-    list_processes, scan_network_devices, validate_filter,
+    __cmd__build_device_filter, __cmd__build_process_filter, __cmd__get_flow_filter,
+    __cmd__is_flow_tracking, __cmd__list_processes, __cmd__scan_network_devices,
+    __cmd__start_flow_tracking, __cmd__stop_flow_tracking, __cmd__validate_filter,
+    build_device_filter, build_process_filter, get_flow_filter, is_flow_tracking, list_processes,
+    scan_network_devices, start_flow_tracking, stop_flow_tracking, validate_filter,
 };
 pub use update::{__cmd__update_settings, update_settings};
 

@@ -244,24 +244,86 @@ pub async fn scan_network_devices() -> Result<Vec<NetworkDevice>, String> {
     Ok(devices)
 }
 
+use crate::commands::state::PacketProcessingState;
+use tauri::State;
+
 #[tauri::command]
 pub fn build_process_filter(pid: u32, _include_inbound: bool, _include_outbound: bool) -> String {
-    let ports = get_process_ports(pid);
+    let (local_ports, remote_ips) = get_process_connections(pid);
 
-    if ports.is_empty() {
+    if local_ports.is_empty() && remote_ips.is_empty() {
+        log::warn!("No active connections found for PID {}. Using broad outbound filter.", pid);
         return "outbound".to_string();
     }
 
-    let port_filters: Vec<String> = ports
-        .iter()
-        .map(|port| format!("localPort == {}", port))
-        .collect();
+    let mut filters: Vec<String> = Vec::new();
 
-    if port_filters.len() == 1 {
-        return format!("outbound and {}", port_filters[0]);
+    // Add local port filters
+    for port in &local_ports {
+        filters.push(format!("localPort == {}", port));
     }
 
-    format!("outbound and ({})", port_filters.join(" or "))
+    // Add remote IP filters (for established connections)
+    for ip in &remote_ips {
+        filters.push(format!("ip.DstAddr == {}", ip));
+    }
+
+    if filters.len() == 1 {
+        return format!("outbound and {}", filters[0]);
+    }
+
+    format!("outbound and ({})", filters.join(" or "))
+}
+
+/// Start flow tracking for a process - this enables dynamic filter updates
+#[tauri::command]
+pub fn start_flow_tracking(
+    state: State<'_, PacketProcessingState>,
+    pid: u32,
+) -> Result<(), String> {
+    let mut tracker = state
+        .flow_tracker
+        .lock()
+        .map_err(|e| format!("Failed to lock flow tracker: {}", e))?;
+
+    tracker.start(pid)?;
+    log::info!("Started flow tracking for PID {}", pid);
+    Ok(())
+}
+
+/// Stop flow tracking
+#[tauri::command]
+pub fn stop_flow_tracking(state: State<'_, PacketProcessingState>) -> Result<(), String> {
+    let mut tracker = state
+        .flow_tracker
+        .lock()
+        .map_err(|e| format!("Failed to lock flow tracker: {}", e))?;
+
+    tracker.stop();
+    log::info!("Stopped flow tracking");
+    Ok(())
+}
+
+/// Get the current dynamic filter based on tracked flows
+#[tauri::command]
+pub fn get_flow_filter(state: State<'_, PacketProcessingState>) -> Result<Option<String>, String> {
+    let tracker = state
+        .flow_tracker
+        .lock()
+        .map_err(|e| format!("Failed to lock flow tracker: {}", e))?;
+
+    Ok(tracker.build_filter())
+}
+
+/// Check if flow tracking is active
+#[tauri::command]
+pub fn is_flow_tracking(state: State<'_, PacketProcessingState>) -> Result<bool, String> {
+    let tracker = state
+        .flow_tracker
+        .lock()
+        .map_err(|e| format!("Failed to lock flow tracker: {}", e))?;
+
+    Ok(tracker.is_running())
 }
 
 #[tauri::command]
@@ -1041,18 +1103,24 @@ fn is_broadcast_or_multicast(ip: &IpAddr) -> bool {
     false
 }
 
-fn get_process_ports(pid: u32) -> Vec<u16> {
+/// Gets both local ports and remote IPs for a process.
+/// Returns (local_ports, remote_ips) for building comprehensive filters.
+fn get_process_connections(pid: u32) -> (Vec<u16>, Vec<String>) {
     let Ok(output) = Command::new("netstat").args(["-ano"]).output() else {
-        return Vec::new();
+        return (Vec::new(), Vec::new());
     };
 
     let stdout = String::from_utf8_lossy(&output.stdout);
     let mut ports = Vec::new();
+    let mut remote_ips = Vec::new();
 
     for line in stdout.lines() {
         let parts: Vec<&str> = line.split_whitespace().collect();
 
-        if parts.len() < 5 {
+        // TCP lines have 5 parts, UDP lines have 4 parts (no state column)
+        // Format: Proto  Local Address  Foreign Address  State  PID (TCP)
+        // Format: Proto  Local Address  Foreign Address  PID (UDP)
+        if parts.len() < 4 {
             continue;
         }
 
@@ -1064,20 +1132,58 @@ fn get_process_ports(pid: u32) -> Vec<u16> {
             continue;
         }
 
+        // Extract local port
         let local = parts[1];
-        let Some(port) = local.rsplit(':').next().and_then(|p| p.parse::<u16>().ok()) else {
-            continue;
-        };
-
-        if port <= 1024 {
-            continue;
+        if let Some(port) = local.rsplit(':').next().and_then(|p| p.parse::<u16>().ok()) {
+            if port > 1024 {
+                ports.push(port);
+            }
         }
 
-        ports.push(port);
+        // Extract remote IP (parts[2] is foreign address)
+        let remote = parts[2];
+        if remote != "*:*" && remote != "0.0.0.0:0" && remote != "[::]:0" {
+            // Extract just the IP part (before the port)
+            if let Some(ip_part) = remote.rsplit(':').nth(1) {
+                // Handle IPv4 - the rsplit gives us the IP when splitting "ip:port"
+                let ip = if remote.starts_with('[') {
+                    // IPv6: [::1]:port -> extract ::1
+                    ip_part.trim_start_matches('[').to_string()
+                } else {
+                    // IPv4: Reconstruct IP from parts before the last colon
+                    let parts: Vec<&str> = remote.rsplitn(2, ':').collect();
+                    if parts.len() == 2 {
+                        parts[1].to_string()
+                    } else {
+                        continue;
+                    }
+                };
+
+                // Skip localhost and link-local addresses
+                if !ip.starts_with("127.") && !ip.starts_with("0.") && ip != "::1" {
+                    remote_ips.push(ip);
+                }
+            }
+        }
     }
 
     ports.sort();
     ports.dedup();
+    remote_ips.sort();
+    remote_ips.dedup();
+
+    log::info!(
+        "Found {} ports and {} remote IPs for PID {}",
+        ports.len(),
+        remote_ips.len(),
+        pid
+    );
+
+    (ports, remote_ips)
+}
+
+fn get_process_ports(pid: u32) -> Vec<u16> {
+    let (ports, _) = get_process_connections(pid);
     ports
 }
 

@@ -8,6 +8,7 @@ use std::sync::{Arc, Mutex, RwLock};
 
 use tauri::{App, Manager};
 
+use crate::network::core::FlowTracker;
 use crate::network::modules::stats::PacketProcessingStatistics;
 use crate::settings::Settings;
 
@@ -24,6 +25,8 @@ pub struct PacketProcessingState {
     pub statistics: Arc<RwLock<PacketProcessingStatistics>>,
     /// Current WinDivert filter expression
     pub filter: Arc<Mutex<Option<String>>>,
+    /// Flow tracker for process-based filtering
+    pub flow_tracker: Arc<Mutex<FlowTracker>>,
 }
 
 impl Default for PacketProcessingState {
@@ -33,6 +36,7 @@ impl Default for PacketProcessingState {
             settings: Arc::new(Mutex::new(Settings::default())),
             statistics: Arc::new(RwLock::new(PacketProcessingStatistics::default())),
             filter: Arc::new(Mutex::new(None)),
+            flow_tracker: Arc::new(Mutex::new(FlowTracker::new())),
         }
     }
 }

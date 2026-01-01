@@ -67,6 +67,26 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
         }
     }, [isActive]);
 
+    // Dynamic filter updates when in process mode and active
+    useEffect(() => {
+        if (!isActive || mode !== "process" || !selectedProcess) return;
+
+        const updateFlowFilter = async () => {
+            try {
+                const flowFilter = await invoke<string | null>("get_flow_filter");
+                if (flowFilter) {
+                    await updateFilter(flowFilter);
+                }
+            } catch (e) {
+                // Ignore errors during dynamic updates
+            }
+        };
+
+        // Update filter every 2 seconds to catch new connections
+        const interval = setInterval(updateFlowFilter, 2000);
+        return () => clearInterval(interval);
+    }, [isActive, mode, selectedProcess, updateFilter]);
+
     // Sync local state with store's filterTarget when it changes (e.g., after loading a preset)
     useEffect(() => {
         if (filterTarget) {
@@ -127,44 +147,68 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
         try {
             switch (mode) {
                 case "all":
+                    // Stop any existing flow tracking
+                    await invoke("stop_flow_tracking").catch(() => {});
                     newFilter = "outbound";
                     setFilterTarget({ mode: "all" });
                     break;
 
                 case "process":
-                    if (selectedProcess) {
-                        const pid = parseInt(selectedProcess);
-                        const process = processes.find((p) => p.pid === pid);
-                        newFilter = await invoke<string>("build_process_filter", {
-                            pid,
-                            includeInbound: true,
-                            includeOutbound: true,
-                        });
-                        setFilterTarget({
-                            mode: "process",
-                            processId: pid,
-                            processName: process?.name,
-                        });
+                    if (!selectedProcess) break;
+
+                    const pid = parseInt(selectedProcess);
+                    const process = processes.find((p) => p.pid === pid);
+
+                    // Start flow tracking for this process
+                    await invoke("start_flow_tracking", { pid }).catch((e) =>
+                        console.warn("Flow tracking start failed:", e)
+                    );
+
+                    // Get initial filter from netstat (fallback)
+                    newFilter = await invoke<string>("build_process_filter", {
+                        pid,
+                        includeInbound: true,
+                        includeOutbound: true,
+                    });
+
+                    // Try to get flow-based filter if available
+                    const flowFilter = await invoke<string | null>("get_flow_filter").catch(
+                        () => null
+                    );
+                    if (flowFilter) {
+                        newFilter = flowFilter;
                     }
+
+                    setFilterTarget({
+                        mode: "process",
+                        processId: pid,
+                        processName: process?.name,
+                    });
                     break;
 
                 case "device":
-                    if (selectedDevice) {
-                        const device = devices.find((d) => d.ip === selectedDevice);
-                        newFilter = await invoke<string>("build_device_filter", {
-                            ip: selectedDevice,
-                            includeInbound: true,
-                            includeOutbound: true,
-                        });
-                        setFilterTarget({
-                            mode: "device",
-                            deviceIp: selectedDevice,
-                            deviceName: device?.hostname || device?.device_type,
-                        });
-                    }
+                    // Stop any existing flow tracking
+                    await invoke("stop_flow_tracking").catch(() => {});
+
+                    if (!selectedDevice) break;
+
+                    const device = devices.find((d) => d.ip === selectedDevice);
+                    newFilter = await invoke<string>("build_device_filter", {
+                        ip: selectedDevice,
+                        includeInbound: true,
+                        includeOutbound: true,
+                    });
+                    setFilterTarget({
+                        mode: "device",
+                        deviceIp: selectedDevice,
+                        deviceName: device?.hostname || device?.device_type,
+                    });
                     break;
 
                 case "custom":
+                    // Stop any existing flow tracking
+                    await invoke("stop_flow_tracking").catch(() => {});
+
                     newFilter = customFilter || "outbound";
                     setFilterTarget({
                         mode: "custom",
