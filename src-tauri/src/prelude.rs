@@ -14,7 +14,7 @@ pub use crate::error::{MyraError, Result};
 pub use crate::network::core::{flush_wfp_cache, HandleConfig, HandleManager, PacketData};
 
 // Module traits
-pub use crate::network::modules::traits::{ModuleContext, PacketModule};
+pub use crate::network::modules::traits::{ModuleContext, ModuleOptions, PacketModule};
 
 // Statistics
 pub use crate::network::modules::stats::PacketProcessingStatistics;

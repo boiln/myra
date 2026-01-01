@@ -27,131 +27,153 @@ export const ManipulationService = {
     },
 
     // Helper function to convert settings to modules array
+    // Always sends all modules with their settings, using enabled field to track active state
     createModulesFromSettings(settings: PacketManipulationSettings): any[] {
         const modules = [];
 
-        // Freeze module (Drop packets)
-        if (settings.drop) {
-            modules.push({
-                name: "drop",
-                display_name: "Freeze",
-                enabled: true,
-                config: {
-                    inbound: true,
-                    outbound: true,
-                    chance: settings.drop.probability * 100,
-                    enabled: true,
-                    duration_ms: settings.drop.duration_ms,
-                },
-                params: null,
-            });
-        }
+        // Delay module - always include
+        const delay = settings.delay || { enabled: false, inbound: true, outbound: true, probability: 1, duration_ms: 1000 };
+        modules.push({
+            name: "delay",
+            display_name: "Delay",
+            enabled: delay.enabled ?? false,
+            config: {
+                inbound: delay.inbound ?? true,
+                outbound: delay.outbound ?? true,
+                chance: delay.probability * 100,
+                enabled: delay.enabled ?? false,
+                duration_ms: delay.duration_ms,
+            },
+            params: null,
+        });
 
-        // Delay module
-        if (settings.delay) {
-            modules.push({
-                name: "delay",
-                display_name: "Delay",
-                enabled: true,
-                config: {
-                    inbound: true,
-                    outbound: true,
-                    chance: settings.delay.probability * 100,
-                    enabled: true,
-                    duration_ms: settings.delay.duration_ms, // Delay time
-                },
-                params: null,
-            });
-        }
+        // Freeze module (Drop packets) - always include
+        const drop = settings.drop || { enabled: false, inbound: true, outbound: true, probability: 1, duration_ms: 0 };
+        modules.push({
+            name: "drop",
+            display_name: "Freeze",
+            enabled: drop.enabled ?? false,
+            config: {
+                inbound: drop.inbound ?? true,
+                outbound: drop.outbound ?? true,
+                chance: drop.probability * 100,
+                enabled: drop.enabled ?? false,
+                duration_ms: drop.duration_ms,
+            },
+            params: null,
+        });
 
-        // Throttle module
-        if (settings.throttle) {
-            modules.push({
-                name: "throttle",
-                display_name: "Throttle",
-                enabled: true,
-                config: {
-                    inbound: true,
-                    outbound: true,
-                    chance: settings.throttle.probability * 100,
-                    enabled: true,
-                    duration_ms: settings.throttle.duration_ms,
-                    throttle_ms: settings.throttle.throttle_ms,
-                },
-                params: null,
-            });
-        }
+        // Throttle module - always include
+        const throttle = settings.throttle || { enabled: false, inbound: true, outbound: true, probability: 1, duration_ms: 0, throttle_ms: 300 };
+        modules.push({
+            name: "throttle",
+            display_name: "Throttle",
+            enabled: throttle.enabled ?? false,
+            config: {
+                inbound: throttle.inbound ?? true,
+                outbound: throttle.outbound ?? true,
+                chance: throttle.probability * 100,
+                enabled: throttle.enabled ?? false,
+                duration_ms: throttle.duration_ms,
+                throttle_ms: throttle.throttle_ms,
+            },
+            params: null,
+        });
 
-        // Duplicate module
-        if (settings.duplicate) {
-            modules.push({
-                name: "duplicate",
-                display_name: "Duplicate",
-                enabled: true,
-                config: {
-                    inbound: true,
-                    outbound: true,
-                    chance: settings.duplicate.probability * 100,
-                    enabled: true,
-                    duration_ms: settings.duplicate.duration_ms,
-                    count: settings.duplicate.count,
-                },
-                params: null,
-            });
-        }
+        // Duplicate module - always include
+        const duplicate = settings.duplicate || { enabled: false, inbound: true, outbound: true, probability: 1, count: 2, duration_ms: 0 };
+        modules.push({
+            name: "duplicate",
+            display_name: "Duplicate",
+            enabled: duplicate.enabled ?? false,
+            config: {
+                inbound: duplicate.inbound ?? true,
+                outbound: duplicate.outbound ?? true,
+                chance: duplicate.probability * 100,
+                enabled: duplicate.enabled ?? false,
+                duration_ms: duplicate.duration_ms,
+                count: duplicate.count,
+            },
+            params: null,
+        });
 
-        // Bandwidth module
-        if (settings.bandwidth) {
-            modules.push({
-                name: "bandwidth",
-                display_name: "Bandwidth",
-                enabled: true,
-                config: {
-                    inbound: true,
-                    outbound: true,
-                    chance: settings.bandwidth.probability * 100,
-                    enabled: true,
-                    duration_ms: settings.bandwidth.duration_ms,
-                    limit_kbps: settings.bandwidth.limit_kbps,
-                },
-                params: null,
-            });
-        }
+        // Bandwidth module - always include
+        const bandwidth = settings.bandwidth || { enabled: false, inbound: true, outbound: true, probability: 1, limit_kbps: 50, duration_ms: 0 };
+        modules.push({
+            name: "bandwidth",
+            display_name: "Bandwidth",
+            enabled: bandwidth.enabled ?? false,
+            config: {
+                inbound: bandwidth.inbound ?? true,
+                outbound: bandwidth.outbound ?? true,
+                chance: bandwidth.probability * 100,
+                enabled: bandwidth.enabled ?? false,
+                duration_ms: bandwidth.duration_ms,
+                limit_kbps: bandwidth.limit_kbps,
+            },
+            params: null,
+        });
 
-        // Tamper module
-        if (settings.tamper) {
-            modules.push({
-                name: "tamper",
-                display_name: "Tamper",
-                enabled: true,
-                config: {
-                    inbound: true,
-                    outbound: true,
-                    chance: settings.tamper.probability * 100,
-                    enabled: true,
-                    duration_ms: settings.tamper.duration_ms,
-                },
-                params: null,
-            });
-        }
+        // Tamper module - always include
+        const tamper = settings.tamper || { enabled: false, inbound: true, outbound: true, probability: 1, duration_ms: 0 };
+        modules.push({
+            name: "tamper",
+            display_name: "Tamper",
+            enabled: tamper.enabled ?? false,
+            config: {
+                inbound: tamper.inbound ?? true,
+                outbound: tamper.outbound ?? true,
+                chance: tamper.probability * 100,
+                enabled: tamper.enabled ?? false,
+                duration_ms: tamper.duration_ms,
+            },
+            params: null,
+        });
 
-        // Reorder module
-        if (settings.reorder) {
-            modules.push({
-                name: "reorder",
-                display_name: "Reorder",
-                enabled: true,
-                config: {
-                    inbound: true,
-                    outbound: true,
-                    chance: settings.reorder.probability * 100,
-                    enabled: true,
-                    duration_ms: settings.reorder.duration_ms,
-                    throttle_ms: settings.reorder.max_delay,
-                },
-                params: null,
-            });
-        }
+        // Reorder module - always include
+        const reorder = settings.reorder || { enabled: false, inbound: true, outbound: true, probability: 1, duration_ms: 0, max_delay: 1000 };
+        modules.push({
+            name: "reorder",
+            display_name: "Reorder",
+            enabled: reorder.enabled ?? false,
+            config: {
+                inbound: reorder.inbound ?? true,
+                outbound: reorder.outbound ?? true,
+                chance: reorder.probability * 100,
+                enabled: reorder.enabled ?? false,
+                duration_ms: reorder.duration_ms,
+                throttle_ms: reorder.max_delay,
+            },
+            params: null,
+        });
+
+        // Burst module (lag switch) - always include
+        const burst = settings.burst || { 
+            enabled: false, 
+            inbound: true,
+            outbound: true,
+            probability: 1, 
+            buffer_ms: 0, 
+            duration_ms: 0, 
+            keepalive_ms: 0, 
+            release_delay_us: settings.burst_release_delay_us ?? 500 
+        };
+        modules.push({
+            name: "burst",
+            display_name: "Burst",
+            enabled: burst.enabled ?? false,
+            config: {
+                inbound: burst.inbound ?? true,
+                outbound: burst.outbound ?? true,
+                chance: burst.probability * 100,
+                enabled: burst.enabled ?? false,
+                duration_ms: burst.duration_ms,
+                buffer_ms: burst.buffer_ms,
+                keepalive_ms: burst.keepalive_ms,
+                release_delay_us: burst.release_delay_us,
+            },
+            params: null,
+        });
 
         return modules;
     },

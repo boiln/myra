@@ -9,6 +9,12 @@ use crate::network::modules::stats::PacketProcessingStatistics;
 use std::sync::{Arc, RwLock};
 use std::time::Instant;
 
+/// Trait for module options that can be enabled/disabled.
+pub trait ModuleOptions {
+    /// Returns whether this module is enabled.
+    fn is_enabled(&self) -> bool;
+}
+
 /// Context passed to packet modules during processing.
 ///
 /// Contains shared state and timing information needed by modules
@@ -73,8 +79,8 @@ impl<'a, 'b> ModuleContext<'a, 'b> {
 /// }
 /// ```
 pub trait PacketModule {
-    /// Configuration options for this module
-    type Options;
+    /// Configuration options for this module - must implement ModuleOptions
+    type Options: ModuleOptions;
 
     /// Persistent state maintained between processing calls
     type State;

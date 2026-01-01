@@ -48,6 +48,9 @@ impl SettingsBuilder {
     pub fn drop(mut self, chance: f64) -> Self {
         let probability = Probability::new(chance / 100.0).unwrap_or_default();
         self.settings.drop = Some(DropOptions {
+            enabled: true,
+            inbound: true,
+            outbound: true,
             probability,
             duration_ms: 0,
         });
@@ -73,6 +76,9 @@ impl SettingsBuilder {
     /// * `delay_ms` - Delay in milliseconds
     pub fn delay(mut self, delay_ms: u64) -> Self {
         self.settings.delay = Some(DelayOptions {
+            enabled: true,
+            inbound: true,
+            outbound: true,
             delay_ms,
             probability: Probability::new(1.0).unwrap_or_default(),
             duration_ms: 0,
@@ -111,6 +117,9 @@ impl SettingsBuilder {
     /// * `throttle_ms` - Throttle time in milliseconds
     pub fn throttle(mut self, throttle_ms: u64) -> Self {
         self.settings.throttle = Some(ThrottleOptions {
+            enabled: true,
+            inbound: true,
+            outbound: true,
             probability: Probability::new(1.0).unwrap_or_default(),
             throttle_ms,
             duration_ms: 0,
@@ -150,6 +159,9 @@ impl SettingsBuilder {
     /// * `max_delay_ms` - Maximum reorder delay in milliseconds
     pub fn reorder(mut self, max_delay_ms: u64) -> Self {
         self.settings.reorder = Some(ReorderOptions {
+            enabled: true,
+            inbound: true,
+            outbound: true,
             probability: Probability::new(1.0).unwrap_or_default(),
             max_delay: max_delay_ms,
             duration_ms: 0,
@@ -176,6 +188,9 @@ impl SettingsBuilder {
     /// * `chance` - Probability as percentage (0.0 to 100.0)
     pub fn tamper(mut self, chance: f64) -> Self {
         self.settings.tamper = Some(TamperOptions {
+            enabled: true,
+            inbound: true,
+            outbound: true,
             probability: Probability::new(chance / 100.0).unwrap_or_default(),
             amount: Probability::new(0.5).unwrap_or_default(),
             duration_ms: 0,
@@ -215,6 +230,9 @@ impl SettingsBuilder {
     /// * `count` - Number of duplicates to create
     pub fn duplicate(mut self, count: usize) -> Self {
         self.settings.duplicate = Some(DuplicateOptions {
+            enabled: true,
+            inbound: true,
+            outbound: true,
             probability: Probability::new(1.0).unwrap_or_default(),
             count,
             duration_ms: 0,
@@ -241,6 +259,9 @@ impl SettingsBuilder {
     /// * `limit_kbps` - Bandwidth limit in KB/s
     pub fn bandwidth(mut self, limit_kbps: usize) -> Self {
         self.settings.bandwidth = Some(BandwidthOptions {
+            enabled: true,
+            inbound: true,
+            outbound: true,
             limit: limit_kbps,
             probability: Probability::new(1.0).unwrap_or_default(),
             duration_ms: 0,

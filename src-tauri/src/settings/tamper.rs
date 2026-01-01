@@ -2,8 +2,27 @@ use crate::network::types::probability::Probability;
 use clap::Parser;
 use serde::{Deserialize, Serialize};
 
+fn default_true() -> bool {
+    true
+}
+
 #[derive(Parser, Debug, Serialize, Deserialize, Clone)]
 pub struct TamperOptions {
+    /// Whether this module is enabled
+    #[arg(skip)]
+    #[serde(default)]
+    pub enabled: bool,
+
+    /// Whether to apply to inbound (download) traffic
+    #[arg(skip)]
+    #[serde(default = "default_true")]
+    pub inbound: bool,
+
+    /// Whether to apply to outbound (upload) traffic
+    #[arg(skip)]
+    #[serde(default = "default_true")]
+    pub outbound: bool,
+
     /// Probability of tampering packets, ranging from 0.0 to 1.0
     #[arg(long = "tamper-probability", id = "tamper-probability", default_value_t = Probability::default())]
     #[serde(default)]
@@ -31,6 +50,9 @@ pub struct TamperOptions {
 impl Default for TamperOptions {
     fn default() -> Self {
         TamperOptions {
+            enabled: false,
+            inbound: true,
+            outbound: true,
             probability: Probability::default(),
             amount: Probability::new(0.1).unwrap(),
             duration_ms: 0,

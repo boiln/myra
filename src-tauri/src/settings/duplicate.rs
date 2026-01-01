@@ -2,8 +2,27 @@ use crate::network::types::probability::Probability;
 use clap::Parser;
 use serde::{Deserialize, Serialize};
 
+fn default_true() -> bool {
+    true
+}
+
 #[derive(Parser, Debug, Serialize, Deserialize, Clone)]
 pub struct DuplicateOptions {
+    /// Whether this module is enabled
+    #[arg(skip)]
+    #[serde(default)]
+    pub enabled: bool,
+
+    /// Whether to apply to inbound (download) traffic
+    #[arg(skip)]
+    #[serde(default = "default_true")]
+    pub inbound: bool,
+
+    /// Whether to apply to outbound (upload) traffic
+    #[arg(skip)]
+    #[serde(default = "default_true")]
+    pub outbound: bool,
+
     /// Probability of duplicating packets, ranging from 0.0 to 1.0
     #[arg(long = "duplicate-probability", id = "duplicate-probability", default_value_t = Probability::default())]
     #[serde(default)]
@@ -27,6 +46,9 @@ pub struct DuplicateOptions {
 impl Default for DuplicateOptions {
     fn default() -> Self {
         DuplicateOptions {
+            enabled: false,
+            inbound: true,
+            outbound: true,
             count: 1,
             probability: Probability::default(),
             duration_ms: 0,

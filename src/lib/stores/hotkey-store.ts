@@ -68,6 +68,11 @@ const DEFAULT_BINDINGS: Record<string, HotkeyBinding> = {
         shortcut: null,
         enabled: false,
     },
+    toggleBurst: {
+        action: "toggleBurst",
+        shortcut: null,
+        enabled: false,
+    },
 };
 
 // Track registered shortcuts to avoid double-registration

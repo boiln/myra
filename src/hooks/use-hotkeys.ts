@@ -60,6 +60,10 @@ export function useHotkeys() {
                 console.log("Hotkey: Toggle Reorder");
                 toggleModule("reorder", "Reorder");
             },
+            toggleBurst: () => {
+                console.log("Hotkey: Toggle Burst");
+                toggleModule("burst", "Burst");
+            },
         };
 
         registerAllHotkeys(handlers);

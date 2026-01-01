@@ -49,6 +49,15 @@ pub struct ModuleConfig {
     /// Optional count parameter (e.g., for duplication)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub count: Option<usize>,
+    /// Optional buffer time in milliseconds (for burst)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub buffer_ms: Option<u64>,
+    /// Optional keepalive interval in milliseconds (for burst)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub keepalive_ms: Option<u64>,
+    /// Optional release delay in microseconds (for burst replay speed)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub release_delay_us: Option<u64>,
 }
 
 /// Additional parameters for a network condition simulation module.

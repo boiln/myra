@@ -16,6 +16,7 @@
 
 pub mod bandwidth;
 pub mod builder;
+pub mod burst;
 pub mod delay;
 pub mod drop;
 pub mod duplicate;

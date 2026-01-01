@@ -1,4 +1,5 @@
 use crate::network::modules::bandwidth::BandwidthState;
+use crate::network::modules::burst::BurstState;
 use crate::network::modules::delay::DelayState;
 use crate::network::modules::reorder::ReorderState;
 use crate::network::modules::throttle::ThrottleState;
@@ -18,6 +19,12 @@ pub struct ModuleProcessingState {
     pub bandwidth: BandwidthState,
     /// State for the throttle module
     pub throttle: ThrottleState,
+    /// State for the burst module
+    pub burst: BurstState,
+    /// Whether burst was enabled in the previous processing cycle
+    pub burst_was_enabled: bool,
+    /// Release delay for burst packets in microseconds
+    pub burst_release_delay_us: u64,
 
     /// Time when each module's effect was started
     pub effect_start_times: ModuleEffectStartTimes,
@@ -43,6 +50,8 @@ pub struct ModuleEffectStartTimes {
     pub reorder: Instant,
     /// Time when bandwidth effect was started
     pub bandwidth: Instant,
+    /// Time when burst effect was started
+    pub burst: Instant,
 }
 
 impl Default for ModuleEffectStartTimes {
@@ -56,6 +65,7 @@ impl Default for ModuleEffectStartTimes {
             tamper: now,
             reorder: now,
             bandwidth: now,
+            burst: now,
         }
     }
 }
@@ -67,6 +77,9 @@ impl ModuleProcessingState {
             reorder: ReorderState::default(),
             bandwidth: BandwidthState::default(),
             throttle: ThrottleState::default(),
+            burst: BurstState::default(),
+            burst_was_enabled: false,
+            burst_release_delay_us: 500, // Default 0.5ms
             effect_start_times: ModuleEffectStartTimes::default(),
         }
     }

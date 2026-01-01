@@ -2,8 +2,27 @@ use crate::network::types::probability::Probability;
 use clap::Parser;
 use serde::{Deserialize, Serialize};
 
+fn default_true() -> bool {
+    true
+}
+
 #[derive(Parser, Debug, Serialize, Deserialize, Clone)]
 pub struct ReorderOptions {
+    /// Whether this module is enabled
+    #[arg(skip)]
+    #[serde(default)]
+    pub enabled: bool,
+
+    /// Whether to apply to inbound (download) traffic
+    #[arg(skip)]
+    #[serde(default = "default_true")]
+    pub inbound: bool,
+
+    /// Whether to apply to outbound (upload) traffic
+    #[arg(skip)]
+    #[serde(default = "default_true")]
+    pub outbound: bool,
+
     /// Probability of reordering packets, ranging from 0.0 to 1.0
     #[arg(long = "reorder-probability", id = "reorder-probability", default_value_t = Probability::default())]
     #[serde(default)]
@@ -29,6 +48,9 @@ pub struct ReorderOptions {
 impl Default for ReorderOptions {
     fn default() -> Self {
         ReorderOptions {
+            enabled: false,
+            inbound: true,
+            outbound: true,
             probability: Probability::default(),
             max_delay: 100,
             duration_ms: 0,

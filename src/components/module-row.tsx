@@ -14,6 +14,7 @@ const MODULE_HOTKEY_ACTIONS: Record<string, string> = {
     bandwidth: "toggleBandwidth",
     tamper: "toggleTamper",
     reorder: "toggleReorder",
+    burst: "toggleBurst",
 };
 
 interface ModuleRowProps {
@@ -84,6 +85,9 @@ export function ModuleRow({
             throttle_ms: module.name === "throttle" ? "30" : "100",
             count: "2",
             limit_kbps: "500",
+            buffer_ms: "0",
+            keepalive_ms: "0",
+            release_delay_us: "500",
         };
 
         return defaults[setting] ?? "";
@@ -204,6 +208,63 @@ export function ModuleRow({
                             value={getDisplayValue("throttle_ms")}
                             onChange={(e) => handleInputChange(e, "throttle_ms", 1, 60000, true)}
                             className="h-6 w-[50px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
+                            disabled={!module.enabled}
+                            type="text"
+                            inputMode="numeric"
+                        />
+                    </div>
+                )}
+                {module.name === "burst" && (
+                    <div className="flex items-center gap-1">
+                        <Label
+                            htmlFor={`${module.name}-buffer`}
+                            className="whitespace-nowrap text-xs text-foreground/70"
+                        >
+                            Buffer(ms):
+                        </Label>
+                        <Input
+                            id={`${module.name}-buffer`}
+                            value={getDisplayValue("buffer_ms")}
+                            onChange={(e) => handleInputChange(e, "buffer_ms", 0, 10000, true)}
+                            className="h-6 w-[50px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
+                            disabled={!module.enabled}
+                            type="text"
+                            inputMode="numeric"
+                        />
+                    </div>
+                )}
+                {module.name === "burst" && (
+                    <div className="flex items-center gap-1">
+                        <Label
+                            htmlFor={`${module.name}-keepalive`}
+                            className="whitespace-nowrap text-xs text-foreground/70"
+                        >
+                            Keepalive(ms):
+                        </Label>
+                        <Input
+                            id={`${module.name}-keepalive`}
+                            value={getDisplayValue("keepalive_ms")}
+                            onChange={(e) => handleInputChange(e, "keepalive_ms", 0, 5000, true)}
+                            className="h-6 w-[50px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
+                            disabled={!module.enabled}
+                            type="text"
+                            inputMode="numeric"
+                        />
+                    </div>
+                )}
+                {module.name === "burst" && (
+                    <div className="flex items-center gap-1">
+                        <Label
+                            htmlFor={`${module.name}-release-delay`}
+                            className="whitespace-nowrap text-xs text-foreground/70"
+                        >
+                            Replay(μs):
+                        </Label>
+                        <Input
+                            id={`${module.name}-release-delay`}
+                            value={getDisplayValue("release_delay_us")}
+                            onChange={(e) => handleInputChange(e, "release_delay_us", 0, 50000, true)}
+                            className="h-6 w-[55px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
                             disabled={!module.enabled}
                             type="text"
                             inputMode="numeric"

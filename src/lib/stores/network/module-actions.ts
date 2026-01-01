@@ -72,6 +72,20 @@ export const createModuleSlice: StateCreator<
                     max_delay: config.throttle_ms || 100,
                 };
                 break;
+
+            case "burst":
+                // Use preserved release_delay_us from settings if available
+                const preservedReleaseDelay = newSettings.burst_release_delay_us ?? config.release_delay_us ?? 500;
+                newSettings.burst = {
+                    probability,
+                    buffer_ms: config.buffer_ms ?? 0,
+                    keepalive_ms: config.keepalive_ms ?? 0,
+                    release_delay_us: preservedReleaseDelay,
+                    duration_ms,
+                };
+                // Also update top-level preserved value
+                newSettings.burst_release_delay_us = preservedReleaseDelay;
+                break;
         }
 
         try {

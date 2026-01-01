@@ -1,4 +1,5 @@
 use crate::settings::bandwidth::BandwidthOptions;
+use crate::settings::burst::BurstOptions;
 use crate::settings::delay::DelayOptions;
 use crate::settings::drop::DropOptions;
 use crate::settings::duplicate::DuplicateOptions;
@@ -55,9 +56,73 @@ pub struct Settings {
     /// Controls bandwidth limitations
     #[serde(serialize_with = "serialize_option")]
     pub bandwidth: Option<BandwidthOptions>,
+
+    /// Controls packet bursting (lag switch)
+    #[serde(serialize_with = "serialize_option")]
+    pub burst: Option<BurstOptions>,
+
+    /// Burst release delay in microseconds - stored separately so it persists
+    /// even when burst is disabled
+    #[serde(default = "default_burst_release_delay")]
+    pub burst_release_delay_us: u64,
+}
+
+fn default_burst_release_delay() -> u64 {
+    500
 }
 
 /// Type alias for backward compatibility.
 pub type PacketManipulationSettings = Settings;
+
+// Implement ModuleOptions trait for all option types
+use crate::network::modules::traits::ModuleOptions;
+
+impl ModuleOptions for DropOptions {
+    fn is_enabled(&self) -> bool {
+        self.enabled
+    }
+}
+
+impl ModuleOptions for DelayOptions {
+    fn is_enabled(&self) -> bool {
+        self.enabled
+    }
+}
+
+impl ModuleOptions for ThrottleOptions {
+    fn is_enabled(&self) -> bool {
+        self.enabled
+    }
+}
+
+impl ModuleOptions for ReorderOptions {
+    fn is_enabled(&self) -> bool {
+        self.enabled
+    }
+}
+
+impl ModuleOptions for TamperOptions {
+    fn is_enabled(&self) -> bool {
+        self.enabled
+    }
+}
+
+impl ModuleOptions for DuplicateOptions {
+    fn is_enabled(&self) -> bool {
+        self.enabled
+    }
+}
+
+impl ModuleOptions for BandwidthOptions {
+    fn is_enabled(&self) -> bool {
+        self.enabled
+    }
+}
+
+impl ModuleOptions for BurstOptions {
+    fn is_enabled(&self) -> bool {
+        self.enabled
+    }
+}
 
 

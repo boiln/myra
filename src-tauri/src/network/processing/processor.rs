@@ -1,10 +1,11 @@
 use crate::error::{MyraError, Result};
 use crate::network::core::PacketData;
+use crate::network::modules::burst::flush_buffer;
 use crate::network::modules::stats::PacketProcessingStatistics;
 use crate::network::modules::traits::ModuleContext;
 use crate::network::modules::{
-    BandwidthModule, DelayModule, DropModule, DuplicateModule, PacketModule, ReorderModule,
-    TamperModule, ThrottleModule,
+    BandwidthModule, BurstModule, DelayModule, DropModule, DuplicateModule, PacketModule,
+    ReorderModule, TamperModule, ThrottleModule,
 };
 use crate::network::processing::module_state::ModuleProcessingState;
 use crate::settings::Settings;
@@ -80,6 +81,9 @@ pub fn start_packet_processing(
         // Apply packet manipulations according to current settings
         match settings.lock() {
             Ok(settings) => {
+                // Always update burst release delay from settings (persists even when burst disabled)
+                state.burst_release_delay_us = settings.burst_release_delay_us;
+                
                 if let Err(e) = process_packets(&settings, &mut packets, &mut state, &statistics) {
                     error!("Error processing packets: {}", e);
                 }
@@ -93,6 +97,12 @@ pub fn start_packet_processing(
         }
 
         // Send the processed packets
+        // If we have many packets (likely a burst flush), add pacing between sends
+        let pacing_needed = packets.len() > 20;
+        let release_delay = state.burst_release_delay_us;
+        if pacing_needed {
+            info!("BURST REPLAY: Sending {} packets with {}us delay each", packets.len(), release_delay);
+        }
         for packet_data in &packets {
             if let Err(e) = wd.send(&packet_data.packet) {
                 error!("Failed to send packet: {}", e);
@@ -100,6 +110,11 @@ pub fn start_packet_processing(
             }
 
             sent_packet_count += 1;
+            
+            // Add configurable delay between packets during burst flush for proper replay
+            if pacing_needed && release_delay > 0 {
+                std::thread::sleep(Duration::from_micros(release_delay));
+            }
         }
 
         // Periodically log statistics
@@ -109,6 +124,19 @@ pub fn start_packet_processing(
             sent_packet_count = 0;
             last_log_time = Instant::now();
         }
+    }
+
+    // FLUSH BURST BUFFER ON SHUTDOWN - release all buffered packets before closing
+    if !state.burst.buffer.is_empty() {
+        while let Some((packet, _)) = state.burst.buffer.pop_front() {
+            if let Err(e) = wd.send(&packet.packet) {
+                error!("Failed to send buffered packet on shutdown: {}", e);
+            } else {
+                sent_packet_count += 1;
+            }
+        }
+        // Give packets time to actually transmit before closing handle
+        std::thread::sleep(Duration::from_millis(250));
     }
 
     // Cleanup when shutting down
@@ -177,15 +205,16 @@ pub fn process_packets<'a>(
     // Debug: log active modules
     if has_packets {
         debug!(
-            "Processing {} packets. Active modules: drop={}, delay={}, throttle={}, reorder={}, tamper={}, duplicate={}, bandwidth={}",
+            "Processing {} packets. Active modules: drop={}, delay={}, throttle={}, reorder={}, tamper={}, duplicate={}, bandwidth={}, burst={}",
             packets.len(),
-            settings.drop.is_some(),
-            settings.delay.is_some(),
-            settings.throttle.is_some(),
-            settings.reorder.is_some(),
-            settings.tamper.is_some(),
-            settings.duplicate.is_some(),
-            settings.bandwidth.is_some()
+            settings.drop.as_ref().map(|d| d.enabled).unwrap_or(false),
+            settings.delay.as_ref().map(|d| d.enabled).unwrap_or(false),
+            settings.throttle.as_ref().map(|t| t.enabled).unwrap_or(false),
+            settings.reorder.as_ref().map(|r| r.enabled).unwrap_or(false),
+            settings.tamper.as_ref().map(|t| t.enabled).unwrap_or(false),
+            settings.duplicate.as_ref().map(|d| d.enabled).unwrap_or(false),
+            settings.bandwidth.as_ref().map(|b| b.enabled).unwrap_or(false),
+            settings.burst.as_ref().map(|b| b.enabled).unwrap_or(false)
         );
     }
 
@@ -260,6 +289,26 @@ pub fn process_packets<'a>(
         has_packets,
     )?;
 
+    // Special handling for burst module - flush buffer when disabled
+    let burst_enabled = settings.burst.as_ref().map(|b| b.enabled).unwrap_or(false);
+    if state.burst_was_enabled && !burst_enabled {
+        // Burst was just disabled - flush all buffered packets
+        let buffer: &mut std::collections::VecDeque<(PacketData<'a>, Instant)> =
+            unsafe { std::mem::transmute(&mut state.burst.buffer) };
+        flush_buffer(packets, buffer, &mut state.burst.cycle_start);
+    }
+    state.burst_was_enabled = burst_enabled;
+
+    process_module(
+        &BurstModule,
+        settings.burst.as_ref(),
+        packets,
+        &mut state.burst,
+        &mut state.effect_start_times.burst,
+        statistics,
+        has_packets,
+    )?;
+
     Ok(())
 }
 
@@ -297,9 +346,16 @@ fn process_module<'a, M>(
 where
     M: PacketModule,
 {
+    use crate::network::modules::traits::ModuleOptions;
+    
     let Some(opts) = options else {
         return Ok(());
     };
+
+    // Check if module is enabled
+    if !opts.is_enabled() {
+        return Ok(());
+    }
 
     // Check if module should be skipped based on its options
     if module.should_skip(opts) {

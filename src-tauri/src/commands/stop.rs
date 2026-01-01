@@ -11,6 +11,7 @@ use tauri::State;
 
 use crate::commands::state::PacketProcessingState;
 use crate::network::core::flush_wfp_cache;
+use crate::settings::Settings;
 
 /// Stops packet processing.
 ///
@@ -30,6 +31,19 @@ pub async fn stop_processing(state: State<'_, PacketProcessingState>) -> Result<
     if !state.running.load(Ordering::SeqCst) {
         return Err("Packet processing not running".to_string());
     }
+
+    // First, disable all modules to trigger proper buffer flushes (like burst)
+    // This ensures packets are released through the normal path before shutdown
+    {
+        let mut settings = state
+            .settings
+            .lock()
+            .map_err(|e| format!("Failed to lock settings mutex: {}", e))?;
+        *settings = Settings::default();
+    }
+    
+    // Give time for the processing loop to flush buffers
+    thread::sleep(Duration::from_millis(300));
 
     *state
         .filter

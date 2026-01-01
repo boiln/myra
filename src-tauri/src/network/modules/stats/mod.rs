@@ -1,4 +1,5 @@
 use crate::network::modules::stats::bandwidth_stats::BandwidthStats;
+use crate::network::modules::stats::burst_stats::BurstStats;
 use crate::network::modules::stats::delay_stats::DelayStats;
 use crate::network::modules::stats::drop_stats::DropStats;
 use crate::network::modules::stats::duplicate_stats::DuplicateStats;
@@ -8,6 +9,7 @@ use crate::network::modules::stats::throttle_stats::ThrottleStats;
 use std::time::Duration;
 
 pub mod bandwidth_stats;
+pub mod burst_stats;
 pub mod delay_stats;
 pub mod drop_stats;
 pub mod duplicate_stats;
@@ -36,6 +38,8 @@ pub struct PacketProcessingStatistics {
     pub duplicate_stats: DuplicateStats,
     /// Statistics for bandwidth usage
     pub bandwidth_stats: BandwidthStats,
+    /// Statistics for packet bursting
+    pub burst_stats: BurstStats,
 }
 
 impl Default for PacketProcessingStatistics {
@@ -48,6 +52,7 @@ impl Default for PacketProcessingStatistics {
             tamper_stats: TamperStats::new(Duration::from_millis(500)),
             duplicate_stats: DuplicateStats::new(0.005),
             bandwidth_stats: BandwidthStats::new(0.005),
+            burst_stats: BurstStats::new(0.005),
         }
     }
 }

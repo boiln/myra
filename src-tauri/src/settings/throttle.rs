@@ -2,8 +2,27 @@ use crate::network::types::probability::Probability;
 use clap::Parser;
 use serde::{Deserialize, Serialize};
 
+fn default_true() -> bool {
+    true
+}
+
 #[derive(Parser, Debug, Serialize, Deserialize, Clone)]
 pub struct ThrottleOptions {
+    /// Whether this module is enabled
+    #[arg(skip)]
+    #[serde(default)]
+    pub enabled: bool,
+
+    /// Whether to apply to inbound (download) traffic
+    #[arg(skip)]
+    #[serde(default = "default_true")]
+    pub inbound: bool,
+
+    /// Whether to apply to outbound (upload) traffic
+    #[arg(skip)]
+    #[serde(default = "default_true")]
+    pub outbound: bool,
+
     /// Probability of triggering a throttle event, ranging from 0.0 to 1.0
     #[arg(long = "throttle-probability", id = "throttle-probability", default_value_t = Probability::default())]
     #[serde(default)]
@@ -32,6 +51,9 @@ pub struct ThrottleOptions {
 impl Default for ThrottleOptions {
     fn default() -> Self {
         ThrottleOptions {
+            enabled: false,
+            inbound: true,
+            outbound: true,
             probability: Probability::default(),
             throttle_ms: 30,
             duration_ms: 0,

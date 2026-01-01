@@ -9,6 +9,7 @@ use crate::commands::state::PacketProcessingState;
 use crate::commands::types::ModuleInfo;
 use crate::network::types::probability::Probability;
 use crate::settings::bandwidth::BandwidthOptions;
+use crate::settings::burst::BurstOptions;
 use crate::settings::delay::DelayOptions;
 use crate::settings::drop::DropOptions;
 use crate::settings::duplicate::DuplicateOptions;
@@ -54,28 +55,34 @@ pub async fn update_settings(
 fn build_settings_from_modules(modules: Vec<ModuleInfo>) -> Result<Settings, String> {
     let mut settings = Settings::default();
 
-    for module in modules {
+    for module in &modules {
         match module.name.as_str() {
             "drop" => {
-                settings.drop = Some(build_drop_options(&module)?);
+                // Always save settings, enabled flag tracks if module is active
+                settings.drop = Some(build_drop_options(module)?);
             }
             "delay" => {
-                settings.delay = Some(build_delay_options(&module)?);
+                settings.delay = Some(build_delay_options(module)?);
             }
             "throttle" => {
-                settings.throttle = Some(build_throttle_options(&module)?);
+                settings.throttle = Some(build_throttle_options(module)?);
             }
             "duplicate" => {
-                settings.duplicate = Some(build_duplicate_options(&module)?);
+                settings.duplicate = Some(build_duplicate_options(module)?);
             }
             "bandwidth" => {
-                settings.bandwidth = Some(build_bandwidth_options(&module)?);
+                settings.bandwidth = Some(build_bandwidth_options(module)?);
             }
             "tamper" => {
-                settings.tamper = Some(build_tamper_options(&module)?);
+                settings.tamper = Some(build_tamper_options(module)?);
             }
             "reorder" => {
-                settings.reorder = Some(build_reorder_options(&module)?);
+                settings.reorder = Some(build_reorder_options(module)?);
+            }
+            "burst" => {
+                // Always capture release_delay_us at top level so it persists when burst is disabled
+                settings.burst_release_delay_us = module.config.release_delay_us.unwrap_or(500);
+                settings.burst = Some(build_burst_options(module)?);
             }
             _ => {
                 return Err(format!("Unknown module: {}", module.name));
@@ -91,6 +98,9 @@ fn build_drop_options(module: &ModuleInfo) -> Result<DropOptions, String> {
         .map_err(|e| format!("Invalid drop probability: {}", e))?;
 
     Ok(DropOptions {
+        enabled: module.enabled,
+        inbound: module.config.inbound,
+        outbound: module.config.outbound,
         probability,
         duration_ms: module.config.duration_ms.unwrap_or(0),
     })
@@ -104,6 +114,9 @@ fn build_delay_options(module: &ModuleInfo) -> Result<DelayOptions, String> {
     let delay_time = if delay_time == 0 { 1000 } else { delay_time };
 
     Ok(DelayOptions {
+        enabled: module.enabled,
+        inbound: module.config.inbound,
+        outbound: module.config.outbound,
         delay_ms: delay_time,
         probability,
         duration_ms: 0,
@@ -115,6 +128,9 @@ fn build_throttle_options(module: &ModuleInfo) -> Result<ThrottleOptions, String
         .map_err(|e| format!("Invalid throttle probability: {}", e))?;
 
     Ok(ThrottleOptions {
+        enabled: module.enabled,
+        inbound: module.config.inbound,
+        outbound: module.config.outbound,
         probability,
         throttle_ms: module.config.throttle_ms.unwrap_or(30),
         duration_ms: module.config.duration_ms.unwrap_or(0),
@@ -127,6 +143,9 @@ fn build_duplicate_options(module: &ModuleInfo) -> Result<DuplicateOptions, Stri
         .map_err(|e| format!("Invalid duplicate probability: {}", e))?;
 
     Ok(DuplicateOptions {
+        enabled: module.enabled,
+        inbound: module.config.inbound,
+        outbound: module.config.outbound,
         probability,
         count: module.config.count.unwrap_or(1),
         duration_ms: module.config.duration_ms.unwrap_or(0),
@@ -140,6 +159,9 @@ fn build_bandwidth_options(module: &ModuleInfo) -> Result<BandwidthOptions, Stri
     let limit = module.config.limit_kbps.unwrap_or(0) as usize;
 
     Ok(BandwidthOptions {
+        enabled: module.enabled,
+        inbound: module.config.inbound,
+        outbound: module.config.outbound,
         limit,
         probability,
         duration_ms: module.config.duration_ms.unwrap_or(0),
@@ -153,6 +175,9 @@ fn build_tamper_options(module: &ModuleInfo) -> Result<TamperOptions, String> {
     let amount = Probability::new(0.5).unwrap_or_default();
 
     Ok(TamperOptions {
+        enabled: module.enabled,
+        inbound: module.config.inbound,
+        outbound: module.config.outbound,
         probability,
         amount,
         duration_ms: module.config.duration_ms.unwrap_or(0),
@@ -165,8 +190,27 @@ fn build_reorder_options(module: &ModuleInfo) -> Result<ReorderOptions, String> 
         .map_err(|e| format!("Invalid reorder probability: {}", e))?;
 
     Ok(ReorderOptions {
+        enabled: module.enabled,
+        inbound: module.config.inbound,
+        outbound: module.config.outbound,
         probability,
         max_delay: module.config.throttle_ms.unwrap_or(100),
         duration_ms: module.config.duration_ms.unwrap_or(0),
+    })
+}
+
+fn build_burst_options(module: &ModuleInfo) -> Result<BurstOptions, String> {
+    let probability = Probability::new(module.config.chance / 100.0)
+        .map_err(|e| format!("Invalid burst probability: {}", e))?;
+
+    Ok(BurstOptions {
+        enabled: module.enabled,
+        inbound: module.config.inbound,
+        outbound: module.config.outbound,
+        probability,
+        buffer_ms: module.config.buffer_ms.unwrap_or(0),
+        duration_ms: module.config.duration_ms.unwrap_or(0),
+        keepalive_ms: module.config.keepalive_ms.unwrap_or(0),
+        release_delay_us: module.config.release_delay_us.unwrap_or(500),
     })
 }

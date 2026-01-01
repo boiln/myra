@@ -115,156 +115,207 @@ pub async fn update_filter(
 }
 
 /// Builds a list of ModuleInfo from the current settings.
+/// Always returns all modules with their settings, using enabled field to track active state.
 fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
+    use crate::settings::bandwidth::BandwidthOptions;
+    use crate::settings::burst::BurstOptions;
+    use crate::settings::delay::DelayOptions;
+    use crate::settings::drop::DropOptions;
+    use crate::settings::duplicate::DuplicateOptions;
+    use crate::settings::reorder::ReorderOptions;
+    use crate::settings::tamper::TamperOptions;
+    use crate::settings::throttle::ThrottleOptions;
+
     let mut modules = Vec::new();
 
-    // Drop module (Freeze)
-    if let Some(drop) = &settings.drop {
-        modules.push(ModuleInfo {
-            name: "drop".to_string(),
-            display_name: "Freeze".to_string(),
-            enabled: true,
-            config: ModuleConfig {
-                inbound: true,
-                outbound: true,
-                chance: drop.probability.value() * 100.0,
-                enabled: true,
-                duration_ms: Some(drop.duration_ms),
-                throttle_ms: None,
-                limit_kbps: None,
-                count: None,
-            },
-            params: None,
-        });
-    }
+    // Delay module - always include
+    let delay = settings.delay.as_ref().cloned().unwrap_or_else(|| DelayOptions {
+        enabled: false,
+        inbound: true,
+        outbound: true,
+        delay_ms: 1000,
+        ..Default::default()
+    });
+    modules.push(ModuleInfo {
+        name: "delay".to_string(),
+        display_name: "Delay".to_string(),
+        enabled: delay.enabled,
+        config: ModuleConfig {
+            inbound: delay.inbound,
+            outbound: delay.outbound,
+            chance: delay.probability.value() * 100.0,
+            enabled: delay.enabled,
+            duration_ms: Some(delay.delay_ms),
+            throttle_ms: Some(delay.delay_ms),
+            limit_kbps: None,
+            count: None,
+            buffer_ms: None,
+            keepalive_ms: None,
+            release_delay_us: None,
+        },
+        params: Some(ModuleParams {
+            lag_time: Some(delay.delay_ms),
+        }),
+    });
 
-    // Delay module
-    if let Some(delay) = &settings.delay {
-        modules.push(ModuleInfo {
-            name: "delay".to_string(),
-            display_name: "Delay".to_string(),
-            enabled: true,
-            config: ModuleConfig {
-                inbound: true,
-                outbound: true,
-                chance: delay.probability.value() * 100.0,
-                enabled: true,
-                duration_ms: Some(delay.duration_ms),
-                throttle_ms: Some(delay.delay_ms),
-                limit_kbps: None,
-                count: None,
-            },
-            params: Some(ModuleParams {
-                lag_time: Some(delay.delay_ms),
-            }),
-        });
-    }
+    // Drop module (Freeze) - always include
+    let drop = settings.drop.as_ref().cloned().unwrap_or_default();
+    modules.push(ModuleInfo {
+        name: "drop".to_string(),
+        display_name: "Freeze".to_string(),
+        enabled: drop.enabled,
+        config: ModuleConfig {
+            inbound: drop.inbound,
+            outbound: drop.outbound,
+            chance: drop.probability.value() * 100.0,
+            enabled: drop.enabled,
+            duration_ms: Some(drop.duration_ms),
+            throttle_ms: None,
+            limit_kbps: None,
+            count: None,
+            buffer_ms: None,
+            keepalive_ms: None,
+            release_delay_us: None,
+        },
+        params: None,
+    });
 
-    // Throttle module
-    if let Some(throttle) = &settings.throttle {
-        modules.push(ModuleInfo {
-            name: "throttle".to_string(),
-            display_name: "Throttle".to_string(),
-            enabled: true,
-            config: ModuleConfig {
-                inbound: true,
-                outbound: true,
-                chance: throttle.probability.value() * 100.0,
-                enabled: true,
-                duration_ms: Some(throttle.duration_ms),
-                throttle_ms: Some(throttle.throttle_ms),
-                limit_kbps: None,
-                count: None,
-            },
-            params: None,
-        });
-    }
+    // Throttle module - always include
+    let throttle = settings.throttle.as_ref().cloned().unwrap_or_default();
+    modules.push(ModuleInfo {
+        name: "throttle".to_string(),
+        display_name: "Throttle".to_string(),
+        enabled: throttle.enabled,
+        config: ModuleConfig {
+            inbound: throttle.inbound,
+            outbound: throttle.outbound,
+            chance: throttle.probability.value() * 100.0,
+            enabled: throttle.enabled,
+            duration_ms: Some(throttle.duration_ms),
+            throttle_ms: Some(throttle.throttle_ms),
+            limit_kbps: None,
+            count: None,
+            buffer_ms: None,
+            keepalive_ms: None,
+            release_delay_us: None,
+        },
+        params: None,
+    });
 
-    // Duplicate module
-    if let Some(duplicate) = &settings.duplicate {
-        modules.push(ModuleInfo {
-            name: "duplicate".to_string(),
-            display_name: "Duplicate".to_string(),
-            enabled: true,
-            config: ModuleConfig {
-                inbound: true,
-                outbound: true,
-                chance: duplicate.probability.value() * 100.0,
-                enabled: true,
-                duration_ms: Some(duplicate.duration_ms),
-                throttle_ms: None,
-                limit_kbps: None,
-                count: Some(duplicate.count),
-            },
-            params: None,
-        });
-    }
+    // Duplicate module - always include
+    let duplicate = settings.duplicate.as_ref().cloned().unwrap_or_default();
+    modules.push(ModuleInfo {
+        name: "duplicate".to_string(),
+        display_name: "Duplicate".to_string(),
+        enabled: duplicate.enabled,
+        config: ModuleConfig {
+            inbound: duplicate.inbound,
+            outbound: duplicate.outbound,
+            chance: duplicate.probability.value() * 100.0,
+            enabled: duplicate.enabled,
+            duration_ms: Some(duplicate.duration_ms),
+            throttle_ms: None,
+            limit_kbps: None,
+            count: Some(duplicate.count),
+            buffer_ms: None,
+            keepalive_ms: None,
+            release_delay_us: None,
+        },
+        params: None,
+    });
 
-    // Bandwidth module
-    if let Some(bandwidth) = &settings.bandwidth {
-        let limit_kbps = if bandwidth.limit > 0 {
-            Some(bandwidth.limit as u64)
-        } else {
-            None
-        };
+    // Bandwidth module - always include
+    let bandwidth = settings.bandwidth.as_ref().cloned().unwrap_or_default();
+    let limit_kbps = if bandwidth.limit > 0 {
+        Some(bandwidth.limit as u64)
+    } else {
+        Some(50) // Default limit
+    };
+    modules.push(ModuleInfo {
+        name: "bandwidth".to_string(),
+        display_name: "Bandwidth".to_string(),
+        enabled: bandwidth.enabled,
+        config: ModuleConfig {
+            inbound: bandwidth.inbound,
+            outbound: bandwidth.outbound,
+            chance: bandwidth.probability.value() * 100.0,
+            enabled: bandwidth.enabled,
+            duration_ms: Some(bandwidth.duration_ms),
+            throttle_ms: None,
+            limit_kbps,
+            count: None,
+            buffer_ms: None,
+            keepalive_ms: None,
+            release_delay_us: None,
+        },
+        params: None,
+    });
 
-        modules.push(ModuleInfo {
-            name: "bandwidth".to_string(),
-            display_name: "Bandwidth".to_string(),
-            enabled: true,
-            config: ModuleConfig {
-                inbound: true,
-                outbound: true,
-                chance: bandwidth.probability.value() * 100.0,
-                enabled: true,
-                duration_ms: Some(bandwidth.duration_ms),
-                throttle_ms: None,
-                limit_kbps,
-                count: None,
-            },
-            params: None,
-        });
-    }
+    // Tamper module - always include
+    let tamper = settings.tamper.as_ref().cloned().unwrap_or_default();
+    modules.push(ModuleInfo {
+        name: "tamper".to_string(),
+        display_name: "Tamper".to_string(),
+        enabled: tamper.enabled,
+        config: ModuleConfig {
+            inbound: tamper.inbound,
+            outbound: tamper.outbound,
+            chance: tamper.probability.value() * 100.0,
+            enabled: tamper.enabled,
+            duration_ms: Some(tamper.duration_ms),
+            throttle_ms: None,
+            limit_kbps: None,
+            count: None,
+            buffer_ms: None,
+            keepalive_ms: None,
+            release_delay_us: None,
+        },
+        params: None,
+    });
 
-    // Tamper module
-    if let Some(tamper) = &settings.tamper {
-        modules.push(ModuleInfo {
-            name: "tamper".to_string(),
-            display_name: "Tamper".to_string(),
-            enabled: true,
-            config: ModuleConfig {
-                inbound: true,
-                outbound: true,
-                chance: tamper.probability.value() * 100.0,
-                enabled: true,
-                duration_ms: Some(tamper.duration_ms),
-                throttle_ms: None,
-                limit_kbps: None,
-                count: None,
-            },
-            params: None,
-        });
-    }
+    // Reorder module - always include
+    let reorder = settings.reorder.as_ref().cloned().unwrap_or_default();
+    modules.push(ModuleInfo {
+        name: "reorder".to_string(),
+        display_name: "Reorder".to_string(),
+        enabled: reorder.enabled,
+        config: ModuleConfig {
+            inbound: reorder.inbound,
+            outbound: reorder.outbound,
+            chance: reorder.probability.value() * 100.0,
+            enabled: reorder.enabled,
+            duration_ms: Some(reorder.duration_ms),
+            throttle_ms: Some(reorder.max_delay),
+            limit_kbps: None,
+            count: None,
+            buffer_ms: None,
+            keepalive_ms: None,
+            release_delay_us: None,
+        },
+        params: None,
+    });
 
-    // Reorder module
-    if let Some(reorder) = &settings.reorder {
-        modules.push(ModuleInfo {
-            name: "reorder".to_string(),
-            display_name: "Reorder".to_string(),
-            enabled: true,
-            config: ModuleConfig {
-                inbound: true,
-                outbound: true,
-                chance: reorder.probability.value() * 100.0,
-                enabled: true,
-                duration_ms: Some(reorder.duration_ms),
-                throttle_ms: Some(reorder.max_delay),
-                limit_kbps: None,
-                count: None,
-            },
-            params: None,
-        });
-    }
+    // Burst module (lag switch) - always include
+    let burst = settings.burst.as_ref().cloned().unwrap_or_default();
+    modules.push(ModuleInfo {
+        name: "burst".to_string(),
+        display_name: "Burst".to_string(),
+        enabled: burst.enabled,
+        config: ModuleConfig {
+            inbound: burst.inbound,
+            outbound: burst.outbound,
+            chance: burst.probability.value() * 100.0,
+            enabled: burst.enabled,
+            duration_ms: Some(burst.duration_ms),
+            throttle_ms: None,
+            limit_kbps: None,
+            count: None,
+            buffer_ms: Some(burst.buffer_ms),
+            keepalive_ms: Some(burst.keepalive_ms),
+            release_delay_us: Some(burst.release_delay_us),
+        },
+        params: None,
+    });
 
     modules
 }

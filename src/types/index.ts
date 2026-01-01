@@ -12,6 +12,9 @@ export interface ModuleConfig {
     throttle_ms?: number;
     limit_kbps?: number;
     count?: number;
+    buffer_ms?: number;
+    keepalive_ms?: number;
+    release_delay_us?: number;
 }
 
 export interface ModuleInfo {
@@ -53,45 +56,79 @@ export interface PacketManipulationSettings {
     tamper?: TamperOptions;
     duplicate?: DuplicateOptions;
     bandwidth?: BandwidthOptions;
+    burst?: BurstOptions;
+    burst_release_delay_us?: number;
 }
 
 export interface DropOptions {
+    enabled?: boolean;
+    inbound?: boolean;
+    outbound?: boolean;
     probability: number;
     duration_ms: number;
 }
 
 export interface DelayOptions {
+    enabled?: boolean;
+    inbound?: boolean;
+    outbound?: boolean;
     probability: number;
     duration_ms: number;
 }
 
 export interface ThrottleOptions {
+    enabled?: boolean;
+    inbound?: boolean;
+    outbound?: boolean;
     probability: number;
     duration_ms: number;
     throttle_ms?: number;
 }
 
 export interface ReorderOptions {
+    enabled?: boolean;
+    inbound?: boolean;
+    outbound?: boolean;
     probability: number;
     duration_ms: number;
     max_delay?: number;
 }
 
 export interface TamperOptions {
+    enabled?: boolean;
+    inbound?: boolean;
+    outbound?: boolean;
     probability: number;
     duration_ms: number;
 }
 
 export interface DuplicateOptions {
+    enabled?: boolean;
+    inbound?: boolean;
+    outbound?: boolean;
     probability: number;
     count: number;
     duration_ms: number;
 }
 
 export interface BandwidthOptions {
+    enabled?: boolean;
+    inbound?: boolean;
+    outbound?: boolean;
     probability: number;
     limit_kbps: number;
     duration_ms: number;
+}
+
+export interface BurstOptions {
+    enabled?: boolean;
+    inbound?: boolean;
+    outbound?: boolean;
+    probability: number;
+    buffer_ms: number;
+    duration_ms: number;
+    keepalive_ms: number;
+    release_delay_us: number;
 }
 
 export interface ProcessingStatus {
