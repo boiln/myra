@@ -3,6 +3,18 @@ import { ModuleInfo } from "@/types";
 import { MyraCheckbox } from "@/components/ui/myra-checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { HotkeyBadge } from "@/components/hotkey-badge";
+
+// Map module names to hotkey actions
+const MODULE_HOTKEY_ACTIONS: Record<string, string> = {
+    drop: "toggleFreeze",
+    delay: "toggleDelay",
+    throttle: "toggleThrottle",
+    duplicate: "toggleDuplicate",
+    bandwidth: "toggleBandwidth",
+    tamper: "toggleTamper",
+    reorder: "toggleReorder",
+};
 
 interface ModuleRowProps {
     module: ModuleInfo;
@@ -88,7 +100,7 @@ export function ModuleRow({
             ></span>
 
             {/* Module Enable Checkbox */}
-            <div className="w-[85px] shrink-0">
+            <div className="flex w-[110px] shrink-0 items-center gap-1.5">
                 <MyraCheckbox
                     id={`${module.name}-enable`}
                     checked={module.enabled}
@@ -96,6 +108,9 @@ export function ModuleRow({
                     label={module.display_name}
                     labelClassName="text-sm font-medium text-foreground"
                 />
+                {MODULE_HOTKEY_ACTIONS[module.name] && (
+                    <HotkeyBadge action={MODULE_HOTKEY_ACTIONS[module.name]} />
+                )}
             </div>
 
             {/* Module-specific input - inline label like clumsy */}

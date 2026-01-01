@@ -20,6 +20,7 @@ tauri = { version = "2", features = [] }
 tauri-plugin-fs = "2"
 tauri-plugin-opener = "2"
 tauri-plugin-window-state = { version = "2" }
+tauri-plugin-global-shortcut = "2"
 
 # WinDivert for packet capture and manipulation
 windivert = { version = "0.6", features = ["vendored"] }

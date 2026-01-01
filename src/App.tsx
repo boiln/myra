@@ -7,11 +7,15 @@ import { useNetworkStore } from "@/lib/stores/network";
 import { ToastProvider } from "@/components/providers/toast-provider";
 import { PresetManager } from "@/components/presets/preset-manager";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { useHotkeys } from "@/hooks/use-hotkeys";
 
 function App() {
     const loadStatus = useNetworkStore((state) => state.loadStatus);
     const loadPresets = useNetworkStore((state) => state.loadPresets);
     const initializeDefaultPreset = useNetworkStore((state) => state.initializeDefaultPreset);
+
+    // Initialize global hotkeys
+    useHotkeys();
 
     useEffect(() => {
         const initialize = async () => {
