@@ -134,39 +134,29 @@ pub fn burst_packets<'a>(
         }
     }
 
-    // If keepalive is due, let the first packet through
-    if send_keepalive && !packets.is_empty() {
-        // Keep first packet, buffer the rest
-        let first_packet = packets.remove(0);
-        
-        // Buffer remaining packets
-        let mut i = 0;
-        while i < packets.len() {
-            if rng.random::<f64>() < probability.value() {
-                let packet = packets.remove(i);
-                let static_packet: PacketData<'static> = unsafe { std::mem::transmute(packet) };
-                buffer.push_back((static_packet, now));
-                stats.record_buffer(1);
-            } else {
-                i += 1;
-            }
-        }
-        
-        // Put first packet back to be sent as keepalive
-        packets.insert(0, first_packet);
+    // If keepalive is due, extract first packet to preserve it
+    let keepalive_packet = if send_keepalive && !packets.is_empty() {
+        Some(packets.remove(0))
     } else {
-        // Normal buffering - buffer all packets
-        let mut i = 0;
-        while i < packets.len() {
-            if rng.random::<f64>() < probability.value() {
-                let packet = packets.remove(i);
-                let static_packet: PacketData<'static> = unsafe { std::mem::transmute(packet) };
-                buffer.push_back((static_packet, now));
-                stats.record_buffer(1);
-            } else {
-                i += 1;
-            }
+        None
+    };
+
+    // Buffer packets based on probability
+    let mut i = 0;
+    while i < packets.len() {
+        if rng.random::<f64>() >= probability.value() {
+            i += 1;
+            continue;
         }
+        let packet = packets.remove(i);
+        let static_packet: PacketData<'static> = unsafe { std::mem::transmute(packet) };
+        buffer.push_back((static_packet, now));
+        stats.record_buffer(1);
+    }
+
+    // Restore keepalive packet at the front to be sent
+    if let Some(first_packet) = keepalive_packet {
+        packets.insert(0, first_packet);
     }
 
     // THEN: Check if it's time to release (only in timed mode)

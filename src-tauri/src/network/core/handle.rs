@@ -68,18 +68,18 @@ impl HandleConfig {
 
     /// Builds the final filter string with any exclusions applied.
     fn build_filter(&self) -> String {
-        if self.exclude_tauri_port {
-            // Use localPort/remotePort which work for both TCP and UDP
-            let exclusion = format!("localPort != {0} and remotePort != {0}", TAURI_PORT);
-
-            if self.filter.is_empty() || self.filter == "true" {
-                exclusion
-            } else {
-                format!("({}) and {}", self.filter, exclusion)
-            }
-        } else {
-            self.filter.clone()
+        if !self.exclude_tauri_port {
+            return self.filter.clone();
         }
+
+        // Use localPort/remotePort which work for both TCP and UDP
+        let exclusion = format!("localPort != {0} and remotePort != {0}", TAURI_PORT);
+
+        if self.filter.is_empty() || self.filter == "true" {
+            return exclusion;
+        }
+
+        format!("({}) and {}", self.filter, exclusion)
     }
 }
 
