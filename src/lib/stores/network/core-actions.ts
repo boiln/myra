@@ -16,15 +16,27 @@ export const createCoreSlice: StateCreator<
             const currentFilter = await ManipulationService.getFilter();
             const settings = await ManipulationService.getSettings();
 
-            // Create modules array from settings
+            // Get existing modules to preserve inbound/outbound settings
+            const { manipulationStatus: existingStatus } = get();
+            const existingModules = existingStatus.modules;
+
+            // Helper to get existing direction settings for a module
+            const getExistingDirections = (moduleName: string) => {
+                const existing = existingModules.find((m) => m.name === moduleName);
+                return {
+                    inbound: existing?.config.inbound ?? true,
+                    outbound: existing?.config.outbound ?? true,
+                };
+            };
+
+            // Create modules array from settings, preserving direction settings
             const modules: ModuleInfo[] = [
                 {
                     name: "delay",
                     display_name: "Delay",
                     enabled: !!settings.delay,
                     config: {
-                        inbound: true,
-                        outbound: true,
+                        ...getExistingDirections("delay"),
                         chance: settings.delay ? Math.round(settings.delay.probability * 100) : 100,
                         enabled: !!settings.delay,
                         duration_ms: settings.delay?.duration_ms || 1000,
@@ -35,8 +47,7 @@ export const createCoreSlice: StateCreator<
                     display_name: "Freeze",
                     enabled: !!settings.drop,
                     config: {
-                        inbound: true,
-                        outbound: true,
+                        ...getExistingDirections("drop"),
                         chance: settings.drop ? Math.round(settings.drop.probability * 100) : 100,
                         enabled: !!settings.drop,
                         duration_ms: 0, // 0 = infinite effect duration
@@ -47,8 +58,7 @@ export const createCoreSlice: StateCreator<
                     display_name: "Throttle",
                     enabled: !!settings.throttle,
                     config: {
-                        inbound: true,
-                        outbound: true,
+                        ...getExistingDirections("throttle"),
                         chance: settings.throttle
                             ? Math.round(settings.throttle.probability * 100)
                             : 100,
@@ -62,8 +72,7 @@ export const createCoreSlice: StateCreator<
                     display_name: "Duplicate",
                     enabled: !!settings.duplicate,
                     config: {
-                        inbound: true,
-                        outbound: true,
+                        ...getExistingDirections("duplicate"),
                         chance: settings.duplicate
                             ? Math.round(settings.duplicate.probability * 100)
                             : 100,
@@ -77,8 +86,7 @@ export const createCoreSlice: StateCreator<
                     display_name: "Bandwidth",
                     enabled: !!settings.bandwidth,
                     config: {
-                        inbound: true,
-                        outbound: true,
+                        ...getExistingDirections("bandwidth"),
                         chance: settings.bandwidth
                             ? Math.round(settings.bandwidth.probability * 100)
                             : 100,
@@ -92,8 +100,7 @@ export const createCoreSlice: StateCreator<
                     display_name: "Tamper",
                     enabled: !!settings.tamper,
                     config: {
-                        inbound: true,
-                        outbound: true,
+                        ...getExistingDirections("tamper"),
                         chance: settings.tamper
                             ? Math.round(settings.tamper.probability * 100)
                             : 100,
@@ -106,8 +113,7 @@ export const createCoreSlice: StateCreator<
                     display_name: "Reorder",
                     enabled: !!settings.reorder,
                     config: {
-                        inbound: true,
-                        outbound: true,
+                        ...getExistingDirections("reorder"),
                         chance: settings.reorder
                             ? Math.round(settings.reorder.probability * 100)
                             : 100,
