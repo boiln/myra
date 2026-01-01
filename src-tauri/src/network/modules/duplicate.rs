@@ -31,7 +31,7 @@ impl PacketModule for DuplicateModule {
     }
 
     fn should_skip(&self, options: &Self::Options) -> bool {
-        options.count <= 1 || options.probability.value() <= 0.0
+        options.count == 0 || options.probability.value() <= 0.0
     }
 
     fn process<'a>(
