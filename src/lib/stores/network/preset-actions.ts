@@ -63,6 +63,13 @@ export const createPresetSlice: StateCreator<
 
             // Restore filter target if present
             if (response.filter_target) {
+                // Direction is now radio-style (only one can be active)
+                const inbound = response.filter_target.include_inbound ?? false;
+                const outbound = response.filter_target.include_outbound ?? true;
+                // If both true or both undefined, default to outbound only
+                const finalInbound = inbound && !outbound;
+                const finalOutbound = !finalInbound;
+                
                 set({
                     filterTarget: {
                         mode: response.filter_target.mode as
@@ -75,8 +82,8 @@ export const createPresetSlice: StateCreator<
                         deviceIp: response.filter_target.device_ip,
                         deviceName: response.filter_target.device_name,
                         customFilter: response.filter_target.custom_filter,
-                        includeInbound: response.filter_target.include_inbound ?? true,
-                        includeOutbound: response.filter_target.include_outbound ?? true,
+                        includeInbound: finalInbound,
+                        includeOutbound: finalOutbound,
                     },
                 });
             }

@@ -116,9 +116,18 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
             if (filterTarget.customFilter) {
                 setCustomFilter(filterTarget.customFilter);
             }
-            // Restore direction settings
-            setIncludeInbound(filterTarget.includeInbound ?? true);
-            setIncludeOutbound(filterTarget.includeOutbound ?? true);
+            // Restore direction settings (only one can be active - radio style)
+            // If both are true or both are undefined, default to outbound
+            const inbound = filterTarget.includeInbound ?? false;
+            const outbound = filterTarget.includeOutbound ?? true;
+            if (inbound && !outbound) {
+                setIncludeInbound(true);
+                setIncludeOutbound(false);
+            } else {
+                // Default to outbound
+                setIncludeInbound(false);
+                setIncludeOutbound(true);
+            }
         }
     }, [filterTarget]);
 
