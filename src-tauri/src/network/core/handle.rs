@@ -191,7 +191,7 @@ impl HandleManager {
         };
 
         match WinDivert::<NetworkLayer>::network(&filter, config.priority, flags) {
-            Ok(mut handle) => {
+            Ok(handle) => {
                 debug!("WinDivert handle opened successfully");
                 
                 // Set higher queue params for better packet handling

@@ -104,7 +104,6 @@ export interface ReorderOptions {
     probability: number;
     duration_ms: number;
     max_delay?: number;
-    reverse?: boolean;
 }
 
 export interface TamperOptions {

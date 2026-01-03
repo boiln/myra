@@ -128,7 +128,6 @@ export const createCoreSlice: StateCreator<
                             : 100,
                         enabled: settings.reorder?.enabled ?? false,
                         throttle_ms: settings.reorder?.max_delay || 100,
-                        reverse: settings.reorder?.reverse ?? false,
                         duration_ms: 0, // 0 = infinite effect duration
                     },
                 },

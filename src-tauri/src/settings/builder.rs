@@ -167,7 +167,6 @@ impl SettingsBuilder {
             probability: Probability::new(1.0).unwrap_or_default(),
             max_delay: max_delay_ms,
             duration_ms: 0,
-            reverse: false,
         });
         self
     }

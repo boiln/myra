@@ -331,7 +331,7 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
             freeze_mode: None,
             passthrough_threshold: None,
             use_wfp: None,
-            reverse: Some(reorder.reverse),
+            reverse: None,
         },
         params: None,
     });

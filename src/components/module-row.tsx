@@ -242,14 +242,6 @@ export function ModuleRow({
                                 inputMode="numeric"
                             />
                         </div>
-                        <MyraCheckbox
-                            id={`${module.name}-reverse`}
-                            checked={module.config.reverse ?? false}
-                            onCheckedChange={() => onBooleanSettingChange?.(module, "reverse", !module.config.reverse)}
-                            disabled={!module.enabled}
-                            label="Reverse"
-                            labelClassName={`text-xs text-foreground ${!module.enabled ? "opacity-50" : ""}`}
-                        />
                     </>
                 )}
                 {module.name === "burst" && (

@@ -51,7 +51,7 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
     );
     const [isExpanded, setIsExpanded] = useState(false);
     
-    // Direction toggle - only one can be active (radio-style)
+    // Direction toggles - both can be active (module level controls actual filtering)
     const [includeInbound, setIncludeInbound] = useState(false);
     const [includeOutbound, setIncludeOutbound] = useState(true);
     
@@ -116,18 +116,11 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
             if (filterTarget.customFilter) {
                 setCustomFilter(filterTarget.customFilter);
             }
-            // Restore direction settings (only one can be active - radio style)
-            // If both are true or both are undefined, default to outbound
+            // Restore direction settings (both can be active - module level controls filtering)
             const inbound = filterTarget.includeInbound ?? false;
             const outbound = filterTarget.includeOutbound ?? true;
-            if (inbound && !outbound) {
-                setIncludeInbound(true);
-                setIncludeOutbound(false);
-            } else {
-                // Default to outbound
-                setIncludeInbound(false);
-                setIncludeOutbound(true);
-            }
+            setIncludeInbound(inbound);
+            setIncludeOutbound(outbound);
         }
     }, [filterTarget]);
 
@@ -173,23 +166,31 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
         }
     }, [mode, processes.length, devices.length, loadProcesses, loadDevices]);
 
-    // Helper to build direction filter string (only one can be active)
+    // Helper to build direction filter string
+    // When both are selected, use "true" to capture all traffic (module level controls filtering)
     const buildDirectionFilter = useCallback(() => {
+        if (includeInbound && includeOutbound) {
+            return "true";  // Capture all, let modules filter by direction
+        }
         if (includeInbound) {
             return "inbound";
         }
+        if (includeOutbound) {
+            return "outbound";
+        }
+        // Default to outbound if neither selected (shouldn't happen)
         return "outbound";
-    }, [includeInbound]);
+    }, [includeInbound, includeOutbound]);
 
     // Helper to combine base filter with direction
     const combineFilters = useCallback((baseFilter: string) => {
         const dirFilter = buildDirectionFilter();
         
         // Check if baseFilter already has direction specified
-        const hasDirection = /\b(inbound|outbound)\b/i.test(baseFilter);
+        const hasDirection = /\b(inbound|outbound|true)\b/i.test(baseFilter);
         
-        // If base filter is just a direction or empty, use our direction
-        if (!baseFilter || /^(inbound|outbound)$/i.test(baseFilter)) {
+        // If base filter is just a direction, empty, or "true", use our direction
+        if (!baseFilter || /^(inbound|outbound|true)$/i.test(baseFilter)) {
             return dirFilter;
         }
         
@@ -197,12 +198,17 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
         let cleanBase = baseFilter;
         if (hasDirection) {
             cleanBase = baseFilter
-                .replace(/^(inbound|outbound)\s+and\s+/i, "")
-                .replace(/\s+and\s+(inbound|outbound)$/i, "");
+                .replace(/^(inbound|outbound|true)\s+and\s+/i, "")
+                .replace(/\s+and\s+(inbound|outbound|true)$/i, "");
         }
         
         if (!cleanBase) {
             return dirFilter;
+        }
+        
+        // If direction is "true", just use the base filter (no need to add "true and")
+        if (dirFilter === "true") {
+            return cleanBase;
         }
         
         return `${dirFilter} and ${cleanBase}`;
@@ -707,7 +713,7 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                             {/* Direction & Filter - shown for all non-custom modes */}
                             {mode !== "custom" && (
                                 <div className="space-y-2 border-t border-border pt-3">
-                                    {/* Direction toggles - radio style, only one can be active */}
+                                    {/* Direction toggles - both can be active, module level controls filtering */}
                                     <div className="flex items-center gap-4">
                                         <Label className="text-xs font-medium text-foreground/80">Direction:</Label>
                                         <div className="flex items-center gap-3">
@@ -716,10 +722,11 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                                                     id="filter-inbound"
                                                     checked={includeInbound}
                                                     onCheckedChange={(checked) => {
-                                                        if (checked) {
-                                                            setIncludeInbound(true);
-                                                            setIncludeOutbound(false);
+                                                        // Ensure at least one is always selected
+                                                        if (!checked && !includeOutbound) {
+                                                            setIncludeOutbound(true);
                                                         }
+                                                        setIncludeInbound(!!checked);
                                                     }}
                                                     disabled={disabled || isActive}
                                                     label=""
@@ -740,10 +747,11 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                                                     id="filter-outbound"
                                                     checked={includeOutbound}
                                                     onCheckedChange={(checked) => {
-                                                        if (checked) {
-                                                            setIncludeOutbound(true);
-                                                            setIncludeInbound(false);
+                                                        // Ensure at least one is always selected
+                                                        if (!checked && !includeInbound) {
+                                                            setIncludeInbound(true);
                                                         }
+                                                        setIncludeOutbound(!!checked);
                                                     }}
                                                     disabled={disabled || isActive}
                                                     label=""

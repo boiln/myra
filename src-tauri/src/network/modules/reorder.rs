@@ -54,7 +54,6 @@ impl PacketModule for ReorderModule {
             storage,
             options.probability,
             Duration::from_millis(options.max_delay),
-            options.reverse,
             options.inbound,
             options.outbound,
             &mut stats.reorder_stats,
@@ -75,14 +74,14 @@ impl PacketModule for ReorderModule {
 /// * `storage` - Binary heap for delayed packet storage
 /// * `reorder_probability` - Probability of delaying a packet
 /// * `max_delay` - Maximum delay duration
-/// * `reverse` - If true, release packets in reverse order (guaranteed out-of-order)
+/// * `apply_inbound` - Whether to affect inbound packets
+/// * `apply_outbound` - Whether to affect outbound packets
 /// * `stats` - Statistics tracker to update
 pub fn reorder_packets<'a>(
     packets: &mut Vec<PacketData<'a>>,
     storage: &mut BinaryHeap<DelayedPacket<'a>>,
     reorder_probability: Probability,
     max_delay: Duration,
-    reverse: bool,
     apply_inbound: bool,
     apply_outbound: bool,
     stats: &mut ReorderStats,
@@ -159,12 +158,6 @@ pub fn reorder_packets<'a>(
         
         released_packets.push(delayed_packet.packet);
         released_count += 1;
-    }
-
-    // In reverse mode, reverse the order of released packets
-    if reverse && released_packets.len() > 1 {
-        released_packets.reverse();
-        debug!("Reorder: reversed {} packets", released_packets.len());
     }
 
     packets.extend(released_packets);
