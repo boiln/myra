@@ -15,6 +15,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::Receiver;
 use std::sync::{Arc, Mutex, RwLock};
 use std::time::{Duration, Instant};
+use std::hint;
 use windivert::layer::NetworkLayer;
 use windivert::{CloseAction, WinDivert};
 use windivert_sys::WinDivertFlags;
@@ -161,6 +162,30 @@ pub fn start_packet_processing(
 
     info!("Starting packet interception.");
 
+    // High-precision sleep helper: sleep the bulk using `thread::sleep`
+    // then spin-wait for the last small duration to improve sub-ms accuracy.
+    fn sleep_precise(duration: Duration) {
+        if duration.is_zero() {
+            return;
+        }
+
+        // If duration is large enough, sleep all but ~1ms, then spin.
+        if duration >= Duration::from_millis(2) {
+            let to_sleep = duration - Duration::from_millis(1);
+            std::thread::sleep(to_sleep);
+            let target = Instant::now() + Duration::from_millis(1);
+            while Instant::now() < target {
+                std::hint::spin_loop();
+            }
+        } else {
+            // For very short durations, busy-wait only
+            let target = Instant::now() + duration;
+            while Instant::now() < target {
+                std::hint::spin_loop();
+            }
+        }
+    }
+
     // Track whether bypass is enabled
     let mut enable_bypass = false;
     
@@ -214,7 +239,7 @@ pub fn start_packet_processing(
             
             // Add configurable delay between packets during burst flush for proper replay
             if pacing_needed && release_delay > 0 {
-                std::thread::sleep(Duration::from_micros(release_delay));
+                sleep_precise(Duration::from_micros(release_delay));
             }
         }
 
