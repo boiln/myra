@@ -8,7 +8,7 @@ import { HotkeyBadge } from "@/components/hotkey-badge";
 // Map module names to hotkey actions
 const MODULE_HOTKEY_ACTIONS: Record<string, string> = {
     drop: "toggleDrop",
-    delay: "toggleDelay",
+    lag: "toggleLag",
     throttle: "toggleThrottle",
     duplicate: "toggleDuplicate",
     bandwidth: "toggleBandwidth",
@@ -83,7 +83,7 @@ export function ModuleRow({
 
         const defaults: Record<string, string> = {
             chance: "100",
-            duration_ms: module.name === "delay" ? "1000" : "0",
+            duration_ms: module.name === "lag" ? "1000" : "0",
             throttle_ms: module.name === "throttle" ? "30" : "100",
             count: "2",
             limit_kbps: "500",
@@ -121,7 +121,7 @@ export function ModuleRow({
 
             {/* Module-specific inputs - right after module name */}
             <div className="flex shrink-0 items-center gap-2">
-                {module.name === "delay" && (
+                {module.name === "lag" && (
                     <div className="flex items-center gap-1">
                         <Label
                             htmlFor={`${module.name}-time`}
@@ -340,8 +340,8 @@ export function ModuleRow({
                 />
             </div>
 
-            {/* Duration - docked right (not for delay since it uses Time above) */}
-            {module.name !== "delay" && (
+            {/* Duration - docked right (not for lag since it uses Time above) */}
+            {module.name !== "lag" && (
                 <div className="flex items-center gap-1">
                     <Label
                         htmlFor={`${module.name}-duration`}

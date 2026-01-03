@@ -1,34 +1,34 @@
 use crate::error::Result;
 use crate::network::core::PacketData;
-use crate::network::modules::stats::delay_stats::DelayStats;
+use crate::network::modules::stats::lag_stats::LagStats;
 use crate::network::modules::traits::{ModuleContext, PacketModule};
 use crate::network::types::probability::Probability;
-use crate::settings::delay::DelayOptions;
+use crate::settings::lag::LagOptions;
 use rand::{rng, Rng};
 use std::collections::VecDeque;
 use std::time::Duration;
 
-/// Unit struct for the Delay packet module.
+/// Unit struct for the Lag packet module.
 ///
 /// This module simulates network latency by holding packets for a
-/// specified duration before releasing them, similar to Clumsy's "Lag" module.
-/// With default probability of 100%, all traffic is delayed by the configured time.
+/// specified duration before releasing them, like Clumsy's "Lag" module.
+/// With default probability of 100%, all traffic is lagged by the configured time.
 #[derive(Debug, Default)]
-pub struct DelayModule;
+pub struct LagModule;
 
-/// State maintained by the delay module between processing calls.
-pub type DelayState = VecDeque<PacketData<'static>>;
+/// State maintained by the lag module between processing calls.
+pub type LagState = VecDeque<PacketData<'static>>;
 
-impl PacketModule for DelayModule {
-    type Options = DelayOptions;
-    type State = DelayState;
+impl PacketModule for LagModule {
+    type Options = LagOptions;
+    type State = LagState;
 
     fn name(&self) -> &'static str {
-        "delay"
+        "lag"
     }
 
     fn display_name(&self) -> &'static str {
-        "Packet Delay"
+        "Lag"
     }
 
     fn get_duration_ms(&self, options: &Self::Options) -> u64 {
@@ -48,75 +48,75 @@ impl PacketModule for DelayModule {
         // across processing calls. The packets are owned by the storage until released.
         let storage: &mut VecDeque<PacketData<'a>> = unsafe { std::mem::transmute(state) };
 
-        delay_packets(
+        lag_packets(
             packets,
             storage,
-            Duration::from_millis(options.delay_ms),
+            Duration::from_millis(options.lag_ms),
             options.probability,
-            &mut stats.delay_stats,
+            &mut stats.lag_stats,
         );
         Ok(())
     }
 }
 
-/// Simulates network delay by holding packets for a specified duration.
+/// Simulates network lag by holding packets for a specified duration.
 ///
 /// This function works like Clumsy's "Lag" module - it holds incoming packets
-/// in a buffer and only releases them after the specified delay time has elapsed.
-/// With probability set to 1.0 (100%, the default), all traffic is delayed.
+/// in a buffer and only releases them after the specified lag time has elapsed.
+/// With probability set to 1.0 (100%, the default), all traffic is lagged.
 ///
 /// # How it works
 ///
-/// 1. Incoming packets are moved to the delay storage queue based on probability
+/// 1. Incoming packets are moved to the lag storage queue based on probability
 /// 2. On each processing cycle, packets that have been in the queue for at least
-///    the delay duration are moved back to the outgoing packets vector
-/// 3. Statistics are updated with the number of packets still being delayed
+///    the lag duration are moved back to the outgoing packets vector
+/// 3. Statistics are updated with the number of packets still being lagged
 ///
 /// # Arguments
 ///
 /// * `packets` - Mutable vector of packets that will be processed
-/// * `storage` - Persistent queue for storing delayed packets
-/// * `delay` - The duration to delay each packet
-/// * `probability` - Probability of delaying each packet (default 1.0 = 100%)
-/// * `stats` - Statistics tracker that will be updated with delay information
+/// * `storage` - Persistent queue for storing lagged packets
+/// * `lag` - The duration to lag each packet
+/// * `probability` - Probability of lagging each packet (default 1.0 = 100%)
+/// * `stats` - Statistics tracker that will be updated with lag information
 ///
 /// # Example
 ///
 /// ```
 /// let mut packets = vec![packet1, packet2];
 /// let mut storage = VecDeque::new();
-/// let delay = Duration::from_millis(100);
-/// let probability = Probability::new(1.0).unwrap(); // 100% - all packets delayed
-/// let mut stats = DelayStats::new();
+/// let lag = Duration::from_millis(100);
+/// let probability = Probability::new(1.0).unwrap(); // 100% - all packets lagged
+/// let mut stats = LagStats::new();
 ///
-/// delay_packets(&mut packets, &mut storage, delay, probability, &mut stats);
+/// lag_packets(&mut packets, &mut storage, lag, probability, &mut stats);
 /// ```
-pub fn delay_packets<'a>(
+pub fn lag_packets<'a>(
     packets: &mut Vec<PacketData<'a>>,
     storage: &mut VecDeque<PacketData<'a>>,
-    delay: Duration,
+    lag: Duration,
     probability: Probability,
-    stats: &mut DelayStats,
+    stats: &mut LagStats,
 ) {
     let mut rng = rng();
     let mut passthrough_packets = Vec::new();
 
-    // Move packets to the delay buffer based on probability
-    // With default probability of 1.0, ALL packets are delayed
+    // Move packets to the lag buffer based on probability
+    // With default probability of 1.0, ALL packets are lagged
     for packet in packets.drain(..) {
         if rng.random::<f64>() < probability.value() {
             storage.push_back(packet);
         } else {
-            // Packet passes through without delay
+            // Packet passes through without lag
             passthrough_packets.push(packet);
         }
     }
 
-    // Collect packets that have been delayed long enough
+    // Collect packets that have been lagged long enough
     // Check packets from the front (oldest first) and release those that have waited long enough
     while let Some(packet_data) = storage.front() {
-        if packet_data.arrival_time.elapsed() >= delay {
-            // This packet has been delayed long enough, release it
+        if packet_data.arrival_time.elapsed() >= lag {
+            // This packet has been lagged long enough, release it
             if let Some(packet) = storage.pop_front() {
                 passthrough_packets.push(packet);
             }
@@ -130,35 +130,35 @@ pub fn delay_packets<'a>(
     // Put all packets (passthrough + released) back into the output
     packets.extend(passthrough_packets);
 
-    stats.delayed_package_count(storage.len());
+    stats.lagged_package_count(storage.len());
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::network::modules::stats::delay_stats::DelayStats;
+    use crate::network::modules::stats::lag_stats::LagStats;
     use std::time::{Duration, Instant};
     use windivert::layer::NetworkLayer;
     use windivert::packet::WinDivertPacket;
 
     #[test]
-    fn test_delay_packets_immediate_release_after_delay() {
+    fn test_lag_packets_immediate_release_after_lag() {
         unsafe {
             // Create test packet with an arrival time in the past
             let mut old_packet =
                 PacketData::from(WinDivertPacket::<NetworkLayer>::new(vec![1, 2, 3]));
 
-            // Manually set arrival time to be in the past by enough to bypass delay
+            // Manually set arrival time to be in the past by enough to bypass lag
             let now = Instant::now();
             let past = now - Duration::from_millis(200);
             std::ptr::write(&mut old_packet.arrival_time as *mut Instant, past);
 
             let mut packets = vec![old_packet];
             let mut storage = VecDeque::new();
-            let mut stats = DelayStats::new();
+            let mut stats = LagStats::new();
 
-            // Delay of 100ms with 100% probability (should be immediately released because arrival was 200ms ago)
-            delay_packets(
+            // Lag of 100ms with 100% probability (should be immediately released because arrival was 200ms ago)
+            lag_packets(
                 &mut packets,
                 &mut storage,
                 Duration::from_millis(100),
@@ -166,25 +166,25 @@ mod tests {
                 &mut stats,
             );
 
-            // Packet should have passed through immediately (it was already delayed 200ms)
+            // Packet should have passed through immediately (it was already lagged 200ms)
             assert_eq!(packets.len(), 1);
             assert_eq!(storage.len(), 0);
-            assert_eq!(stats.current_delayed(), 0);
+            assert_eq!(stats.current_lagged(), 0);
         }
     }
 
     #[test]
-    fn test_delay_packets_held_until_delay_elapsed() {
+    fn test_lag_packets_held_until_lag_elapsed() {
         unsafe {
             // Create a new packet (will have recent arrival time)
             let packet = PacketData::from(WinDivertPacket::<NetworkLayer>::new(vec![1, 2, 3]));
 
             let mut packets = vec![packet];
             let mut storage = VecDeque::new();
-            let mut stats = DelayStats::new();
+            let mut stats = LagStats::new();
 
-            // Apply a long delay with 100% probability (ensuring the packet will be held)
-            delay_packets(
+            // Apply a long lag with 100% probability (ensuring the packet will be held)
+            lag_packets(
                 &mut packets,
                 &mut storage,
                 Duration::from_millis(1000),
@@ -195,12 +195,12 @@ mod tests {
             // ALL packets should be held in storage with 100% probability
             assert_eq!(packets.len(), 0);
             assert_eq!(storage.len(), 1);
-            assert_eq!(stats.current_delayed(), 1);
+            assert_eq!(stats.current_lagged(), 1);
         }
     }
 
     #[test]
-    fn test_all_packets_delayed_with_100_percent() {
+    fn test_all_packets_lagged_with_100_percent() {
         unsafe {
             // Create multiple packets
             let packet1 = PacketData::from(WinDivertPacket::<NetworkLayer>::new(vec![1, 2, 3]));
@@ -209,10 +209,10 @@ mod tests {
 
             let mut packets = vec![packet1, packet2, packet3];
             let mut storage = VecDeque::new();
-            let mut stats = DelayStats::new();
+            let mut stats = LagStats::new();
 
-            // Apply delay with 100% probability - ALL packets should be delayed (like Clumsy's lag)
-            delay_packets(
+            // Apply lag with 100% probability - ALL packets should be lagged (like Clumsy's lag)
+            lag_packets(
                 &mut packets,
                 &mut storage,
                 Duration::from_millis(1000),
@@ -223,7 +223,7 @@ mod tests {
             // ALL packets should be in storage, none passed through
             assert_eq!(packets.len(), 0);
             assert_eq!(storage.len(), 3);
-            assert_eq!(stats.current_delayed(), 3);
+            assert_eq!(stats.current_lagged(), 3);
         }
     }
 }

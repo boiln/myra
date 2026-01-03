@@ -1,6 +1,6 @@
 use crate::network::modules::bandwidth::BandwidthState;
 use crate::network::modules::burst::BurstState;
-use crate::network::modules::delay::DelayState;
+use crate::network::modules::lag::LagState;
 use crate::network::modules::reorder::ReorderState;
 use crate::network::modules::throttle::ThrottleState;
 use std::time::Instant;
@@ -11,8 +11,8 @@ use std::time::Instant;
 /// between processing iterations, such as queued packets and timing info.
 #[derive(Debug)]
 pub struct ModuleProcessingState {
-    /// State for the delay module
-    pub delay: DelayState,
+    /// State for the lag module
+    pub lag: LagState,
     /// State for the reorder module
     pub reorder: ReorderState,
     /// State for the bandwidth module
@@ -38,8 +38,8 @@ pub struct ModuleProcessingState {
 pub struct ModuleEffectStartTimes {
     /// Time when drop effect was started
     pub drop: Instant,
-    /// Time when delay effect was started  
-    pub delay: Instant,
+    /// Time when lag effect was started  
+    pub lag: Instant,
     /// Time when throttle effect was started
     pub throttle: Instant,
     /// Time when duplicate effect was started
@@ -59,7 +59,7 @@ impl Default for ModuleEffectStartTimes {
         let now = Instant::now();
         Self {
             drop: now,
-            delay: now,
+            lag: now,
             throttle: now,
             duplicate: now,
             tamper: now,
@@ -73,7 +73,7 @@ impl Default for ModuleEffectStartTimes {
 impl ModuleProcessingState {
     pub fn new() -> Self {
         Self {
-            delay: DelayState::default(),
+            lag: LagState::default(),
             reorder: ReorderState::default(),
             bandwidth: BandwidthState::default(),
             throttle: ThrottleState::default(),

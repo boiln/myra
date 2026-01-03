@@ -32,15 +32,15 @@ export const createCoreSlice: StateCreator<
             // Create modules array from settings, preserving direction settings
             const modules: ModuleInfo[] = [
                 {
-                    name: "delay",
-                    display_name: "Delay",
-                    enabled: settings.delay?.enabled ?? false,
+                    name: "lag",
+                    display_name: "Lag",
+                    enabled: settings.lag?.enabled ?? false,
                     config: {
-                        inbound: settings.delay?.inbound ?? getExistingDirections("delay").inbound,
-                        outbound: settings.delay?.outbound ?? getExistingDirections("delay").outbound,
-                        chance: settings.delay ? Math.round(settings.delay.probability * 100) : 100,
-                        enabled: settings.delay?.enabled ?? false,
-                        duration_ms: settings.delay?.duration_ms || 1000,
+                        inbound: settings.lag?.inbound ?? getExistingDirections("lag").inbound,
+                        outbound: settings.lag?.outbound ?? getExistingDirections("lag").outbound,
+                        chance: settings.lag ? Math.round(settings.lag.probability * 100) : 100,
+                        enabled: settings.lag?.enabled ?? false,
+                        duration_ms: settings.lag?.lag_ms || 1000,
                     },
                 },
                 {

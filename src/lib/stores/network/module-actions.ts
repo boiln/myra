@@ -21,10 +21,10 @@ export const createModuleSlice: StateCreator<
         const duration_ms = config.duration_ms || 0;
 
         switch (moduleName) {
-            case "delay":
-                newSettings.delay = {
+            case "lag":
+                newSettings.lag = {
                     probability,
-                    delay_ms: config.duration_ms || 100,  // UI duration_ms is the delay time
+                    lag_ms: config.duration_ms || 100,  // UI duration_ms is the lag time
                     duration_ms: 0,  // Effect duration (0 = infinite)
                 };
                 break;

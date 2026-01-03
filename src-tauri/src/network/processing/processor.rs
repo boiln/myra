@@ -4,7 +4,7 @@ use crate::network::modules::burst::flush_buffer;
 use crate::network::modules::stats::PacketProcessingStatistics;
 use crate::network::modules::traits::ModuleContext;
 use crate::network::modules::{
-    BandwidthModule, BurstModule, DelayModule, DropModule, DuplicateModule, PacketModule,
+    BandwidthModule, BurstModule, LagModule, DropModule, DuplicateModule, PacketModule,
     ReorderModule, TamperModule, ThrottleModule,
 };
 use crate::network::processing::module_state::ModuleProcessingState;
@@ -313,10 +313,10 @@ pub fn process_packets<'a>(
     // Debug: log active modules
     if has_packets {
         debug!(
-            "Processing {} packets. Active modules: drop={}, delay={}, throttle={}, reorder={}, tamper={}, duplicate={}, bandwidth={}, burst={}",
+            "Processing {} packets. Active modules: drop={}, lag={}, throttle={}, reorder={}, tamper={}, duplicate={}, bandwidth={}, burst={}",
             packets.len(),
             settings.drop.as_ref().map(|d| d.enabled).unwrap_or(false),
-            settings.delay.as_ref().map(|d| d.enabled).unwrap_or(false),
+            settings.lag.as_ref().map(|d| d.enabled).unwrap_or(false),
             settings.throttle.as_ref().map(|t| t.enabled).unwrap_or(false),
             settings.reorder.as_ref().map(|r| r.enabled).unwrap_or(false),
             settings.tamper.as_ref().map(|t| t.enabled).unwrap_or(false),
@@ -338,11 +338,11 @@ pub fn process_packets<'a>(
     )?;
 
     process_module(
-        &DelayModule,
-        settings.delay.as_ref(),
+        &LagModule,
+        settings.lag.as_ref(),
         packets,
-        &mut state.delay,
-        &mut state.effect_start_times.delay,
+        &mut state.lag,
+        &mut state.effect_start_times.lag,
         statistics,
         has_packets,
     )?;

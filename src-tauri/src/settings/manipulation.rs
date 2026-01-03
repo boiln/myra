@@ -1,6 +1,6 @@
 use crate::settings::bandwidth::BandwidthOptions;
 use crate::settings::burst::BurstOptions;
-use crate::settings::delay::DelayOptions;
+use crate::settings::lag::LagOptions;
 use crate::settings::drop::DropOptions;
 use crate::settings::duplicate::DuplicateOptions;
 use crate::settings::reorder::ReorderOptions;
@@ -34,9 +34,9 @@ pub struct Settings {
     #[serde(serialize_with = "serialize_option")]
     pub drop: Option<DropOptions>,
 
-    /// Controls packet delay simulation
+    /// Controls packet lag simulation
     #[serde(default, serialize_with = "serialize_option")]
-    pub delay: Option<DelayOptions>,
+    pub lag: Option<LagOptions>,
 
     /// Controls network throttling
     #[serde(serialize_with = "serialize_option")]
@@ -94,7 +94,7 @@ impl ModuleOptions for DropOptions {
     }
 }
 
-impl ModuleOptions for DelayOptions {
+impl ModuleOptions for LagOptions {
     fn is_enabled(&self) -> bool {
         self.enabled
     }

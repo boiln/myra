@@ -10,14 +10,14 @@
 //!
 //! let settings = SettingsBuilder::new()
 //!     .drop(50.0)
-//!     .delay(100)
+//!     .lag(100)
 //!     .build();
 //! ```
 
 pub mod bandwidth;
 pub mod builder;
 pub mod burst;
-pub mod delay;
+pub mod lag;
 pub mod drop;
 pub mod duplicate;
 pub mod manipulation;

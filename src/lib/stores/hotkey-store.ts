@@ -38,8 +38,8 @@ const DEFAULT_BINDINGS: Record<string, HotkeyBinding> = {
         shortcut: null,
         enabled: false,
     },
-    toggleDelay: {
-        action: "toggleDelay",
+    toggleLag: {
+        action: "toggleLag",
         shortcut: null,
         enabled: false,
     },

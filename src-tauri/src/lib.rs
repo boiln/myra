@@ -6,7 +6,7 @@
 //! ## Features
 //!
 //! * Packet dropping - Randomly drop packets to simulate packet loss
-//! * Packet delay - Add latency to packets
+//! * Packet lag - Add latency to packets
 //! * Network throttling - Slow down connections temporarily
 //! * Packet reordering - Change the order packets arrive in
 //! * Packet tampering - Corrupt packet data
@@ -30,8 +30,8 @@
 //! // Build settings using the fluent builder API
 //! let settings = SettingsBuilder::new()
 //!     .drop(25.0)     // 25% packet drop rate
-//!     .delay(100)     // 100ms delay
-//!     .with_delay_chance(50.0)  // 50% chance of delay
+//!     .lag(100)     // 100ms lag
+//!     .with_lag_chance(50.0)  // 50% chance of lag
 //!     .build();
 //! ```
 

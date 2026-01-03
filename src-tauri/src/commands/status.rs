@@ -115,36 +115,29 @@ pub async fn update_filter(
 /// Builds a list of ModuleInfo from the current settings.
 /// Always returns all modules with their settings, using enabled field to track active state.
 fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
-    use crate::settings::bandwidth::BandwidthOptions;
-    use crate::settings::burst::BurstOptions;
-    use crate::settings::delay::DelayOptions;
-    use crate::settings::drop::DropOptions;
-    use crate::settings::duplicate::DuplicateOptions;
-    use crate::settings::reorder::ReorderOptions;
-    use crate::settings::tamper::TamperOptions;
-    use crate::settings::throttle::ThrottleOptions;
+    use crate::settings::lag::LagOptions;
 
     let mut modules = Vec::new();
 
-    // Delay module - always include
-    let delay = settings.delay.as_ref().cloned().unwrap_or_else(|| DelayOptions {
+    // Lag module - always include
+    let lag = settings.lag.as_ref().cloned().unwrap_or_else(|| LagOptions {
         enabled: false,
         inbound: true,
         outbound: true,
-        delay_ms: 1000,
+        lag_ms: 1000,
         ..Default::default()
     });
     modules.push(ModuleInfo {
-        name: "delay".to_string(),
-        display_name: "Delay".to_string(),
-        enabled: delay.enabled,
+        name: "lag".to_string(),
+        display_name: "Lag".to_string(),
+        enabled: lag.enabled,
         config: ModuleConfig {
-            inbound: delay.inbound,
-            outbound: delay.outbound,
-            chance: delay.probability.value() * 100.0,
-            enabled: delay.enabled,
-            duration_ms: Some(delay.delay_ms),
-            throttle_ms: Some(delay.delay_ms),
+            inbound: lag.inbound,
+            outbound: lag.outbound,
+            chance: lag.probability.value() * 100.0,
+            enabled: lag.enabled,
+            duration_ms: Some(lag.lag_ms),
+            throttle_ms: Some(lag.lag_ms),
             limit_kbps: None,
             count: None,
             buffer_ms: None,
@@ -158,7 +151,7 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
             use_wfp: None,
         },
         params: Some(ModuleParams {
-            lag_time: Some(delay.delay_ms),
+            lag_time: Some(lag.lag_ms),
         }),
     });
 

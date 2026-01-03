@@ -56,7 +56,7 @@ export interface Config {
 
 export interface PacketManipulationSettings {
     drop?: DropOptions;
-    delay?: DelayOptions;
+    lag?: LagOptions;
     throttle?: ThrottleOptions;
     reorder?: ReorderOptions;
     tamper?: TamperOptions;
@@ -75,12 +75,12 @@ export interface DropOptions {
     duration_ms: number;
 }
 
-export interface DelayOptions {
+export interface LagOptions {
     enabled?: boolean;
     inbound?: boolean;
     outbound?: boolean;
     probability: number;
-    delay_ms: number;      // The actual delay time in ms
+    lag_ms: number;      // The actual lag time in ms
     duration_ms: number;   // Effect duration (0 = infinite)
 }
 

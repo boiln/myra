@@ -1,6 +1,6 @@
 use crate::network::modules::stats::bandwidth_stats::BandwidthStats;
 use crate::network::modules::stats::burst_stats::BurstStats;
-use crate::network::modules::stats::delay_stats::DelayStats;
+use crate::network::modules::stats::lag_stats::LagStats;
 use crate::network::modules::stats::drop_stats::DropStats;
 use crate::network::modules::stats::duplicate_stats::DuplicateStats;
 use crate::network::modules::stats::reorder_stats::ReorderStats;
@@ -10,7 +10,7 @@ use std::time::Duration;
 
 pub mod bandwidth_stats;
 pub mod burst_stats;
-pub mod delay_stats;
+pub mod lag_stats;
 pub mod drop_stats;
 pub mod duplicate_stats;
 pub mod reorder_stats;
@@ -21,13 +21,13 @@ pub mod util;
 /// Statistics collection for all packet processing modules
 ///
 /// Maintains counters and metrics for various network conditions being simulated,
-/// such as packet drops, delays, reordering, and duplication.
+/// such as packet drops, lag, reordering, and duplication.
 #[derive(Debug)]
 pub struct PacketProcessingStatistics {
     /// Statistics for packet dropping
     pub drop_stats: DropStats,
-    /// Statistics for packet delay
-    pub delay_stats: DelayStats,
+    /// Statistics for packet lag
+    pub lag_stats: LagStats,
     /// Statistics for bandwidth throttling
     pub throttle_stats: ThrottleStats,
     /// Statistics for packet reordering
@@ -46,7 +46,7 @@ impl Default for PacketProcessingStatistics {
     fn default() -> Self {
         Self {
             drop_stats: DropStats::new(0.005),
-            delay_stats: DelayStats::new(),
+            lag_stats: LagStats::new(),
             throttle_stats: ThrottleStats::new(),
             reorder_stats: ReorderStats::new(0.005),
             tamper_stats: TamperStats::new(Duration::from_millis(500)),

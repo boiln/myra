@@ -13,13 +13,13 @@ const buildSettings = (modules: ModuleInfo[]) => {
     modules.forEach((module) => {
         // Always include settings, with enabled flag to track active state
         switch (module.name) {
-            case "delay":
-                settings.delay = {
+            case "lag":
+                settings.lag = {
                     enabled: module.enabled,
                     inbound: module.config.inbound,
                     outbound: module.config.outbound,
                     probability: module.config.chance / 100,
-                    delay_ms: module.config.duration_ms,  // UI duration_ms is the delay time
+                    lag_ms: module.config.duration_ms,  // UI duration_ms is the lag time
                     duration_ms: 0,  // Effect duration (0 = infinite)
                 };
                 break;

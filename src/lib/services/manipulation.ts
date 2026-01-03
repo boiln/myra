@@ -86,18 +86,18 @@ export const ManipulationService = {
     createModulesFromSettings(settings: PacketManipulationSettings): any[] {
         const modules = [];
 
-        // Delay module - always include
-        const delay = settings.delay || { enabled: false, inbound: true, outbound: true, probability: 1, delay_ms: 1000, duration_ms: 0 };
+        // Lag module - always include
+        const lag = settings.lag || { enabled: false, inbound: true, outbound: true, probability: 1, lag_ms: 1000, duration_ms: 0 };
         modules.push({
-            name: "delay",
-            display_name: "Delay",
-            enabled: delay.enabled ?? false,
+            name: "lag",
+            display_name: "Lag",
+            enabled: lag.enabled ?? false,
             config: {
-                inbound: delay.inbound ?? true,
-                outbound: delay.outbound ?? true,
-                chance: delay.probability * 100,
-                enabled: delay.enabled ?? false,
-                duration_ms: delay.delay_ms,  // Use delay_ms as the time value sent to backend
+                inbound: lag.inbound ?? true,
+                outbound: lag.outbound ?? true,
+                chance: lag.probability * 100,
+                enabled: lag.enabled ?? false,
+                duration_ms: lag.lag_ms,  // Use lag_ms as the time value sent to backend
             },
             params: null,
         });

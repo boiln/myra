@@ -10,15 +10,15 @@
 //!
 //! let settings = SettingsBuilder::new()
 //!     .drop(50.0)  // 50% drop rate
-//!     .delay(100)  // 100ms delay
-//!     .with_delay_chance(75.0)  // 75% chance
+//!     .lag(100)  // 100ms lag
+//!     .with_lag_chance(75.0)  // 75% chance
 //!     .throttle(30)  // 30ms throttle
 //!     .build();
 //! ```
 
 use crate::network::types::probability::Probability;
 use crate::settings::bandwidth::BandwidthOptions;
-use crate::settings::delay::DelayOptions;
+use crate::settings::lag::LagOptions;
 use crate::settings::drop::DropOptions;
 use crate::settings::duplicate::DuplicateOptions;
 use crate::settings::manipulation::Settings;
@@ -69,43 +69,43 @@ impl SettingsBuilder {
         self
     }
 
-    /// Enables packet delay with the given delay time.
+    /// Enables packet lag with the given lag time.
     ///
     /// # Arguments
     ///
-    /// * `delay_ms` - Delay in milliseconds
-    pub fn delay(mut self, delay_ms: u64) -> Self {
-        self.settings.delay = Some(DelayOptions {
+    /// * `lag_ms` - Lag in milliseconds
+    pub fn lag(mut self, lag_ms: u64) -> Self {
+        self.settings.lag = Some(LagOptions {
             enabled: true,
             inbound: true,
             outbound: true,
-            delay_ms,
+            lag_ms,
             probability: Probability::new(1.0).unwrap_or_default(),
             duration_ms: 0,
         });
         self
     }
 
-    /// Sets the probability for the delay effect.
+    /// Sets the probability for the lag effect.
     ///
     /// # Arguments
     ///
     /// * `chance` - Probability as percentage (0.0 to 100.0)
-    pub fn with_delay_chance(mut self, chance: f64) -> Self {
-        if let Some(ref mut delay) = self.settings.delay {
-            delay.probability = Probability::new(chance / 100.0).unwrap_or_default();
+    pub fn with_lag_chance(mut self, chance: f64) -> Self {
+        if let Some(ref mut lag) = self.settings.lag {
+            lag.probability = Probability::new(chance / 100.0).unwrap_or_default();
         }
         self
     }
 
-    /// Sets the duration for the delay effect.
+    /// Sets the duration for the lag effect.
     ///
     /// # Arguments
     ///
     /// * `duration_ms` - Duration in milliseconds (0 = infinite)
-    pub fn with_delay_duration(mut self, duration_ms: u64) -> Self {
-        if let Some(ref mut delay) = self.settings.delay {
-            delay.duration_ms = duration_ms;
+    pub fn with_lag_duration(mut self, duration_ms: u64) -> Self {
+        if let Some(ref mut lag) = self.settings.lag {
+            lag.duration_ms = duration_ms;
         }
         self
     }
@@ -307,7 +307,7 @@ impl Settings {
     /// Returns whether any modules are enabled.
     pub fn has_active_modules(&self) -> bool {
         self.drop.is_some()
-            || self.delay.is_some()
+            || self.lag.is_some()
             || self.throttle.is_some()
             || self.reorder.is_some()
             || self.tamper.is_some()
@@ -321,8 +321,8 @@ impl Settings {
         if self.drop.is_some() {
             names.push("drop");
         }
-        if self.delay.is_some() {
-            names.push("delay");
+        if self.lag.is_some() {
+            names.push("lag");
         }
         if self.throttle.is_some() {
             names.push("throttle");
@@ -361,28 +361,28 @@ mod tests {
     }
 
     #[test]
-    fn test_builder_delay_with_chance() {
+    fn test_builder_lag_with_chance() {
         let settings = SettingsBuilder::new()
-            .delay(100)
-            .with_delay_chance(75.0)
+            .lag(100)
+            .with_lag_chance(75.0)
             .build();
         
-        assert!(settings.delay.is_some());
-        let delay = settings.delay.unwrap();
-        assert_eq!(delay.delay_ms, 100);
-        assert!((delay.probability.value() - 0.75).abs() < 0.001);
+        assert!(settings.lag.is_some());
+        let lag = settings.lag.unwrap();
+        assert_eq!(lag.lag_ms, 100);
+        assert!((lag.probability.value() - 0.75).abs() < 0.001);
     }
 
     #[test]
     fn test_builder_multiple_modules() {
         let settings = SettingsBuilder::new()
             .drop(25.0)
-            .delay(50)
+            .lag(50)
             .throttle(30)
             .build();
 
         assert!(settings.drop.is_some());
-        assert!(settings.delay.is_some());
+        assert!(settings.lag.is_some());
         assert!(settings.throttle.is_some());
         assert_eq!(settings.active_module_names().len(), 3);
     }
@@ -391,7 +391,7 @@ mod tests {
     fn test_builder_clear() {
         let settings = SettingsBuilder::new()
             .drop(50.0)
-            .delay(100)
+            .lag(100)
             .clear()
             .build();
 
@@ -408,6 +408,6 @@ mod tests {
         let names = settings.active_module_names();
         assert!(names.contains(&"drop"));
         assert!(names.contains(&"bandwidth"));
-        assert!(!names.contains(&"delay"));
+        assert!(!names.contains(&"lag"));
     }
 }

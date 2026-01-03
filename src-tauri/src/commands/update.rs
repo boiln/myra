@@ -10,7 +10,7 @@ use crate::commands::types::ModuleInfo;
 use crate::network::types::probability::Probability;
 use crate::settings::bandwidth::BandwidthOptions;
 use crate::settings::burst::BurstOptions;
-use crate::settings::delay::DelayOptions;
+use crate::settings::lag::LagOptions;
 use crate::settings::drop::DropOptions;
 use crate::settings::duplicate::DuplicateOptions;
 use crate::settings::reorder::ReorderOptions;
@@ -61,8 +61,8 @@ fn build_settings_from_modules(modules: Vec<ModuleInfo>) -> Result<Settings, Str
                 // Always save settings, enabled flag tracks if module is active
                 settings.drop = Some(build_drop_options(module)?);
             }
-            "delay" => {
-                settings.delay = Some(build_delay_options(module)?);
+            "lag" => {
+                settings.lag = Some(build_lag_options(module)?);
             }
             "throttle" => {
                 settings.throttle = Some(build_throttle_options(module)?);
@@ -110,18 +110,18 @@ fn build_drop_options(module: &ModuleInfo) -> Result<DropOptions, String> {
     })
 }
 
-fn build_delay_options(module: &ModuleInfo) -> Result<DelayOptions, String> {
+fn build_lag_options(module: &ModuleInfo) -> Result<LagOptions, String> {
     let probability = Probability::new(module.config.chance / 100.0)
-        .map_err(|e| format!("Invalid delay probability: {}", e))?;
+        .map_err(|e| format!("Invalid lag probability: {}", e))?;
 
-    let delay_time = module.config.duration_ms.unwrap_or(1000);
-    let delay_time = if delay_time == 0 { 1000 } else { delay_time };
+    let lag_time = module.config.duration_ms.unwrap_or(1000);
+    let lag_time = if lag_time == 0 { 1000 } else { lag_time };
 
-    Ok(DelayOptions {
+    Ok(LagOptions {
         enabled: module.enabled,
         inbound: module.config.inbound,
         outbound: module.config.outbound,
-        delay_ms: delay_time,
+        lag_ms: lag_time,
         probability,
         duration_ms: 0,
     })

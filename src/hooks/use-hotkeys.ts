@@ -36,9 +36,9 @@ export function useHotkeys() {
                 console.log("Hotkey: Toggle Drop");
                 toggleModule("drop", "Drop");
             },
-            toggleDelay: () => {
-                console.log("Hotkey: Toggle Delay");
-                toggleModule("delay", "Delay");
+            toggleLag: () => {
+                console.log("Hotkey: Toggle Lag");
+                toggleModule("lag", "Lag");
             },
             toggleThrottle: () => {
                 console.log("Hotkey: Toggle Throttle");

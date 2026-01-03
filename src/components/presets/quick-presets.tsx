@@ -50,13 +50,13 @@ export function QuickPresets() {
             // Disable all modules by default
             currentModules.forEach((module) => {
                 switch (module.name) {
-                    case "delay":
-                        newSettings.delay = {
+                    case "lag":
+                        newSettings.lag = {
                             enabled: false,
                             inbound: true,
                             outbound: true,
                             probability: 1,
-                            delay_ms: 1000,
+                            lag_ms: 1000,
                             duration_ms: 0,
                         };
                         break;
