@@ -55,6 +55,8 @@ impl PacketModule for ReorderModule {
             options.probability,
             Duration::from_millis(options.max_delay),
             options.reverse,
+            options.inbound,
+            options.outbound,
             &mut stats.reorder_stats,
         );
         Ok(())
@@ -81,6 +83,8 @@ pub fn reorder_packets<'a>(
     reorder_probability: Probability,
     max_delay: Duration,
     reverse: bool,
+    apply_inbound: bool,
+    apply_outbound: bool,
     stats: &mut ReorderStats,
 ) {
     if max_delay.as_millis() == 0 {
@@ -101,6 +105,16 @@ pub fn reorder_packets<'a>(
     let mut delayed_count = 0;
 
     for packet in packets.drain(..) {
+        // Check if this packet's direction should be affected
+        let matches_direction = (packet.is_outbound && apply_outbound)
+            || (!packet.is_outbound && apply_inbound);
+
+        if !matches_direction {
+            // Direction doesn't match - let packet pass through
+            skipped_packets.push(packet);
+            continue;
+        }
+
         if rng.random::<f64>() >= reorder_probability.value() {
             skipped_packets.push(packet);
             stats.record(false);

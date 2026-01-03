@@ -37,7 +37,13 @@ impl PacketModule for DropModule {
         ctx: &mut ModuleContext,
     ) -> Result<()> {
         let mut stats = ctx.write_stats(self.name())?;
-        drop_packets(packets, options.probability, &mut stats.drop_stats);
+        drop_packets(
+            packets,
+            options.probability,
+            options.inbound,
+            options.outbound,
+            &mut stats.drop_stats,
+        );
         Ok(())
     }
 }
@@ -65,11 +71,22 @@ impl PacketModule for DropModule {
 pub fn drop_packets<'a>(
     packets: &mut Vec<PacketData<'a>>,
     drop_probability: Probability,
+    apply_inbound: bool,
+    apply_outbound: bool,
     stats: &mut DropStats,
 ) {
     let mut rng = rng();
 
-    packets.retain(|_packet| {
+    packets.retain(|packet| {
+        // Check if this packet's direction should be affected
+        let matches_direction = (packet.is_outbound && apply_outbound)
+            || (!packet.is_outbound && apply_inbound);
+
+        if !matches_direction {
+            // Direction doesn't match - keep packet unchanged
+            return true;
+        }
+
         let drop = rng.random::<f64>() < drop_probability.value();
 
         if drop {
@@ -103,6 +120,8 @@ mod tests {
             drop_packets(
                 &mut packets,
                 Probability::new(1.0).unwrap(),
+                true,  // apply_inbound
+                true,  // apply_outbound
                 &mut drop_stats,
             );
 
@@ -131,6 +150,8 @@ mod tests {
             drop_packets(
                 &mut packets,
                 Probability::new(0.0).unwrap(),
+                true,  // apply_inbound
+                true,  // apply_outbound
                 &mut drop_stats,
             );
 

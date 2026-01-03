@@ -46,6 +46,8 @@ impl PacketModule for TamperModule {
             options.probability,
             options.amount,
             options.recalculate_checksums.unwrap_or(true),
+            options.inbound,
+            options.outbound,
             &mut stats.tamper_stats,
         );
         Ok(())
@@ -88,12 +90,23 @@ pub fn tamper_packets(
     tamper_probability: Probability,
     tamper_amount: Probability,
     recalculate_checksums: bool,
+    apply_inbound: bool,
+    apply_outbound: bool,
     stats: &mut TamperStats,
 ) {
     let should_update_stats = stats.should_update();
     let mut rng = rng();
 
     for packet_data in packets.iter_mut() {
+        // Check if this packet's direction should be affected
+        let matches_direction = (packet_data.is_outbound && apply_outbound)
+            || (!packet_data.is_outbound && apply_inbound);
+
+        if !matches_direction {
+            // Direction doesn't match - skip this packet
+            continue;
+        }
+
         let should_skip = rng.random::<f64>() >= tamper_probability.value();
 
         if should_skip && !should_update_stats {

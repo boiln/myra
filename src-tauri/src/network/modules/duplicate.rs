@@ -47,6 +47,8 @@ impl PacketModule for DuplicateModule {
             packets,
             options.count,
             options.probability,
+            options.inbound,
+            options.outbound,
             &mut stats.duplicate_stats,
         );
         Ok(())
@@ -68,25 +70,37 @@ pub fn duplicate_packets(
     packets: &mut Vec<PacketData>,
     count: usize,
     probability: Probability,
+    apply_inbound: bool,
+    apply_outbound: bool,
     stats: &mut DuplicateStats,
 ) {
     let mut rng = rand::rng();
-    let mut duplicate_packets = Vec::with_capacity(packets.len() * count);
+    let mut duplicate_packets_vec = Vec::with_capacity(packets.len() * count);
 
     for packet_data in packets.iter() {
+        // Check if this packet's direction should be affected
+        let matches_direction = (packet_data.is_outbound && apply_outbound)
+            || (!packet_data.is_outbound && apply_inbound);
+
+        if !matches_direction {
+            // Direction doesn't match - don't duplicate this packet
+            stats.record(1);
+            continue;
+        }
+
         if rng.random::<f64>() >= probability.value() {
             stats.record(1);
             continue;
         }
 
         for _ in 1..=count {
-            duplicate_packets.push(PacketData::from(packet_data.packet.clone()));
+            duplicate_packets_vec.push(PacketData::from(packet_data.packet.clone()));
         }
 
         stats.record(1 + count);
     }
 
-    packets.extend(duplicate_packets);
+    packets.extend(duplicate_packets_vec);
 }
 
 #[cfg(test)]
@@ -108,7 +122,14 @@ mod tests {
             let mut packets = original_packets.clone();
             let mut stats = DuplicateStats::new(0.05);
 
-            duplicate_packets(&mut packets, 3, Probability::new(1.0).unwrap(), &mut stats);
+            duplicate_packets(
+                &mut packets,
+                3,
+                Probability::new(1.0).unwrap(),
+                true,  // apply_inbound
+                true,  // apply_outbound
+                &mut stats,
+            );
 
             // Ensure three times as many packets
             assert_eq!(packets.len(), original_len * 4);

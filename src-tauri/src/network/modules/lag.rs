@@ -53,6 +53,8 @@ impl PacketModule for LagModule {
             storage,
             Duration::from_millis(options.delay_ms),
             options.probability,
+            options.inbound,
+            options.outbound,
             &mut stats.lag_stats,
         );
         Ok(())
@@ -96,15 +98,27 @@ pub fn lag_packets<'a>(
     storage: &mut VecDeque<PacketData<'a>>,
     lag: Duration,
     probability: Probability,
+    apply_inbound: bool,
+    apply_outbound: bool,
     stats: &mut LagStats,
 ) {
     let mut rng = rng();
     let mut passthrough_packets = Vec::new();
     let prob_value = probability.value();
 
-    // Move packets to the lag buffer based on probability
-    // With default probability of 1.0, ALL packets are lagged
+    // Move packets to the lag buffer based on probability and direction
+    // With default probability of 1.0, ALL matching packets are lagged
     for packet in packets.drain(..) {
+        // Check if this packet's direction should be affected
+        let matches_direction = (packet.is_outbound && apply_outbound)
+            || (!packet.is_outbound && apply_inbound);
+
+        if !matches_direction {
+            // Direction doesn't match - let packet pass through
+            passthrough_packets.push(packet);
+            continue;
+        }
+
         if rng.random::<f64>() >= prob_value {
             passthrough_packets.push(packet);
             continue;
@@ -160,6 +174,8 @@ mod tests {
                 &mut storage,
                 Duration::from_millis(100),
                 Probability::new(1.0).unwrap(),
+                true,  // apply_inbound
+                true,  // apply_outbound
                 &mut stats,
             );
 
@@ -186,6 +202,8 @@ mod tests {
                 &mut storage,
                 Duration::from_millis(1000),
                 Probability::new(1.0).unwrap(),
+                true,  // apply_inbound
+                true,  // apply_outbound
                 &mut stats,
             );
 
@@ -214,6 +232,8 @@ mod tests {
                 &mut storage,
                 Duration::from_millis(1000),
                 Probability::new(1.0).unwrap(),
+                true,  // apply_inbound
+                true,  // apply_outbound
                 &mut stats,
             );
 
