@@ -19,21 +19,27 @@ interface QuickPreset {
 
 const QUICK_PRESETS: QuickPreset[] = [
     {
-        name: "Network Throttle",
-        description: "300ms inbound throttle with freeze mode",
+        name: "Minecraft PvP",
+        description: "4 Block reach",
         settings: {
-            throttle: {
+            lag: {
                 enabled: true,
                 inbound: true,
-                outbound: false,
+                outbound: true,
+                probability: 1,
+                delay_ms: 150,
+                duration_ms: 0,
+            },
+            duplicate: {
+                enabled: true,
+                inbound: true,
+                outbound: true,
                 probability: 1,
                 duration_ms: 0,
-                throttle_ms: 300,
-                drop: false,
-                freeze_mode: true,
+                count: 4,
             },
         },
-        filter: "inbound",
+        filter: "outbound",
     },
 ];
 
@@ -56,7 +62,7 @@ export function QuickPresets() {
                             inbound: true,
                             outbound: true,
                             probability: 1,
-                            lag_ms: 1000,
+                            delay_ms: 1000,
                             duration_ms: 0,
                         };
                         break;

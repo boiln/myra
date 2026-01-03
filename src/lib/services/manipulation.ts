@@ -87,7 +87,7 @@ export const ManipulationService = {
         const modules = [];
 
         // Lag module - always include
-        const lag = settings.lag || { enabled: false, inbound: true, outbound: true, probability: 1, lag_ms: 1000, duration_ms: 0 };
+        const lag = settings.lag || { enabled: false, inbound: true, outbound: true, probability: 1, delay_ms: 1000, duration_ms: 0 };
         modules.push({
             name: "lag",
             display_name: "Lag",
@@ -97,7 +97,7 @@ export const ManipulationService = {
                 outbound: lag.outbound ?? true,
                 chance: lag.probability * 100,
                 enabled: lag.enabled ?? false,
-                duration_ms: lag.lag_ms,  // Use lag_ms as the time value sent to backend
+                duration_ms: lag.delay_ms,  // Use lag_ms as the time value sent to backend
             },
             params: null,
         });

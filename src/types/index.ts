@@ -65,7 +65,7 @@ export interface PacketManipulationSettings {
     bandwidth?: BandwidthOptions;
     burst?: BurstOptions;
     burst_release_delay_us?: number;
-    lag_bypass?: boolean;  // MGO2 bypass - swap IPs on send failure
+    lag_bypass?: boolean;  // swap IPs on send failure
 }
 
 export interface DropOptions {
@@ -81,7 +81,7 @@ export interface LagOptions {
     inbound?: boolean;
     outbound?: boolean;
     probability: number;
-    lag_ms: number;      // The actual lag time in ms
+    delay_ms: number;      // The actual lag time in ms
     duration_ms: number;   // Effect duration (0 = infinite)
 }
 
