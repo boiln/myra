@@ -87,7 +87,6 @@ const buildSettings = (modules: ModuleInfo[]) => {
                     probability: module.config.chance / 100,
                     duration_ms: module.config.duration_ms,
                     max_delay: module.config.throttle_ms || 100,
-                    reverse: module.config.reverse ?? false,
                 };
                 break;
 
