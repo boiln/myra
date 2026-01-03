@@ -4,7 +4,7 @@ use crate::network::modules::stats::burst_stats::BurstStats;
 use crate::network::modules::traits::{ModuleContext, PacketModule};
 use crate::network::types::probability::Probability;
 use crate::settings::burst::BurstOptions;
-use log::{debug, info};
+use log::debug;
 use rand::{rng, Rng};
 use std::collections::VecDeque;
 use std::time::{Duration, Instant};
@@ -12,8 +12,8 @@ use std::time::{Duration, Instant};
 /// Unit struct for the Burst packet module.
 ///
 /// This module implements a "lag switch" by buffering packets for a
-/// specified duration and then releasing them, creating a teleport/burst
-/// effect in games. Supports variable replay speeds and reverse playback.
+/// specified duration and then releasing them all at once, creating
+/// a teleport/burst effect in games.
 #[derive(Debug, Default)]
 pub struct BurstModule;
 
@@ -24,10 +24,8 @@ pub struct BurstState {
     pub buffer: VecDeque<(PacketData<'static>, Instant)>,
     /// When the current burst cycle started
     pub cycle_start: Option<Instant>,
-    /// Accumulated time between packets for replay pacing
-    pub replay_queue: VecDeque<(PacketData<'static>, Duration)>,
-    /// When we last released a packet during replay
-    pub last_release: Option<Instant>,
+    /// When the last keepalive packet was sent
+    pub last_keepalive: Option<Instant>,
 }
 
 impl Default for BurstState {
@@ -35,8 +33,7 @@ impl Default for BurstState {
         Self {
             buffer: VecDeque::new(),
             cycle_start: None,
-            replay_queue: VecDeque::new(),
-            last_release: None,
+            last_keepalive: None,
         }
     }
 }
@@ -70,19 +67,15 @@ impl PacketModule for BurstModule {
         // across processing calls. The packets are owned by the storage until released.
         let buffer: &mut VecDeque<(PacketData<'a>, Instant)> =
             unsafe { std::mem::transmute(&mut state.buffer) };
-        let replay_queue: &mut VecDeque<(PacketData<'a>, Duration)> =
-            unsafe { std::mem::transmute(&mut state.replay_queue) };
 
         burst_packets(
             packets,
             buffer,
-            replay_queue,
             &mut state.cycle_start,
-            &mut state.last_release,
+            &mut state.last_keepalive,
             Duration::from_millis(options.buffer_ms),
+            Duration::from_millis(options.keepalive_ms),
             options.probability,
-            options.replay_speed,
-            options.reverse_replay,
             options.inbound,
             options.outbound,
             &mut stats.burst_stats,
@@ -91,43 +84,37 @@ impl PacketModule for BurstModule {
     }
 }
 
-/// Implements packet bursting with variable replay speed and reverse mode.
+/// Implements packet bursting by buffering packets then releasing all at once.
 ///
 /// # How it works
 ///
 /// **Timed mode (buffer_ms > 0):**
-/// 1. Buffer packets for the specified duration, recording inter-packet timing
-/// 2. When timer expires, prepare replay queue
-/// 3. Release packets according to replay_speed
+/// 1. Buffer packets for the specified duration
+/// 2. Release ALL packets at once when timer expires
+/// 3. Start new cycle
 ///
 /// **Manual mode (buffer_ms = 0):**
 /// 1. Buffer all packets indefinitely
 /// 2. Release happens when module is disabled (call flush_buffer)
 ///
-/// **Replay Speed:**
-/// - 1.0 = real-time (packets released at original timing)
-/// - 2.0 = 2x speed (half the delay between packets)
-/// - 0.5 = half speed (double the delay)
-/// - 0.0 = instant (all at once)
-///
-/// **Reverse Replay:**
-/// - If enabled, packets are released in LIFO order (last captured = first released)
-/// - Creates a "rewind" effect
+/// **Keepalive (keepalive_ms > 0):**
+/// Lets one packet through every keepalive_ms to prevent disconnection
 ///
 /// **Direction filtering:**
 /// - `apply_inbound`: Buffer inbound (download) packets
 /// - `apply_outbound`: Buffer outbound (upload) packets
-#[allow(clippy::too_many_arguments)]
+/// - Packets not matching direction settings pass through unmodified
+///
+/// This creates the "teleport" effect - your actions are recorded locally,
+/// then all sent at once when the buffer releases.
 pub fn burst_packets<'a>(
     packets: &mut Vec<PacketData<'a>>,
     buffer: &mut VecDeque<(PacketData<'a>, Instant)>,
-    replay_queue: &mut VecDeque<(PacketData<'a>, Duration)>,
     cycle_start: &mut Option<Instant>,
-    last_release: &mut Option<Instant>,
+    last_keepalive: &mut Option<Instant>,
     buffer_duration: Duration,
+    keepalive_duration: Duration,
     probability: Probability,
-    replay_speed: f64,
-    reverse_replay: bool,
     apply_inbound: bool,
     apply_outbound: bool,
     stats: &mut BurstStats,
@@ -135,15 +122,31 @@ pub fn burst_packets<'a>(
     let now = Instant::now();
     let mut rng = rng();
 
-    // First: Process any ongoing replay
-    if !replay_queue.is_empty() {
-        release_from_replay_queue(packets, replay_queue, last_release, replay_speed, stats);
-    }
-
-    // Initialize cycle if not started and not replaying
-    if cycle_start.is_none() && replay_queue.is_empty() {
+    // Initialize cycle if not started
+    if cycle_start.is_none() {
         *cycle_start = Some(now);
     }
+
+    // Check if we need to send a keepalive (let one packet through)
+    let send_keepalive = keepalive_duration.as_millis() > 0 && match last_keepalive {
+        None => {
+            *last_keepalive = Some(now);
+            false
+        }
+        Some(last) if now.duration_since(*last) >= keepalive_duration => {
+            *last_keepalive = Some(now);
+            true
+        }
+        Some(_) => false,
+    };
+
+    // If keepalive is due, find a packet that matches direction and preserve it
+    let keepalive_packet = match send_keepalive && !packets.is_empty() {
+        false => None,
+        true => packets.iter().position(|p| {
+            (p.is_outbound && apply_outbound) || (!p.is_outbound && apply_inbound)
+        }).map(|idx| packets.remove(idx)),
+    };
 
     // Buffer packets based on probability AND direction
     let mut i = 0;
@@ -156,11 +159,13 @@ pub fn burst_packets<'a>(
             (!packet.is_outbound && apply_inbound);
         
         if !should_buffer_direction {
+            // Direction doesn't match - let packet through
             i += 1;
             continue;
         }
         
         if rng.random::<f64>() >= probability.value() {
+            // Probability says don't buffer
             i += 1;
             continue;
         }
@@ -171,134 +176,50 @@ pub fn burst_packets<'a>(
         stats.record_buffer(1);
     }
 
-    // Check if it's time to release (only in timed mode)
-    // buffer_duration of 0 means "manual mode" - hold until toggled off
-    if buffer_duration.as_millis() > 0 && replay_queue.is_empty() {
-        let Some(cycle_started) = *cycle_start else {
-            return;
-        };
-        
-        let elapsed = now.duration_since(cycle_started);
-        if elapsed < buffer_duration || buffer.is_empty() {
-            stats.set_buffered_count(buffer.len());
-            return;
-        }
-
-        // Time to start replay - prepare the queue
-        info!(
-            "BURST: Starting replay of {} packets (speed={}, reverse={})",
-            buffer.len(),
-            replay_speed,
-            reverse_replay
-        );
-        
-        prepare_replay_queue(buffer, replay_queue, reverse_replay);
-        *cycle_start = None;
-        *last_release = Some(now);
-        
-        // Release first batch immediately
-        release_from_replay_queue(packets, replay_queue, last_release, replay_speed, stats);
+    // Restore keepalive packet at the front to be sent
+    if let Some(first_packet) = keepalive_packet {
+        packets.insert(0, first_packet);
     }
 
-    stats.set_buffered_count(buffer.len() + replay_queue.len());
+    // THEN: Check if it's time to release (only in timed mode)
+    // buffer_duration of 0 means "manual mode" - hold until toggled off
+    if buffer_duration.as_millis() > 0 {
+        let cycle_started = cycle_start.unwrap();
+        let elapsed = now.duration_since(cycle_started);
+
+        if elapsed >= buffer_duration && !buffer.is_empty() {
+            let released_count = buffer.len();
+            
+            debug!(
+                "BURST: Releasing {} packets after {}ms buffer",
+                released_count,
+                elapsed.as_millis()
+            );
+            
+            while let Some((packet, _)) = buffer.pop_front() {
+                packets.push(packet);
+            }
+
+            stats.record_release(released_count);
+            *cycle_start = Some(now);
+        }
+    }
+
+    stats.set_buffered_count(buffer.len());
 }
 
-/// Converts buffer to replay queue with inter-packet timing
-fn prepare_replay_queue<'a>(
+/// Flushes all buffered packets - called when module is disabled
+/// Returns the packets to be sent with pacing
+pub fn flush_buffer<'a>(
+    packets: &mut Vec<PacketData<'a>>,
     buffer: &mut VecDeque<(PacketData<'a>, Instant)>,
-    replay_queue: &mut VecDeque<(PacketData<'a>, Duration)>,
-    reverse: bool,
+    cycle_start: &mut Option<Instant>,
 ) {
     if buffer.is_empty() {
         return;
     }
 
-    // Calculate delays between consecutive packets
-    let mut packets_with_delays: Vec<(PacketData<'a>, Duration)> = Vec::with_capacity(buffer.len());
-    let mut prev_time: Option<Instant> = None;
-
-    for (packet, capture_time) in buffer.drain(..) {
-        let delay = match prev_time {
-            Some(pt) => capture_time.saturating_duration_since(pt),
-            None => Duration::ZERO,
-        };
-        prev_time = Some(capture_time);
-        packets_with_delays.push((packet, delay));
-    }
-
-    // Reverse if requested
-    if reverse {
-        packets_with_delays.reverse();
-    }
-
-    replay_queue.extend(packets_with_delays);
-}
-
-/// Releases packets from replay queue according to timing and speed
-fn release_from_replay_queue<'a>(
-    packets: &mut Vec<PacketData<'a>>,
-    replay_queue: &mut VecDeque<(PacketData<'a>, Duration)>,
-    last_release: &mut Option<Instant>,
-    replay_speed: f64,
-    stats: &mut BurstStats,
-) {
-    let now = Instant::now();
-    
-    // Instant release mode
-    if replay_speed <= 0.0 {
-        let count = replay_queue.len();
-        while let Some((packet, _)) = replay_queue.pop_front() {
-            packets.push(packet);
-        }
-        stats.record_release(count);
-        *last_release = Some(now);
-        return;
-    }
-
-    // Paced release based on original timing
-    loop {
-        let Some((_, delay)) = replay_queue.front() else {
-            break;
-        };
-
-        // Calculate scaled delay
-        let scaled_delay = Duration::from_secs_f64(delay.as_secs_f64() / replay_speed);
-        
-        // Check if enough time has passed
-        let time_since_last = match last_release {
-            Some(lr) => now.saturating_duration_since(*lr),
-            None => Duration::MAX, // First packet releases immediately
-        };
-
-        if time_since_last < scaled_delay {
-            break;
-        }
-
-        // Release this packet
-        let Some((packet, _)) = replay_queue.pop_front() else {
-            break;
-        };
-        
-        packets.push(packet);
-        stats.record_release(1);
-        *last_release = Some(now);
-    }
-}
-
-/// Flushes all buffered packets - called when module is disabled
-pub fn flush_buffer<'a>(
-    packets: &mut Vec<PacketData<'a>>,
-    buffer: &mut VecDeque<(PacketData<'a>, Instant)>,
-    replay_queue: &mut VecDeque<(PacketData<'a>, Duration)>,
-    cycle_start: &mut Option<Instant>,
-) {
-    // Flush main buffer
     while let Some((packet, _)) = buffer.pop_front() {
-        packets.push(packet);
-    }
-    
-    // Flush replay queue
-    while let Some((packet, _)) = replay_queue.pop_front() {
         packets.push(packet);
     }
 
@@ -314,31 +235,31 @@ mod tests {
     #[test]
     fn test_packet_buffering() {
         unsafe {
+            // Create outbound packets for testing
             let mut packets = vec![
                 PacketData::new(WinDivertPacket::<NetworkLayer>::new(vec![1, 2, 3]), true),
                 PacketData::new(WinDivertPacket::<NetworkLayer>::new(vec![4, 5, 6]), true),
             ];
             let mut buffer = VecDeque::new();
-            let mut replay_queue = VecDeque::new();
             let mut cycle_start = None;
-            let mut last_release = None;
+            let mut last_keepalive = None;
             let mut stats = BurstStats::new(0.05);
 
+            // Buffer with 100% probability, both directions
             burst_packets(
                 &mut packets,
                 &mut buffer,
-                &mut replay_queue,
                 &mut cycle_start,
-                &mut last_release,
+                &mut last_keepalive,
                 Duration::from_millis(1000),
+                Duration::from_millis(0), // No keepalive
                 Probability::new(1.0).unwrap(),
-                1.0,   // replay_speed
-                false, // reverse_replay
                 true,  // apply_inbound
                 true,  // apply_outbound
                 &mut stats,
             );
 
+            // All packets should be buffered
             assert_eq!(packets.len(), 0);
             assert_eq!(buffer.len(), 2);
         }

@@ -62,6 +62,11 @@ pub struct Settings {
     #[serde(serialize_with = "serialize_option")]
     pub burst: Option<BurstOptions>,
 
+    /// Burst release delay in microseconds - stored separately so it persists
+    /// even when burst is disabled
+    #[serde(default = "default_burst_release_delay")]
+    pub burst_release_delay_us: u64,
+
     /// Enable MGO2/lag bypass mode - when send fails, swap IPs and retry
     /// This technique can bypass certain game anti-lag detection
     #[serde(default)]
@@ -71,6 +76,10 @@ pub struct Settings {
     /// Works at OS socket layer for true rate limiting
     #[serde(default, serialize_with = "serialize_option")]
     pub tc_bandwidth: Option<TcBandwidthOptions>,
+}
+
+fn default_burst_release_delay() -> u64 {
+    500
 }
 
 /// Type alias for backward compatibility.

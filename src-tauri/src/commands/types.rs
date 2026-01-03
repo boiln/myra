@@ -52,12 +52,12 @@ pub struct ModuleConfig {
     /// Optional buffer time in milliseconds (for burst)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub buffer_ms: Option<u64>,
-    /// Replay speed multiplier (for burst) - 1.0 = realtime, 2.0 = 2x speed, 0 = instant
+    /// Optional keepalive interval in milliseconds (for burst)
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub replay_speed: Option<f64>,
-    /// If true, release packets in reverse order (for burst)
+    pub keepalive_ms: Option<u64>,
+    /// Optional release delay in microseconds (for burst replay speed)
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub reverse_replay: Option<bool>,
+    pub release_delay_us: Option<u64>,
     /// Optional drop flag (for throttle - drop buffered packets instead of releasing)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub drop: Option<bool>,

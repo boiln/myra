@@ -6,11 +6,7 @@ fn default_true() -> bool {
     true
 }
 
-fn default_replay_speed() -> f64 {
-    1.0
-}
-
-#[derive(Parser, Debug, Serialize, Deserialize, Clone)]
+#[derive(Parser, Debug, Serialize, Deserialize, Default, Clone)]
 pub struct BurstOptions {
     /// Whether this module is enabled
     #[arg(skip)]
@@ -43,33 +39,20 @@ pub struct BurstOptions {
     #[serde(default)]
     pub duration_ms: u64,
 
-    /// Replay speed multiplier when releasing packets:
-    /// - 1.0 = real-time (packets released at same rate they were captured)
-    /// - 2.0 = 2x speed (faster replay, shorter teleport)
-    /// - 0.5 = half speed (slower replay, longer rubber-band)
-    /// - 0.0 = instant release (all packets at once)
-    #[arg(long = "burst-replay-speed", id = "burst-replay-speed", default_value_t = 1.0)]
-    #[serde(default = "default_replay_speed")]
-    pub replay_speed: f64,
-
-    /// If true, release packets in reverse order (LIFO instead of FIFO)
-    /// Creates a "rewind" effect where recent actions play out first
-    #[arg(long = "burst-reverse", id = "burst-reverse", default_value_t = false)]
+    /// Keepalive interval in milliseconds - lets one packet through periodically
+    /// to prevent disconnection. 0 = disabled (buffer everything)
+    #[arg(long = "burst-keepalive-ms", id = "burst-keepalive-ms", default_value_t = 0)]
     #[serde(default)]
-    pub reverse_replay: bool,
+    pub keepalive_ms: u64,
+
+    /// Delay between packets when releasing in microseconds.
+    /// Controls replay speed - higher = slower/longer replay.
+    /// Default 500us (0.5ms). Set to 0 for instant release.
+    #[arg(long = "burst-release-delay-us", id = "burst-release-delay-us", default_value_t = 500)]
+    #[serde(default = "default_release_delay")]
+    pub release_delay_us: u64,
 }
 
-impl Default for BurstOptions {
-    fn default() -> Self {
-        Self {
-            enabled: false,
-            inbound: true,
-            outbound: true,
-            buffer_ms: 0,
-            probability: Probability::default(),
-            duration_ms: 0,
-            replay_speed: 1.0,
-            reverse_replay: false,
-        }
-    }
+fn default_release_delay() -> u64 {
+    500
 }

@@ -181,6 +181,8 @@ pub fn start_packet_processing(
         // Apply packet manipulations according to current settings
         match settings.lock() {
             Ok(settings) => {
+                // Always update burst release delay from settings (persists even when burst disabled)
+                state.burst_release_delay_us = settings.burst_release_delay_us;
                 enable_bypass = settings.lag_bypass;
                 
                 if let Err(e) = process_packets(&settings, &mut packets, &mut state, &statistics) {
@@ -196,12 +198,24 @@ pub fn start_packet_processing(
         }
 
         // Send the processed packets
+        // If we have many packets (likely a burst flush), add pacing between sends
+        let pacing_needed = packets.len() > 20;
+        let release_delay = state.burst_release_delay_us;
+        if pacing_needed {
+            info!("BURST REPLAY: Sending {} packets with {}us delay each", packets.len(), release_delay);
+        }
         for mut packet_data in packets {
             if let Err(e) = send_with_bypass(&mut wd, &mut packet_data, enable_bypass) {
                 error!("Failed to send packet: {}", e);
                 continue;
             }
+
             sent_packet_count += 1;
+            
+            // Add configurable delay between packets during burst flush for proper replay
+            if pacing_needed && release_delay > 0 {
+                std::thread::sleep(Duration::from_micros(release_delay));
+            }
         }
 
         // Periodically log statistics
@@ -388,9 +402,7 @@ pub fn process_packets<'a>(
         // Burst was just disabled - flush all buffered packets
         let buffer: &mut std::collections::VecDeque<(PacketData<'a>, Instant)> =
             unsafe { std::mem::transmute(&mut state.burst.buffer) };
-        let replay_queue: &mut std::collections::VecDeque<(PacketData<'a>, std::time::Duration)> =
-            unsafe { std::mem::transmute(&mut state.burst.replay_queue) };
-        flush_buffer(packets, buffer, replay_queue, &mut state.burst.cycle_start);
+        flush_buffer(packets, buffer, &mut state.burst.cycle_start);
     }
     state.burst_was_enabled = burst_enabled;
 

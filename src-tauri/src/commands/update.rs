@@ -80,6 +80,8 @@ fn build_settings_from_modules(modules: Vec<ModuleInfo>) -> Result<Settings, Str
                 settings.reorder = Some(build_reorder_options(module)?);
             }
             "burst" => {
+                // Always capture release_delay_us at top level so it persists when burst is disabled
+                settings.burst_release_delay_us = module.config.release_delay_us.unwrap_or(500);
                 // Capture lag_bypass setting if present
                 if let Some(lag_bypass) = module.config.lag_bypass {
                     settings.lag_bypass = lag_bypass;
@@ -219,7 +221,7 @@ fn build_burst_options(module: &ModuleInfo) -> Result<BurstOptions, String> {
         probability,
         buffer_ms: module.config.buffer_ms.unwrap_or(0),
         duration_ms: module.config.duration_ms.unwrap_or(0),
-        replay_speed: module.config.replay_speed.unwrap_or(1.0),
-        reverse_replay: module.config.reverse_replay.unwrap_or(false),
+        keepalive_ms: module.config.keepalive_ms.unwrap_or(0),
+        release_delay_us: module.config.release_delay_us.unwrap_or(500),
     })
 }
