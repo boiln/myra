@@ -252,7 +252,19 @@ export const ManipulationService = {
         filterTarget?: FilterTarget,
         hotkeys?: { action: string; shortcut: string | null; enabled: boolean }[]
     ): Promise<void> {
-        return invoke("save_config", { name, filterTarget, hotkeys });
+        // Convert camelCase to snake_case for Rust
+        const rustFilterTarget = filterTarget ? {
+            mode: filterTarget.mode,
+            process_id: filterTarget.processId,
+            process_name: filterTarget.processName,
+            device_ip: filterTarget.deviceIp,
+            device_name: filterTarget.deviceName,
+            custom_filter: filterTarget.customFilter,
+            include_inbound: filterTarget.includeInbound ?? true,
+            include_outbound: filterTarget.includeOutbound ?? true,
+        } : undefined;
+        
+        return invoke("save_config", { name, filterTarget: rustFilterTarget, hotkeys });
     },
 
     async loadConfig(name: string): Promise<LoadConfigResponse> {

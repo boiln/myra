@@ -75,6 +75,8 @@ export const createPresetSlice: StateCreator<
                         deviceIp: response.filter_target.device_ip,
                         deviceName: response.filter_target.device_name,
                         customFilter: response.filter_target.custom_filter,
+                        includeInbound: response.filter_target.include_inbound ?? true,
+                        includeOutbound: response.filter_target.include_outbound ?? true,
                     },
                 });
             }

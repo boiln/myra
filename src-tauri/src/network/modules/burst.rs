@@ -78,6 +78,7 @@ impl PacketModule for BurstModule {
             options.probability,
             options.inbound,
             options.outbound,
+            options.reverse,
             &mut stats.burst_stats,
         );
         Ok(())
@@ -117,6 +118,7 @@ pub fn burst_packets<'a>(
     probability: Probability,
     apply_inbound: bool,
     apply_outbound: bool,
+    reverse: bool,
     stats: &mut BurstStats,
 ) {
     let now = Instant::now();
@@ -191,14 +193,22 @@ pub fn burst_packets<'a>(
             let released_count = buffer.len();
             
             debug!(
-                "BURST: Releasing {} packets after {}ms buffer",
+                "BURST: Releasing {} packets after {}ms buffer (reverse={})",
                 released_count,
-                elapsed.as_millis()
+                elapsed.as_millis(),
+                reverse
             );
             
-            while let Some((packet, _)) = buffer.pop_front() {
-                packets.push(packet);
+            // Collect packets to release
+            let mut released_packets: Vec<_> = buffer.drain(..).map(|(p, _)| p).collect();
+            
+            // In reverse mode, reverse the order of released packets
+            if reverse {
+                released_packets.reverse();
+                debug!("BURST: Reversed {} packets for rewind effect", released_packets.len());
             }
+            
+            packets.extend(released_packets);
 
             stats.record_release(released_count);
             *cycle_start = Some(now);

@@ -76,6 +76,9 @@ pub struct ModuleConfig {
     /// Use WFP (WinDivert) token bucket algorithm for precise rate limiting (for bandwidth)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub use_wfp: Option<bool>,
+    /// Reverse mode - release packets in reverse order (for reorder/burst)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reverse: Option<bool>,
 }
 
 /// Additional parameters for a network condition simulation module.

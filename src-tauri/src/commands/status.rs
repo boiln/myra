@@ -151,6 +151,7 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
             freeze_mode: None,
             passthrough_threshold: None,
             use_wfp: None,
+            reverse: None,
         },
         params: Some(ModuleParams {
             lag_time: Some(lag.lag_ms),
@@ -181,6 +182,7 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
             freeze_mode: None,
             passthrough_threshold: None,
             use_wfp: None,
+            reverse: None,
         },
         params: None,
     });
@@ -209,6 +211,7 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
             freeze_mode: Some(throttle.freeze_mode),
             passthrough_threshold: None,
             use_wfp: None,
+            reverse: None,
         },
         params: None,
     });
@@ -237,6 +240,7 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
             freeze_mode: None,
             passthrough_threshold: None,
             use_wfp: None,
+            reverse: None,
         },
         params: None,
     });
@@ -269,6 +273,7 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
             freeze_mode: None,
             passthrough_threshold: Some(bandwidth.passthrough_threshold),
             use_wfp: Some(bandwidth.use_wfp),
+            reverse: None,
         },
         params: None,
     });
@@ -297,6 +302,7 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
             freeze_mode: None,
             passthrough_threshold: None,
             use_wfp: None,
+            reverse: None,
         },
         params: None,
     });
@@ -325,6 +331,7 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
             freeze_mode: None,
             passthrough_threshold: None,
             use_wfp: None,
+            reverse: Some(reorder.reverse),
         },
         params: None,
     });
@@ -353,6 +360,7 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
             freeze_mode: None,
             passthrough_threshold: None,
             use_wfp: None,
+            reverse: Some(burst.reverse),
         },
         params: None,
     });

@@ -43,6 +43,11 @@ pub struct ReorderOptions {
     )]
     #[serde(default)]
     pub duration_ms: u64,
+
+    /// Reverse mode - release packets in reverse order (guaranteed out-of-order)
+    #[arg(long = "reorder-reverse", id = "reorder-reverse", default_value_t = false)]
+    #[serde(default)]
+    pub reverse: bool,
 }
 
 impl Default for ReorderOptions {
@@ -54,6 +59,7 @@ impl Default for ReorderOptions {
             probability: Probability::default(),
             max_delay: 100,
             duration_ms: 0,
+            reverse: false,
         }
     }
 }

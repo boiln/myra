@@ -33,6 +33,16 @@ pub struct FilterTarget {
     pub device_name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub custom_filter: Option<String>,
+    /// Include inbound traffic (default: true)
+    #[serde(default = "default_true")]
+    pub include_inbound: bool,
+    /// Include outbound traffic (default: true)
+    #[serde(default = "default_true")]
+    pub include_outbound: bool,
+}
+
+fn default_true() -> bool {
+    true
 }
 
 /// Hotkey binding configuration

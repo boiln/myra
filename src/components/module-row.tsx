@@ -2,6 +2,7 @@ import React, { ChangeEvent } from "react";
 import { ModuleInfo } from "@/types";
 import { MyraCheckbox } from "@/components/ui/myra-checkbox";
 import { Input } from "@/components/ui/input";
+import { InfinityInput } from "@/components/ui/infinity-input";
 import { Label } from "@/components/ui/label";
 import { HotkeyBadge } from "@/components/hotkey-badge";
 
@@ -223,23 +224,33 @@ export function ModuleRow({
                     </>
                 )}
                 {module.name === "reorder" && (
-                    <div className="flex items-center gap-1">
-                        <Label
-                            htmlFor={`${module.name}-max-delay`}
-                            className="whitespace-nowrap text-xs text-foreground/70"
-                        >
-                            Max(ms):
-                        </Label>
-                        <Input
-                            id={`${module.name}-max-delay`}
-                            value={getDisplayValue("throttle_ms")}
-                            onChange={(e) => handleInputChange(e, "throttle_ms", 1, 60000, true)}
-                            className="h-6 w-[50px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
+                    <>
+                        <div className="flex items-center gap-1">
+                            <Label
+                                htmlFor={`${module.name}-max-delay`}
+                                className="whitespace-nowrap text-xs text-foreground/70"
+                            >
+                                Max(ms):
+                            </Label>
+                            <Input
+                                id={`${module.name}-max-delay`}
+                                value={getDisplayValue("throttle_ms")}
+                                onChange={(e) => handleInputChange(e, "throttle_ms", 1, 60000, true)}
+                                className="h-6 w-[50px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
+                                disabled={!module.enabled}
+                                type="text"
+                                inputMode="numeric"
+                            />
+                        </div>
+                        <MyraCheckbox
+                            id={`${module.name}-reverse`}
+                            checked={module.config.reverse ?? false}
+                            onCheckedChange={() => onBooleanSettingChange?.(module, "reverse", !module.config.reverse)}
                             disabled={!module.enabled}
-                            type="text"
-                            inputMode="numeric"
+                            label="Reverse"
+                            labelClassName={`text-xs text-foreground ${!module.enabled ? "opacity-50" : ""}`}
                         />
-                    </div>
+                    </>
                 )}
                 {module.name === "burst" && (
                     <>
@@ -250,31 +261,14 @@ export function ModuleRow({
                             >
                                 Buffer(ms):
                             </Label>
-                            <Input
+                            <InfinityInput
                                 id={`${module.name}-buffer`}
                                 value={getDisplayValue("buffer_ms")}
                                 onChange={(e) => handleInputChange(e, "buffer_ms", 0, 10000, true)}
-                                className="h-6 w-[45px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
+                                className="w-[45px]"
                                 disabled={!module.enabled}
-                                type="text"
-                                inputMode="numeric"
-                            />
-                        </div>
-                        <div className="flex items-center gap-1">
-                            <Label
-                                htmlFor={`${module.name}-keepalive`}
-                                className="whitespace-nowrap text-xs text-foreground/70"
-                            >
-                                Keepalive(ms):
-                            </Label>
-                            <Input
-                                id={`${module.name}-keepalive`}
-                                value={getDisplayValue("keepalive_ms")}
-                                onChange={(e) => handleInputChange(e, "keepalive_ms", 0, 5000, true)}
-                                className="h-6 w-[45px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
-                                disabled={!module.enabled}
-                                type="text"
-                                inputMode="numeric"
+                                infinityLabel="∞"
+                                editPlaceholder="ms"
                             />
                         </div>
                         <div className="flex items-center gap-1">
@@ -294,6 +288,14 @@ export function ModuleRow({
                                 inputMode="numeric"
                             />
                         </div>
+                        <MyraCheckbox
+                            id={`${module.name}-reverse`}
+                            checked={module.config.reverse ?? false}
+                            onCheckedChange={() => onBooleanSettingChange?.(module, "reverse", !module.config.reverse)}
+                            disabled={!module.enabled}
+                            label="Reverse"
+                            labelClassName={`text-xs text-foreground ${!module.enabled ? "opacity-50" : ""}`}
+                        />
                     </>
                 )}
             </div>
@@ -349,14 +351,14 @@ export function ModuleRow({
                     >
                         Dur(ms):
                     </Label>
-                    <Input
+                    <InfinityInput
                         id={`${module.name}-duration`}
                         value={getDisplayValue("duration_ms")}
                         onChange={(e) => handleInputChange(e, "duration_ms", 0, 999999)}
-                        className="h-6 w-[45px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
+                        className="w-[45px]"
                         disabled={!module.enabled}
-                        type="text"
-                        inputMode="decimal"
+                        infinityLabel="∞"
+                        editPlaceholder="ms"
                     />
                 </div>
             )}

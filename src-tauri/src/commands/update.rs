@@ -207,6 +207,7 @@ fn build_reorder_options(module: &ModuleInfo) -> Result<ReorderOptions, String> 
         probability,
         max_delay: module.config.throttle_ms.unwrap_or(100),
         duration_ms: module.config.duration_ms.unwrap_or(0),
+        reverse: module.config.reverse.unwrap_or(false),
     })
 }
 
@@ -223,5 +224,6 @@ fn build_burst_options(module: &ModuleInfo) -> Result<BurstOptions, String> {
         duration_ms: module.config.duration_ms.unwrap_or(0),
         keepalive_ms: module.config.keepalive_ms.unwrap_or(0),
         release_delay_us: module.config.release_delay_us.unwrap_or(500),
+        reverse: module.config.reverse.unwrap_or(false),
     })
 }

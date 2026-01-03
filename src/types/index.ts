@@ -21,6 +21,7 @@ export interface ModuleConfig {
     freeze_mode?: boolean;
     use_wfp?: boolean;
     passthrough_threshold?: number;
+    reverse?: boolean;
 }
 
 export interface ModuleInfo {
@@ -103,6 +104,7 @@ export interface ReorderOptions {
     probability: number;
     duration_ms: number;
     max_delay?: number;
+    reverse?: boolean;
 }
 
 export interface TamperOptions {
@@ -144,6 +146,7 @@ export interface BurstOptions {
     duration_ms: number;
     keepalive_ms: number;
     release_delay_us: number;
+    reverse?: boolean;
 }
 
 export interface ProcessingStatus {
@@ -161,6 +164,8 @@ export interface FilterTarget {
     deviceIp?: string;
     deviceName?: string;
     customFilter?: string;
+    includeInbound?: boolean;
+    includeOutbound?: boolean;
 }
 
 export interface ProcessInfo {
@@ -181,6 +186,8 @@ export interface LoadConfigResponse {
         device_ip?: string;
         device_name?: string;
         custom_filter?: string;
+        include_inbound?: boolean;
+        include_outbound?: boolean;
     };
     hotkeys?: {
         action: string;

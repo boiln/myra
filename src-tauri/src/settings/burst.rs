@@ -51,6 +51,12 @@ pub struct BurstOptions {
     #[arg(long = "burst-release-delay-us", id = "burst-release-delay-us", default_value_t = 500)]
     #[serde(default = "default_release_delay")]
     pub release_delay_us: u64,
+
+    /// Reverse mode - release packets in reverse order when buffer releases
+    /// Creates a "rewind" effect where actions appear backwards
+    #[arg(long = "burst-reverse", id = "burst-reverse", default_value_t = false)]
+    #[serde(default)]
+    pub reverse: bool,
 }
 
 fn default_release_delay() -> u64 {
