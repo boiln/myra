@@ -24,7 +24,7 @@ export const createModuleSlice: StateCreator<
             case "lag":
                 newSettings.lag = {
                     probability,
-                    lag_ms: config.duration_ms || 100,  // UI duration_ms is the lag time
+                    delay_ms: config.duration_ms || 100,  // UI duration_ms is the lag time
                     duration_ms: 0,  // Effect duration (0 = infinite)
                 };
                 break;

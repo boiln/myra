@@ -40,7 +40,7 @@ export const createCoreSlice: StateCreator<
                         outbound: settings.lag?.outbound ?? getExistingDirections("lag").outbound,
                         chance: settings.lag ? Math.round(settings.lag.probability * 100) : 100,
                         enabled: settings.lag?.enabled ?? false,
-                        duration_ms: settings.lag?.lag_ms || 1000,
+                        duration_ms: settings.lag?.delay_ms || 1000,
                     },
                 },
                 {

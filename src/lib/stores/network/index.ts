@@ -19,7 +19,7 @@ const buildSettings = (modules: ModuleInfo[]) => {
                     inbound: module.config.inbound,
                     outbound: module.config.outbound,
                     probability: module.config.chance / 100,
-                    lag_ms: module.config.duration_ms,  // UI duration_ms is the lag time
+                    delay_ms: module.config.duration_ms,  // UI duration_ms is the lag time
                     duration_ms: 0,  // Effect duration (0 = infinite)
                 };
                 break;
