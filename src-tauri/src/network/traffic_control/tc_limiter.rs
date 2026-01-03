@@ -292,8 +292,8 @@ impl TrafficControlLimiter {
             
             if result != 0 {
                 warn!("TC: Failed to add filter (error: {}), continuing without filter", result);
-                // Don't fail completely - some systems may not need explicit filter
-            } else {
+            }
+            if result == 0 {
                 info!("TC: Added filter successfully");
             }
             

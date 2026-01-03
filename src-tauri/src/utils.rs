@@ -15,10 +15,9 @@ use log::info;
 /// * `sent` - Number of packets sent
 pub fn log_statistics(received: usize, sent: usize) {
     let dropped = received.saturating_sub(sent);
-    let dropped_percentage = if received == 0 {
-        0.0
-    } else {
-        (dropped as f64 / received as f64) * 100.0
+    let dropped_percentage = match received {
+        0 => 0.0,
+        _ => (dropped as f64 / received as f64) * 100.0,
     };
 
     info!(

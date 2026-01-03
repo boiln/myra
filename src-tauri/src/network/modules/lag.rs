@@ -11,7 +11,7 @@ use std::time::Duration;
 /// Unit struct for the Lag packet module.
 ///
 /// This module simulates network latency by holding packets for a
-/// specified duration before releasing them, like Clumsy's "Lag" module.
+/// specified duration before releasing them.
 /// With default probability of 100%, all traffic is lagged by the configured time.
 #[derive(Debug, Default)]
 pub struct LagModule;
@@ -61,8 +61,8 @@ impl PacketModule for LagModule {
 
 /// Simulates network lag by holding packets for a specified duration.
 ///
-/// This function works like Clumsy's "Lag" module - it holds incoming packets
-/// in a buffer and only releases them after the specified lag time has elapsed.
+/// This function holds incoming packets in a buffer and only releases them
+/// after the specified lag time has elapsed.
 /// With probability set to 1.0 (100%, the default), all traffic is lagged.
 ///
 /// # How it works
@@ -100,36 +100,33 @@ pub fn lag_packets<'a>(
 ) {
     let mut rng = rng();
     let mut passthrough_packets = Vec::new();
+    let prob_value = probability.value();
 
     // Move packets to the lag buffer based on probability
     // With default probability of 1.0, ALL packets are lagged
     for packet in packets.drain(..) {
-        if rng.random::<f64>() < probability.value() {
-            storage.push_back(packet);
-        } else {
-            // Packet passes through without lag
+        if rng.random::<f64>() >= prob_value {
             passthrough_packets.push(packet);
+            continue;
         }
+        storage.push_back(packet);
     }
 
     // Collect packets that have been lagged long enough
     // Check packets from the front (oldest first) and release those that have waited long enough
     while let Some(packet_data) = storage.front() {
-        if packet_data.arrival_time.elapsed() >= lag {
-            // This packet has been lagged long enough, release it
-            if let Some(packet) = storage.pop_front() {
-                passthrough_packets.push(packet);
-            }
-        } else {
+        if packet_data.arrival_time.elapsed() < lag {
             // Since packets are ordered by arrival time, if this one isn't ready,
             // none of the following ones will be either
             break;
         }
+        
+        let Some(packet) = storage.pop_front() else { break };
+        passthrough_packets.push(packet);
     }
 
     // Put all packets (passthrough + released) back into the output
     packets.extend(passthrough_packets);
-
     stats.lagged_package_count(storage.len());
 }
 
@@ -211,7 +208,7 @@ mod tests {
             let mut storage = VecDeque::new();
             let mut stats = LagStats::new();
 
-            // Apply lag with 100% probability - ALL packets should be lagged (like Clumsy's lag)
+            // Apply lag with 100% probability - ALL packets should be lagged
             lag_packets(
                 &mut packets,
                 &mut storage,

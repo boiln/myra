@@ -30,14 +30,16 @@ pub async fn get_status(
     state: State<'_, PacketProcessingState>,
 ) -> Result<ProcessingStatus, String> {
     let running = state.running.load(Ordering::SeqCst);
-    let statistics = if !running {
-        None
-    } else {
-        let stats = state.statistics.read().map_err(|e| e.to_string())?;
-        Some(format!("{:?}", stats))
-    };
     let settings = state.settings.lock().map_err(|e| e.to_string())?;
     let modules = build_module_info_list(&settings);
+    
+    let statistics = match running {
+        false => None,
+        true => {
+            let stats = state.statistics.read().map_err(|e| e.to_string())?;
+            Some(format!("{:?}", stats))
+        }
+    };
 
     Ok(ProcessingStatus {
         running,
@@ -241,10 +243,9 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
 
     // Bandwidth module - always include
     let bandwidth = settings.bandwidth.as_ref().cloned().unwrap_or_default();
-    let limit_kbps = Some(if bandwidth.limit > 0 {
-        bandwidth.limit as u64
-    } else {
-        50 // Default limit
+    let limit_kbps = Some(match bandwidth.limit {
+        0 => 50, // Default limit
+        limit => limit as u64,
     });
     modules.push(ModuleInfo {
         name: "bandwidth".to_string(),

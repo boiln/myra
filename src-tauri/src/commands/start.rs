@@ -56,7 +56,7 @@ pub async fn start_processing(
     // Set running flag BEFORE spawning threads so they don't exit immediately
     state.running.store(true, Ordering::SeqCst);
 
-    // Set high-precision timer like Clumsy 0.6 (Wan-Destroyer) to bypass lag detection
+    // Set high-precision timer to bypass lag detection
     set_high_precision_timer();
 
     let running_recv = state.running.clone();

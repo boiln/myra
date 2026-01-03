@@ -73,13 +73,13 @@ pub fn start_tc_bandwidth(
 pub fn stop_tc_bandwidth(state: State<'_, TcLimiterState>) -> Result<String, String> {
     let mut limiter_guard = state.throttle.lock().map_err(|e| e.to_string())?;
     
-    if let Some(mut throttle) = limiter_guard.take() {
-        throttle.stop();
-        info!("Bandwidth limiter stopped");
-        Ok("Bandwidth limiter stopped".to_string())
-    } else {
-        Ok("Bandwidth limiter was not running".to_string())
-    }
+    let Some(mut throttle) = limiter_guard.take() else {
+        return Ok("Bandwidth limiter was not running".to_string());
+    };
+    
+    throttle.stop();
+    info!("Bandwidth limiter stopped");
+    Ok("Bandwidth limiter stopped".to_string())
 }
 
 /// Get the current status of the bandwidth limiter
@@ -87,19 +87,19 @@ pub fn stop_tc_bandwidth(state: State<'_, TcLimiterState>) -> Result<String, Str
 pub fn get_tc_bandwidth_status(state: State<'_, TcLimiterState>) -> Result<TcBandwidthStatus, String> {
     let limiter_guard = state.throttle.lock().map_err(|e| e.to_string())?;
     
-    if let Some(ref throttle) = *limiter_guard {
-        Ok(TcBandwidthStatus {
-            active: throttle.is_running(),
-            limit_kbps: throttle.limit_kbps(),
-            direction: "active".to_string(),
-        })
-    } else {
-        Ok(TcBandwidthStatus {
+    let Some(ref throttle) = *limiter_guard else {
+        return Ok(TcBandwidthStatus {
             active: false,
             limit_kbps: 0.0,
             direction: "none".to_string(),
-        })
-    }
+        });
+    };
+    
+    Ok(TcBandwidthStatus {
+        active: throttle.is_running(),
+        limit_kbps: throttle.limit_kbps(),
+        direction: "active".to_string(),
+    })
 }
 
 /// Status response for bandwidth limiter

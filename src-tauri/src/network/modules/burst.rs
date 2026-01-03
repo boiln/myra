@@ -128,30 +128,24 @@ pub fn burst_packets<'a>(
     }
 
     // Check if we need to send a keepalive (let one packet through)
-    let mut send_keepalive = false;
-    if keepalive_duration.as_millis() > 0 {
-        match last_keepalive {
-            None => {
-                *last_keepalive = Some(now);
-            }
-            Some(last) => {
-                if now.duration_since(*last) >= keepalive_duration {
-                    send_keepalive = true;
-                    *last_keepalive = Some(now);
-                }
-            }
+    let send_keepalive = keepalive_duration.as_millis() > 0 && match last_keepalive {
+        None => {
+            *last_keepalive = Some(now);
+            false
         }
-    }
+        Some(last) if now.duration_since(*last) >= keepalive_duration => {
+            *last_keepalive = Some(now);
+            true
+        }
+        Some(_) => false,
+    };
 
     // If keepalive is due, find a packet that matches direction and preserve it
-    let keepalive_packet = if send_keepalive && !packets.is_empty() {
-        // Find first packet that would be buffered (matches direction)
-        let keepalive_idx = packets.iter().position(|p| {
+    let keepalive_packet = match send_keepalive && !packets.is_empty() {
+        false => None,
+        true => packets.iter().position(|p| {
             (p.is_outbound && apply_outbound) || (!p.is_outbound && apply_inbound)
-        });
-        keepalive_idx.map(|idx| packets.remove(idx))
-    } else {
-        None
+        }).map(|idx| packets.remove(idx)),
     };
 
     // Buffer packets based on probability AND direction

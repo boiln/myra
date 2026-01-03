@@ -180,17 +180,14 @@ fn bandwidth_limiter_paced<'a>(
         let packet_size = packet.packet.data.len();
         let matches_direction = (packet.is_outbound && apply_outbound) 
             || (!packet.is_outbound && apply_inbound);
-        
-        // Small packets always pass through (keepalives, ACKs)
-        // This keeps the connection alive like NetLimiter does
         let is_small = passthrough_threshold > 0 && packet_size <= passthrough_threshold;
         
-        if matches_direction && !is_small {
-            to_buffer.push(packet);
-        } else {
-            // Packets not matching direction OR small keepalive packets pass through
+        // Packets not matching direction OR small keepalive packets pass through
+        if !matches_direction || is_small {
             passthrough.push(packet);
+            continue;
         }
+        to_buffer.push(packet);
     }
     
     stats.storage_packet_count += to_buffer.len();
@@ -215,10 +212,9 @@ fn bandwidth_limiter_paced<'a>(
             // Calculate how long this packet "takes" to transmit at our rate
             // At 1 KB/s (1024 bytes/sec), 500 bytes takes 500/1024 = 0.488 seconds
             let bytes_per_sec = (bandwidth_limit_kbps as f64) * 1024.0;
-            let transmission_time_secs = if bytes_per_sec > 0.0 {
-                packet_size as f64 / bytes_per_sec
-            } else {
-                1.0 // Default to 1 second if rate is 0
+            let transmission_time_secs = match bytes_per_sec > 0.0 {
+                true => packet_size as f64 / bytes_per_sec,
+                false => 1.0, // Default to 1 second if rate is 0
             };
             
             // Schedule next release after this packet's "transmission time"

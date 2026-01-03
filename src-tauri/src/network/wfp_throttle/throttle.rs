@@ -90,24 +90,19 @@ impl WfpThrottle {
         // Build filter for TCP + UDP traffic, exclude Tauri port
         // Must be explicit about direction for BOTH tcp and udp parts
         // to avoid capturing wrong direction traffic
-        let filter = if inbound && outbound {
-            // Both directions
-            format!(
+        let filter = match (inbound, outbound) {
+            (true, true) => format!(
                 "(tcp and tcp.DstPort != {} and tcp.SrcPort != {}) or udp",
                 TAURI_PORT, TAURI_PORT
-            )
-        } else if inbound {
-            // Inbound only - explicit direction for both protocols
-            format!(
+            ),
+            (true, false) => format!(
                 "(inbound and tcp and tcp.DstPort != {} and tcp.SrcPort != {}) or (inbound and udp)",
                 TAURI_PORT, TAURI_PORT
-            )
-        } else {
-            // Outbound only - explicit direction for both protocols
-            format!(
+            ),
+            (false, _) => format!(
                 "(outbound and tcp and tcp.DstPort != {} and tcp.SrcPort != {}) or (outbound and udp)",
                 TAURI_PORT, TAURI_PORT
-            )
+            ),
         };
         
         // Open WinDivert handle - use priority -1000 (higher priority than main processor at 0)
@@ -341,39 +336,38 @@ fn run_sender(
                     Err(_) => break,
                 };
                 
-                if let Some(packet) = buf.packets.front() {
-                    let size = packet.data.len() as f64;
-                    if bytes_credit >= size {
-                        bytes_credit -= size;
-                        buf.total_bytes -= packet.data.len();
-                        buf.packets.pop_front()
-                    } else {
-                        None
-                    }
-                } else {
-                    None
+                let Some(packet) = buf.packets.front() else {
+                    break;
+                };
+                
+                let size = packet.data.len() as f64;
+                if bytes_credit < size {
+                    break;
                 }
+                
+                bytes_credit -= size;
+                buf.total_bytes -= packet.data.len();
+                buf.packets.pop_front()
             };
             
-            match packet_to_send {
-                Some(packet) => {
-                    if let Ok(guard) = wd.lock() {
-                        if let Some(handle) = guard.as_ref() {
-                            let _ = handle.send(&packet);
-                        }
-                    }
-                    released = true;
+            let Some(packet) = packet_to_send else {
+                break;
+            };
+            
+            if let Ok(guard) = wd.lock() {
+                if let Some(handle) = guard.as_ref() {
+                    let _ = handle.send(&packet);
                 }
-                None => break,
             }
+            released = true;
         }
         
         // Sleep a bit - shorter if we just released packets
-        if released {
-            thread::sleep(Duration::from_micros(100));
-        } else {
-            thread::sleep(Duration::from_millis(1));
-        }
+        let sleep_duration = match released {
+            true => Duration::from_micros(100),
+            false => Duration::from_millis(1),
+        };
+        thread::sleep(sleep_duration);
     }
     
     // Release remaining buffered packets before exiting

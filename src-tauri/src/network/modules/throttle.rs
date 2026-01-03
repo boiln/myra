@@ -11,7 +11,7 @@ use std::time::{Duration, Instant};
 
 /// Unit struct for the Throttle packet module.
 ///
-/// This module implements Clumsy-style throttling:
+/// This module implements throttling:
 /// - Buffers packets during a timeframe
 /// - When timeframe ends OR buffer is full, either releases or drops all packets
 /// - Supports direction filtering (inbound/outbound)
@@ -133,20 +133,15 @@ pub fn throttle_packets<'a>(
     stats: &mut ThrottleStats,
 ) {
     let now = Instant::now();
+    let cooldown = Duration::from_millis(40);
+    let _ = last_leak; // Reserved for future use
     
     // Cooldown period after flush
     // In freeze_mode: No cooldown - continuous buffering creates freeze effect
     // In normal mode: 40ms cooldown - allows packets to flow, prevents disconnects
-    let in_cooldown = if freeze_mode {
-        false // Freeze mode: no cooldown, immediate re-buffer
-    } else {
-        let cooldown = Duration::from_millis(40);
-        match last_flush {
-            Some(flush_time) => now.duration_since(*flush_time) < cooldown,
-            None => false,
-        }
-    };
-    let _ = last_leak; // Reserved for future use
+    let in_cooldown = !freeze_mode && last_flush
+        .map(|flush_time| now.duration_since(flush_time) < cooldown)
+        .unwrap_or(false);
 
     // Check if we need to release/drop buffered packets
     let should_flush = match cycle_start {
@@ -163,17 +158,20 @@ pub fn throttle_packets<'a>(
     
     if should_flush {
         let count = buffer.len();
-        if drop {
-            // Drop Throttled mode - discard all buffered packets
-            info!("THROTTLE: Dropping {} buffered packets", count);
-            buffer.clear();
-            stats.dropped_count += count;
-        } else {
-            // Release mode - send all buffered packets at once
-            info!("THROTTLE: Releasing {} buffered packets (throttle was {}ms)", 
-                  count, timeframe.as_millis());
-            while let Some(packet) = buffer.pop_front() {
-                packets.push(packet);
+        match drop {
+            true => {
+                // Drop Throttled mode - discard all buffered packets
+                info!("THROTTLE: Dropping {} buffered packets", count);
+                buffer.clear();
+                stats.dropped_count += count;
+            }
+            false => {
+                // Release mode - send all buffered packets at once
+                info!("THROTTLE: Releasing {} buffered packets (throttle was {}ms)", 
+                      count, timeframe.as_millis());
+                while let Some(packet) = buffer.pop_front() {
+                    packets.push(packet);
+                }
             }
         }
         *cycle_start = None;
@@ -185,18 +183,17 @@ pub fn throttle_packets<'a>(
     // If not currently throttling and not in cooldown (or just flushed), check if we should start
     // In freeze_mode: can start immediately after flush (just_flushed doesn't block)
     // In normal mode: just_flushed prevents immediate restart, cooldown prevents on next call
-    let can_start_new_cycle = if freeze_mode {
-        cycle_start.is_none() // In freeze mode, only check if not already throttling
-    } else {
-        cycle_start.is_none() && !in_cooldown && !just_flushed // Normal mode: respect cooldown and just_flushed
+    let can_start_new_cycle = match freeze_mode {
+        true => cycle_start.is_none(),
+        false => cycle_start.is_none() && !in_cooldown && !just_flushed,
     };
     
-    if can_start_new_cycle {
-        if rand::rng().random_bool(probability.value()) {
-            *cycle_start = Some(now);
-            info!("THROTTLE: Starting new {}ms throttle cycle", timeframe.as_millis());
-        }
-    } else if in_cooldown {
+    if can_start_new_cycle && rand::rng().random_bool(probability.value()) {
+        *cycle_start = Some(now);
+        info!("THROTTLE: Starting new {}ms throttle cycle", timeframe.as_millis());
+    }
+    
+    if !can_start_new_cycle && in_cooldown {
         // During cooldown, packets pass through freely
         // This is logged only occasionally to avoid spam
         if stats.buffered_count > 0 {

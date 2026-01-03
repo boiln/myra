@@ -87,22 +87,22 @@ impl QosPolicyLimiter {
             }
             
             // If policy already exists, try to remove and recreate
-            if stderr.contains("already exists") {
-                info!("QoS: Policy exists, forcing removal and retry");
-                let _ = Self::remove_policy_internal();
-                std::thread::sleep(std::time::Duration::from_millis(200));
-                
-                let output2 = Command::new("powershell")
-                    .args(["-NoProfile", "-NonInteractive", "-Command", &ps_cmd])
-                    .output()
-                    .map_err(|e| QosError::CreateFailed(format!("Retry failed: {}", e)))?;
-                
-                if !output2.status.success() {
-                    let stderr2 = String::from_utf8_lossy(&output2.stderr);
-                    return Err(QosError::CreateFailed(format!("Retry failed: {}", stderr2)));
-                }
-            } else {
+            if !stderr.contains("already exists") {
                 return Err(QosError::CreateFailed(format!("{} {}", stdout, stderr)));
+            }
+            
+            info!("QoS: Policy exists, forcing removal and retry");
+            let _ = Self::remove_policy_internal();
+            std::thread::sleep(std::time::Duration::from_millis(200));
+            
+            let output2 = Command::new("powershell")
+                .args(["-NoProfile", "-NonInteractive", "-Command", &ps_cmd])
+                .output()
+                .map_err(|e| QosError::CreateFailed(format!("Retry failed: {}", e)))?;
+            
+            if !output2.status.success() {
+                let stderr2 = String::from_utf8_lossy(&output2.stderr);
+                return Err(QosError::CreateFailed(format!("Retry failed: {}", stderr2)));
             }
         }
         
@@ -156,10 +156,9 @@ impl QosPolicyLimiter {
         
         info!("QoS: Removing bandwidth limit policy");
         
-        if let Err(e) = Self::remove_policy_internal() {
-            error!("QoS: Failed to remove policy: {:?}", e);
-        } else {
-            info!("QoS: Policy removed successfully");
+        match Self::remove_policy_internal() {
+            Err(e) => error!("QoS: Failed to remove policy: {:?}", e),
+            Ok(_) => info!("QoS: Policy removed successfully"),
         }
     }
 }

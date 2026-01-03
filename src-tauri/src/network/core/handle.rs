@@ -15,25 +15,28 @@ extern "system" {
     fn timeEndPeriod(uPeriod: u32) -> u32;
 }
 
-/// Timer resolution tracker for high-precision timing (like Clumsy 0.6)
+/// Timer resolution tracker for high-precision timing
 static TIMER_RESOLUTION_SET: std::sync::atomic::AtomicBool = 
     std::sync::atomic::AtomicBool::new(false);
 
 /// Set Windows timer resolution to 4ms for high-precision timing
-/// This is what Clumsy 0.6 (Wan-Destroyer) does to bypass lag detection
+/// This helps bypass lag detection in games
 #[cfg(windows)]
 pub fn set_high_precision_timer() {
     use std::sync::atomic::Ordering;
-    if !TIMER_RESOLUTION_SET.load(Ordering::SeqCst) {
-        unsafe {
-            let result = timeBeginPeriod(4);
-            if result == 0 {
-                info!("Set Windows timer resolution to 4ms for high-precision timing");
-                TIMER_RESOLUTION_SET.store(true, Ordering::SeqCst);
-            } else {
-                warn!("Failed to set high-precision timer: {}", result);
-            }
+    
+    if TIMER_RESOLUTION_SET.load(Ordering::SeqCst) {
+        return;
+    }
+    
+    unsafe {
+        let result = timeBeginPeriod(4);
+        if result != 0 {
+            warn!("Failed to set high-precision timer: {}", result);
+            return;
         }
+        info!("Set Windows timer resolution to 4ms for high-precision timing");
+        TIMER_RESOLUTION_SET.store(true, Ordering::SeqCst);
     }
 }
 
@@ -182,28 +185,25 @@ impl HandleManager {
         let filter = config.build_filter();
         info!("Opening WinDivert handle with filter: {}", filter);
 
-        let flags = if config.recv_only {
-            WinDivertFlags::set_recv_only(WinDivertFlags::new())
-        } else {
-            WinDivertFlags::new()
+        let flags = match config.recv_only {
+            true => WinDivertFlags::set_recv_only(WinDivertFlags::new()),
+            false => WinDivertFlags::new(),
         };
 
         match WinDivert::<NetworkLayer>::network(&filter, config.priority, flags) {
             Ok(mut handle) => {
                 debug!("WinDivert handle opened successfully");
                 
-                // Set higher queue params like Clumsy 0.6 (Wan-Destroyer)
+                // Set higher queue params for better packet handling
                 // Queue length = 2048 packets, Queue time = 1024ms
                 use windivert_sys::WinDivertParam;
-                if let Err(e) = handle.set_param(WinDivertParam::QueueLength, 2048) {
-                    warn!("Failed to set WinDivert queue length: {}", e);
-                } else {
-                    info!("Set WinDivert queue length to 2048 packets");
+                match handle.set_param(WinDivertParam::QueueLength, 2048) {
+                    Err(e) => warn!("Failed to set WinDivert queue length: {}", e),
+                    Ok(_) => info!("Set WinDivert queue length to 2048 packets"),
                 }
-                if let Err(e) = handle.set_param(WinDivertParam::QueueTime, 1024) {
-                    warn!("Failed to set WinDivert queue time: {}", e);
-                } else {
-                    info!("Set WinDivert queue time to 1024ms");
+                match handle.set_param(WinDivertParam::QueueTime, 1024) {
+                    Err(e) => warn!("Failed to set WinDivert queue time: {}", e),
+                    Ok(_) => info!("Set WinDivert queue time to 1024ms"),
                 }
                 
                 self.handle = Some(handle);
@@ -236,21 +236,21 @@ impl HandleManager {
             None => true,
         };
 
-        if needs_update {
-            let config = self
-                .current_config
-                .clone()
-                .map(|mut c| {
-                    c.filter = filter.to_string();
-                    c
-                })
-                .unwrap_or_else(|| HandleConfig::with_filter(filter));
-
-            self.open(config)?;
-            Ok(true)
-        } else {
-            Ok(false)
+        if !needs_update {
+            return Ok(false);
         }
+        
+        let config = self
+            .current_config
+            .clone()
+            .map(|mut c| {
+                c.filter = filter.to_string();
+                c
+            })
+            .unwrap_or_else(|| HandleConfig::with_filter(filter));
+
+        self.open(config)?;
+        Ok(true)
     }
 
     /// Closes the current handle if one is open.
@@ -343,13 +343,15 @@ pub fn construct_filter_with_exclusions(user_filter: &Option<String>) -> Option<
             // Fix common mistakes: "outbound and inbound" is impossible (packet can't be both)
             // But "(outbound and X) or (inbound and Y)" is valid
             let filter_lower = filter.to_lowercase();
-            let corrected_filter = if filter_lower.contains("outbound and inbound")
-                || filter_lower.contains("inbound and outbound")
-            {
-                log::warn!("Filter '{}' is invalid: a packet cannot be both outbound AND inbound. Using 'true' to capture all traffic.", filter);
-                "true".to_string()
-            } else {
-                filter.clone()
+            let has_invalid_direction = filter_lower.contains("outbound and inbound")
+                || filter_lower.contains("inbound and outbound");
+            
+            let corrected_filter = match has_invalid_direction {
+                true => {
+                    log::warn!("Filter '{}' is invalid: a packet cannot be both outbound AND inbound. Using 'true' to capture all traffic.", filter);
+                    "true".to_string()
+                }
+                false => filter.clone(),
             };
             format!("({}) and {}", corrected_filter, tauri_exclusion)
         }

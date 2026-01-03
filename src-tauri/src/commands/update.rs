@@ -115,7 +115,10 @@ fn build_lag_options(module: &ModuleInfo) -> Result<LagOptions, String> {
         .map_err(|e| format!("Invalid lag probability: {}", e))?;
 
     let lag_time = module.config.duration_ms.unwrap_or(1000);
-    let lag_time = if lag_time == 0 { 1000 } else { lag_time };
+    let lag_time = match lag_time {
+        0 => 1000,
+        t => t,
+    };
 
     Ok(LagOptions {
         enabled: module.enabled,

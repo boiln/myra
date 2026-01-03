@@ -10,7 +10,7 @@ fn default_probability_100() -> Probability {
     Probability::new(1.0).unwrap()
 }
 
-/// Options for the Lag module, which works like Clumsy's "Lag" module.
+/// Options for the Lag module.
 /// 
 /// This module lags packets (matching direction criteria) by a fixed time,
 /// creating a true network latency effect. By default, probability is 100%
@@ -32,7 +32,7 @@ pub struct LagOptions {
     #[serde(default = "default_true")]
     pub outbound: bool,
 
-    /// Lag time in milliseconds to introduce for each packet (like Clumsy's lag time)
+    /// Lag time in milliseconds to introduce for each packet
     #[arg(long = "lag-ms", id = "lag-ms", default_value_t = 0)]
     #[serde(default)]
     pub lag_ms: u64,

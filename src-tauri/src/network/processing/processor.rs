@@ -164,7 +164,7 @@ pub fn start_packet_processing(
     // Track whether bypass is enabled
     let mut enable_bypass = false;
     
-    // Clumsy uses 40ms processing cycles - match this timing
+    // Use 40ms processing cycles for consistent packet timing
     const CYCLE_TIME_MS: u64 = 40;
     
     // Main processing loop
@@ -226,7 +226,7 @@ pub fn start_packet_processing(
             last_log_time = Instant::now();
         }
         
-        // Maintain 40ms cycle time like Clumsy does
+        // Maintain 40ms cycle time for consistent packet processing
         // This ensures packets are processed at a consistent rate
         let elapsed = cycle_start.elapsed();
         if elapsed < Duration::from_millis(CYCLE_TIME_MS) {
@@ -237,10 +237,9 @@ pub fn start_packet_processing(
     // FLUSH BURST BUFFER ON SHUTDOWN - release all buffered packets before closing
     if !state.burst.buffer.is_empty() {
         while let Some((mut packet, _)) = state.burst.buffer.pop_front() {
-            if let Err(e) = send_with_bypass(&mut wd, &mut packet, enable_bypass) {
-                error!("Failed to send buffered packet on shutdown: {}", e);
-            } else {
-                sent_packet_count += 1;
+            match send_with_bypass(&mut wd, &mut packet, enable_bypass) {
+                Err(e) => error!("Failed to send buffered packet on shutdown: {}", e),
+                Ok(_) => sent_packet_count += 1,
             }
         }
         // Give packets time to actually transmit before closing handle

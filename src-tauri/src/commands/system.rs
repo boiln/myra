@@ -1146,16 +1146,14 @@ fn get_process_connections(pid: u32) -> (Vec<u16>, Vec<String>) {
             // Extract just the IP part (before the port)
             if let Some(ip_part) = remote.rsplit(':').nth(1) {
                 // Handle IPv4 - the rsplit gives us the IP when splitting "ip:port"
-                let ip = if remote.starts_with('[') {
-                    // IPv6: [::1]:port -> extract ::1
-                    ip_part.trim_start_matches('[').to_string()
-                } else {
-                    // IPv4: Reconstruct IP from parts before the last colon
-                    let parts: Vec<&str> = remote.rsplitn(2, ':').collect();
-                    if parts.len() == 2 {
+                let ip = match remote.starts_with('[') {
+                    true => ip_part.trim_start_matches('[').to_string(),
+                    false => {
+                        let parts: Vec<&str> = remote.rsplitn(2, ':').collect();
+                        if parts.len() != 2 {
+                            continue;
+                        }
                         parts[1].to_string()
-                    } else {
-                        continue;
                     }
                 };
 

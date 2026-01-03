@@ -47,7 +47,7 @@ pub struct ThrottleOptions {
     #[serde(default)]
     pub duration_ms: u64,
 
-    /// If true, DROP all buffered packets when timeframe ends (like Clumsy's "Drop Throttled")
+    /// If true, DROP all buffered packets when timeframe ends
     /// If false, RELEASE all buffered packets when timeframe ends
     #[arg(long = "throttle-drop", default_value_t = false, id = "throttle-drop")]
     #[serde(default)]
