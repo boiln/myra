@@ -28,7 +28,7 @@ where
 ///
 /// This struct contains all the different types of network condition simulations
 /// that can be applied to packets, each as an optional setting.
-#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Settings {
     /// Controls random packet dropping
     #[serde(serialize_with = "serialize_option")]
@@ -80,6 +80,24 @@ pub struct Settings {
 
 fn default_burst_release_delay() -> u64 {
     500
+}
+
+impl Default for Settings {
+    fn default() -> Self {
+        Self {
+            drop: None,
+            lag: None,
+            throttle: None,
+            reorder: None,
+            tamper: None,
+            duplicate: None,
+            bandwidth: None,
+            burst: None,
+            burst_release_delay_us: default_burst_release_delay(),
+            lag_bypass: false,
+            tc_bandwidth: None,
+        }
+    }
 }
 
 /// Type alias for backward compatibility.

@@ -1,7 +1,6 @@
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useNetworkStore } from "@/lib/stores/network";
 import { useActiveTimer } from "@/hooks/use-active-timer";
-import { Timer } from "lucide-react";
 
 export function Header() {
     const { isActive, manipulationStatus } = useNetworkStore();
