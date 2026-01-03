@@ -637,7 +637,7 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                                             <Input
                                                 value={customFilter}
                                                 onChange={(e) => setCustomFilter(e.target.value)}
-                                                onBlur={applyFilter}
+                                                onBlur={() => applyFilter()}
                                                 onKeyDown={(e) =>
                                                     e.key === "Enter" && applyFilter()
                                                 }
@@ -648,7 +648,7 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                onClick={applyFilter}
+                                                onClick={() => applyFilter()}
                                                 disabled={isActive}
                                             >
                                                 Apply
