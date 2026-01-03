@@ -23,8 +23,6 @@ pub struct ModuleProcessingState {
     pub burst: BurstState,
     /// Whether burst was enabled in the previous processing cycle
     pub burst_was_enabled: bool,
-    /// Release delay for burst packets in microseconds
-    pub burst_release_delay_us: u64,
 
     /// Time when each module's effect was started
     pub effect_start_times: ModuleEffectStartTimes,
@@ -79,7 +77,6 @@ impl ModuleProcessingState {
             throttle: ThrottleState::default(),
             burst: BurstState::default(),
             burst_was_enabled: false,
-            burst_release_delay_us: 500, // Default 0.5ms
             effect_start_times: ModuleEffectStartTimes::default(),
         }
     }
