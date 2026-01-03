@@ -425,9 +425,18 @@ pub fn process_packets<'a>(
     let burst_enabled = settings.burst.as_ref().map(|b| b.enabled).unwrap_or(false);
     if state.burst_was_enabled && !burst_enabled {
         // Burst was just disabled - flush all buffered packets
+        let buffer_size = state.burst.buffer.len();
+        let reverse = settings.burst.as_ref().map(|b| b.reverse).unwrap_or(false);
+        
+        info!(
+            "BURST DISABLED: Flushing {} buffered packets (reverse={})",
+            buffer_size,
+            reverse
+        );
+        
         let buffer: &mut std::collections::VecDeque<(PacketData<'a>, Instant)> =
             unsafe { std::mem::transmute(&mut state.burst.buffer) };
-        flush_buffer(packets, buffer, &mut state.burst.cycle_start);
+        flush_buffer(packets, buffer, &mut state.burst.cycle_start, reverse);
     }
     state.burst_was_enabled = burst_enabled;
 

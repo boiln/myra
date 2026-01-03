@@ -220,18 +220,48 @@ pub fn burst_packets<'a>(
 
 /// Flushes all buffered packets - called when module is disabled
 /// Returns the packets to be sent with pacing
+/// 
+/// # Arguments
+/// * `packets` - Output vector to add flushed packets to (new packets from this cycle)
+/// * `buffer` - The buffer containing packets to flush
+/// * `cycle_start` - Cycle start time to reset
+/// * `reverse` - If true, release packets in reverse order (rewind effect)
 pub fn flush_buffer<'a>(
     packets: &mut Vec<PacketData<'a>>,
     buffer: &mut VecDeque<(PacketData<'a>, Instant)>,
     cycle_start: &mut Option<Instant>,
+    reverse: bool,
 ) {
     if buffer.is_empty() {
+        debug!("BURST FLUSH: Buffer is empty, nothing to flush");
         return;
     }
 
-    while let Some((packet, _)) = buffer.pop_front() {
-        packets.push(packet);
+    let buffer_count = buffer.len();
+    let new_packet_count = packets.len();
+    
+    // Collect all packets from buffer (oldest first)
+    let mut released_packets: Vec<_> = buffer.drain(..).map(|(p, _)| p).collect();
+    
+    // Apply reverse if requested (for rewind effect)
+    if reverse {
+        released_packets.reverse();
+        debug!("BURST FLUSH: Reversed {} packets for rewind effect", buffer_count);
     }
+    
+    // IMPORTANT: Buffered packets must be sent FIRST, before any new packets from this cycle
+    // This ensures proper replay order: old actions → new actions
+    // We prepend by: taking new packets out, adding buffered, then adding new back
+    let new_packets: Vec<_> = packets.drain(..).collect();
+    packets.extend(released_packets);
+    packets.extend(new_packets);
+    
+    debug!(
+        "BURST FLUSH: Released {} buffered packets, {} new packets queued after (reverse={})",
+        buffer_count,
+        new_packet_count,
+        reverse
+    );
 
     *cycle_start = None;
 }
@@ -266,6 +296,7 @@ mod tests {
                 Probability::new(1.0).unwrap(),
                 true,  // apply_inbound
                 true,  // apply_outbound
+                false, // reverse
                 &mut stats,
             );
 
