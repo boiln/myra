@@ -38,7 +38,7 @@ pub enum WfpError {
 
 /// Shared buffer between receiver and sender threads
 struct SharedBuffer {
-    packets: VecDeque<WinDivertPacket<'static, NetworkLayer>>,
+    packets: VecDeque<(WinDivertPacket<'static, NetworkLayer>, Instant)>, // (packet, queued_time)
     total_bytes: usize,
 }
 
@@ -162,18 +162,18 @@ impl WfpThrottle {
         
         info!("WFP Throttle: Stopping...");
         
-        // FIRST: Close the WinDivert handle to stop capturing packets
-        // This will cause recv() to fail and threads to exit
+        // IMPORTANT: Wait for sender thread FIRST so it can flush buffered packets
+        // The sender thread will release all remaining packets before exiting
+        if let Some(handle) = self.sender_handle.take() {
+            let _ = handle.join();
+        }
+        
+        // Now close the WinDivert handle - this stops the receiver
         if let Ok(mut guard) = self.wd_handle.lock() {
             if let Some(mut wd) = guard.take() {
                 info!("WFP Throttle: Closing WinDivert handle");
                 let _ = wd.close(CloseAction::Nothing);
             }
-        }
-        
-        // Wait for sender thread (should exit quickly now)
-        if let Some(handle) = self.sender_handle.take() {
-            let _ = handle.join();
         }
         
         // Wait for receiver thread (should exit now that handle is closed)
@@ -248,7 +248,7 @@ fn run_receiver(
                 let owned_packet = packet.into_owned();
                 if let Ok(mut buf) = buffer.lock() {
                     buf.total_bytes += packet_size;
-                    buf.packets.push_back(owned_packet);
+                    buf.packets.push_back((owned_packet, Instant::now()));
                 }
                 
                 // Log stats every 5 seconds
@@ -292,14 +292,19 @@ fn run_sender(
     // - Bucket has a max capacity (burst size)
     //
     // For NetLimiter-like behavior at 1 KB/s:
-    // - Initial burst: 4 KB (4 seconds worth) - allows movement before throttle kicks in
-    // - Max bucket: 2 KB (2 seconds worth) - allows recovery after idle
+    // - Initial burst: 8 KB (8 seconds worth) - allows movement before throttle kicks in
+    // - Max bucket: 4 KB (4 seconds worth) - allows recovery after idle
     //
     // The key insight: at 1 KB/s, a 1400-byte packet needs 1.4 seconds of accumulated tokens
     // So we need a larger bucket to avoid instant disconnects
     
-    let burst_size = limit_kbps * 1024.0 * 4.0; // 4 seconds worth as initial burst
-    let max_bucket = limit_kbps * 1024.0 * 2.0; // 2 seconds max capacity
+    let burst_size = limit_kbps * 1024.0 * 8.0; // 8 seconds worth as initial burst
+    let max_bucket = limit_kbps * 1024.0 * 4.0; // 4 seconds max capacity
+    
+    // CRITICAL: Maximum time a packet can wait before force-release
+    // This prevents game server timeouts (typically 15-30 seconds)
+    // Set to 12 seconds to stay under most timeout thresholds
+    let max_packet_age = Duration::from_secs(12);
     
     let mut bytes_credit: f64 = burst_size;
     let mut last_time = Instant::now();
@@ -336,21 +341,31 @@ fn run_sender(
                     Err(_) => break,
                 };
                 
-                let Some(packet) = buf.packets.front() else {
+                let Some((packet, queued_time)) = buf.packets.front() else {
                     break;
                 };
                 
                 let size = packet.data.len() as f64;
-                if bytes_credit < size {
+                let packet_age = queued_time.elapsed();
+                
+                // Force release if packet is too old (prevents disconnect)
+                // OR release if we have enough credit (normal throttling)
+                let force_release = packet_age >= max_packet_age;
+                
+                if !force_release && bytes_credit < size {
                     break;
                 }
                 
-                bytes_credit -= size;
+                // Only deduct credit if we're not force-releasing
+                if !force_release {
+                    bytes_credit -= size;
+                }
+                
                 buf.total_bytes -= packet.data.len();
                 buf.packets.pop_front()
             };
             
-            let Some(packet) = packet_to_send else {
+            let Some((packet, _)) = packet_to_send else {
                 break;
             };
             
@@ -370,20 +385,31 @@ fn run_sender(
         thread::sleep(sleep_duration);
     }
     
-    // Release remaining buffered packets before exiting
+    // Release remaining buffered packets IMMEDIATELY before exiting
+    // This is critical - we must flush all packets or the game will D/C
     if let Ok(mut buf) = buffer.lock() {
         let remaining = buf.packets.len();
         if remaining > 0 {
-            info!("WFP Throttle: Releasing {} buffered packets", remaining);
+            info!("WFP Throttle: FLUSHING {} buffered packets immediately", remaining);
+            let mut sent = 0;
+            let mut failed = 0;
             if let Ok(guard) = wd.lock() {
                 if let Some(handle) = guard.as_ref() {
-                    while let Some(packet) = buf.packets.pop_front() {
-                        let _ = handle.send(&packet);
+                    while let Some((packet, _)) = buf.packets.pop_front() {
+                        match handle.send(&packet) {
+                            Ok(_) => sent += 1,
+                            Err(_) => failed += 1,
+                        }
                     }
+                } else {
+                    warn!("WFP Throttle: Handle already closed, {} packets LOST!", remaining);
                 }
             }
+            info!("WFP Throttle: Flushed {} packets (sent={}, failed={})", remaining, sent, failed);
             buf.total_bytes = 0;
         }
+    } else {
+        warn!("WFP Throttle: Could not lock buffer for flush!");
     }
     
     unsafe {
