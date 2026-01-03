@@ -73,13 +73,13 @@ impl SettingsBuilder {
     ///
     /// # Arguments
     ///
-    /// * `lag_ms` - Lag in milliseconds
-    pub fn lag(mut self, lag_ms: u64) -> Self {
+    /// * `delay_ms` - Lag in milliseconds
+    pub fn lag(mut self, delay_ms: u64) -> Self {
         self.settings.lag = Some(LagOptions {
             enabled: true,
             inbound: true,
             outbound: true,
-            lag_ms,
+            delay_ms,
             probability: Probability::new(1.0).unwrap_or_default(),
             duration_ms: 0,
         });
@@ -370,7 +370,7 @@ mod tests {
         
         assert!(settings.lag.is_some());
         let lag = settings.lag.unwrap();
-        assert_eq!(lag.lag_ms, 100);
+        assert_eq!(lag.delay_ms, 100);
         assert!((lag.probability.value() - 0.75).abs() < 0.001);
     }
 

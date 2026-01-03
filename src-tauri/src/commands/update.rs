@@ -124,7 +124,7 @@ fn build_lag_options(module: &ModuleInfo) -> Result<LagOptions, String> {
         enabled: module.enabled,
         inbound: module.config.inbound,
         outbound: module.config.outbound,
-        lag_ms: lag_time,
+        delay_ms: lag_time,
         probability,
         duration_ms: 0,
     })

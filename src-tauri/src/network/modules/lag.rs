@@ -51,7 +51,7 @@ impl PacketModule for LagModule {
         lag_packets(
             packets,
             storage,
-            Duration::from_millis(options.lag_ms),
+            Duration::from_millis(options.delay_ms),
             options.probability,
             &mut stats.lag_stats,
         );

@@ -35,7 +35,7 @@ pub struct LagOptions {
     /// Lag time in milliseconds to introduce for each packet
     #[arg(long = "lag-ms", id = "lag-ms", default_value_t = 0)]
     #[serde(default)]
-    pub lag_ms: u64,
+    pub delay_ms: u64,
 
     /// Probability of lagging packets, ranging from 0.0 to 1.0 (default 1.0 = 100%)
     #[arg(long = "lag-probability", id = "lag-probability", default_value_t = default_probability_100())]
@@ -54,7 +54,7 @@ impl Default for LagOptions {
             enabled: false,
             inbound: true,
             outbound: true,
-            lag_ms: 0,
+            delay_ms: 0,
             probability: default_probability_100(),
             duration_ms: 0,
         }

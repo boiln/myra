@@ -97,7 +97,7 @@ export const ManipulationService = {
                 outbound: lag.outbound ?? true,
                 chance: lag.probability * 100,
                 enabled: lag.enabled ?? false,
-                duration_ms: lag.delay_ms,  // Use lag_ms as the time value sent to backend
+                duration_ms: lag.delay_ms,  // Use delay_ms as the time value sent to backend
             },
             params: null,
         });

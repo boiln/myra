@@ -126,7 +126,7 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
         enabled: false,
         inbound: true,
         outbound: true,
-        lag_ms: 1000,
+        delay_ms: 1000,
         ..Default::default()
     });
     modules.push(ModuleInfo {
@@ -138,8 +138,8 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
             outbound: lag.outbound,
             chance: lag.probability.value() * 100.0,
             enabled: lag.enabled,
-            duration_ms: Some(lag.lag_ms),
-            throttle_ms: Some(lag.lag_ms),
+            duration_ms: Some(lag.delay_ms),
+            throttle_ms: Some(lag.delay_ms),
             limit_kbps: None,
             count: None,
             buffer_ms: None,
@@ -154,7 +154,7 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
             reverse: None,
         },
         params: Some(ModuleParams {
-            lag_time: Some(lag.lag_ms),
+            lag_time: Some(lag.delay_ms),
         }),
     });
 
