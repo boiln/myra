@@ -67,6 +67,7 @@ export const createCoreSlice: StateCreator<
                             : 100,
                         enabled: settings.throttle?.enabled ?? false,
                         throttle_ms: settings.throttle?.throttle_ms || 30,
+                        freeze_mode: settings.throttle?.freeze_mode ?? false,
                         duration_ms: 0, // 0 = infinite effect duration
                     },
                 },
@@ -97,6 +98,7 @@ export const createCoreSlice: StateCreator<
                             : 100,
                         enabled: settings.bandwidth?.enabled ?? false,
                         limit_kbps: settings.bandwidth?.limit || 500,
+                        use_wfp: settings.bandwidth?.use_wfp ?? false,
                         duration_ms: 0, // 0 = infinite effect duration
                     },
                 },
@@ -126,6 +128,7 @@ export const createCoreSlice: StateCreator<
                             : 100,
                         enabled: settings.reorder?.enabled ?? false,
                         throttle_ms: settings.reorder?.max_delay || 100,
+                        reverse: settings.reorder?.reverse ?? false,
                         duration_ms: 0, // 0 = infinite effect duration
                     },
                 },
@@ -144,6 +147,7 @@ export const createCoreSlice: StateCreator<
                         keepalive_ms: settings.burst?.keepalive_ms ?? 0,
                         // Use burst_release_delay_us from top-level settings (persists even when burst disabled)
                         release_delay_us: settings.burst_release_delay_us ?? settings.burst?.release_delay_us ?? 500,
+                        reverse: settings.burst?.reverse ?? false,
                         duration_ms: 0, // 0 = infinite effect duration
                     },
                 },
@@ -168,7 +172,7 @@ export const createCoreSlice: StateCreator<
     },
 
     toggleActive: async () => {
-        const { isActive, filter } = get();
+        const { isActive, filter, buildSettings } = get();
 
         try {
             set({ isTogglingActive: true });
@@ -179,7 +183,9 @@ export const createCoreSlice: StateCreator<
             }
 
             if (!isActive) {
-                const settings = await ManipulationService.getSettings();
+                // Use buildSettings() to get current UI state instead of backend state
+                // This preserves boolean settings like freeze_mode, use_wfp, reverse
+                const settings = buildSettings();
                 await ManipulationService.startProcessing(settings, filter);
             }
 

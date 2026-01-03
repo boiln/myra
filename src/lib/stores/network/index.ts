@@ -42,6 +42,7 @@ const buildSettings = (modules: ModuleInfo[]) => {
                     probability: module.config.chance / 100,
                     duration_ms: module.config.duration_ms,
                     throttle_ms: module.config.throttle_ms || 30,
+                    freeze_mode: module.config.freeze_mode ?? false,
                 };
                 break;
 
@@ -86,6 +87,7 @@ const buildSettings = (modules: ModuleInfo[]) => {
                     probability: module.config.chance / 100,
                     duration_ms: module.config.duration_ms,
                     max_delay: module.config.throttle_ms || 100,
+                    reverse: module.config.reverse ?? false,
                 };
                 break;
 
@@ -99,6 +101,7 @@ const buildSettings = (modules: ModuleInfo[]) => {
                     buffer_ms: module.config.buffer_ms ?? 0,
                     keepalive_ms: module.config.keepalive_ms ?? 0,
                     release_delay_us: module.config.release_delay_us ?? 500,
+                    reverse: module.config.reverse ?? false,
                 };
                 break;
         }
