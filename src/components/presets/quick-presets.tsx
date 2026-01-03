@@ -5,11 +5,6 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { useNetworkStore } from "@/lib/stores/network";
 import { PacketManipulationSettings } from "@/types";
 import { Zap } from "lucide-react";
@@ -158,32 +153,25 @@ export function QuickPresets() {
 
     return (
         <DropdownMenu>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <DropdownMenuTrigger asChild>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="h-7 gap-1.5 px-2"
-                        >
-                            <Zap className="h-3.5 w-3.5" />
-                            Quick
-                        </Button>
-                    </DropdownMenuTrigger>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">
-                    <p>Apply quick preset configurations</p>
-                </TooltipContent>
-            </Tooltip>
+            <DropdownMenuTrigger asChild>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 gap-1.5 px-2"
+                >
+                    <Zap className="h-3.5 w-3.5" />
+                    Quick
+                </Button>
+            </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-56">
                 {QUICK_PRESETS.map((preset) => (
                     <DropdownMenuItem
                         key={preset.name}
                         onClick={() => applyQuickPreset(preset)}
-                        className="flex flex-col items-start gap-0.5"
+                        className="flex flex-col items-start gap-0.5 py-2 focus:text-foreground"
                     >
                         <span className="font-medium">{preset.name}</span>
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-xs opacity-70">
                             {preset.description}
                         </span>
                     </DropdownMenuItem>
