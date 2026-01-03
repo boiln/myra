@@ -9,11 +9,13 @@ pub mod state;
 pub mod status;
 pub mod stop;
 pub mod system;
+pub mod tc_bandwidth;
 pub mod types;
 pub mod update;
 
 // Re-export state for convenient access
 pub use state::PacketProcessingState;
+pub use tc_bandwidth::TcLimiterState;
 
 // Re-export all command functions and their generated Tauri command handlers for use in main.rs
 pub use start::{__cmd__start_processing, start_processing};
@@ -28,6 +30,10 @@ pub use system::{
     __cmd__start_flow_tracking, __cmd__stop_flow_tracking, __cmd__validate_filter,
     build_device_filter, build_process_filter, get_flow_filter, is_flow_tracking, list_processes,
     scan_network_devices, start_flow_tracking, stop_flow_tracking, validate_filter,
+};
+pub use tc_bandwidth::{
+    __cmd__start_tc_bandwidth, __cmd__stop_tc_bandwidth, __cmd__get_tc_bandwidth_status,
+    start_tc_bandwidth, stop_tc_bandwidth, get_tc_bandwidth_status,
 };
 pub use update::{__cmd__update_settings, update_settings};
 

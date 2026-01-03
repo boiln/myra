@@ -53,6 +53,9 @@ impl PacketProcessingState {
 /// This function initializes and manages the global state that will be
 /// accessible to all Tauri commands.
 pub fn register_state(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
+    use crate::commands::tc_bandwidth::TcLimiterState;
+    
     app.manage(PacketProcessingState::default());
+    app.manage(TcLimiterState::default());
     Ok(())
 }

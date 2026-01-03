@@ -10,7 +10,7 @@ use log::info;
 use tauri::State;
 
 use crate::commands::state::PacketProcessingState;
-use crate::network::core::flush_wfp_cache;
+use crate::network::core::{flush_wfp_cache, restore_timer_resolution};
 use crate::settings::Settings;
 
 /// Stops packet processing.
@@ -32,18 +32,32 @@ pub async fn stop_processing(state: State<'_, PacketProcessingState>) -> Result<
         return Err("Packet processing not running".to_string());
     }
 
-    // First, disable all modules to trigger proper buffer flushes (like burst)
+    // Temporarily disable modules to trigger proper buffer flushes (like burst)
     // This ensures packets are released through the normal path before shutdown
+    // We preserve the original settings and restore them after flushing
+    let original_settings: Settings;
     {
         let mut settings = state
             .settings
             .lock()
             .map_err(|e| format!("Failed to lock settings mutex: {}", e))?;
+        original_settings = settings.clone();
+        
+        // Reset to default (all modules disabled) for flushing
         *settings = Settings::default();
     }
     
     // Give time for the processing loop to flush buffers
     thread::sleep(Duration::from_millis(300));
+    
+    // Restore the original settings (so frontend sees them correctly)
+    {
+        let mut settings = state
+            .settings
+            .lock()
+            .map_err(|e| format!("Failed to lock settings mutex: {}", e))?;
+        *settings = original_settings;
+    }
 
     *state
         .filter
@@ -57,6 +71,9 @@ pub async fn stop_processing(state: State<'_, PacketProcessingState>) -> Result<
     thread::sleep(Duration::from_millis(500));
 
     flush_wfp_cache();
+
+    // Restore timer resolution
+    restore_timer_resolution();
 
     info!("Stopped packet processing and cleaned up resources");
     Ok(())

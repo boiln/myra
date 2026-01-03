@@ -10,7 +10,7 @@ use crate::network::modules::{
 use crate::network::processing::module_state::ModuleProcessingState;
 use crate::settings::Settings;
 use crate::utils::{is_effect_active, log_statistics};
-use log::{debug, error, info};
+use log::{debug, error, info, warn};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::Receiver;
 use std::sync::{Arc, Mutex, RwLock};
@@ -18,6 +18,99 @@ use std::time::{Duration, Instant};
 use windivert::layer::NetworkLayer;
 use windivert::{CloseAction, WinDivert};
 use windivert_sys::WinDivertFlags;
+
+/// Swap source and destination IP addresses in a packet (MGO2 bypass technique).
+/// This is called when WinDivertSend fails - swapping IPs and retrying can bypass
+/// certain game anti-lag detection mechanisms.
+fn swap_ip_addresses(packet_data: &mut PacketData) -> bool {
+    // Get mutable access to the packet data
+    let data = packet_data.packet.data.to_mut();
+    
+    if data.len() < 20 {
+        return false; // Too small for IPv4 header
+    }
+    
+    let version = (data[0] >> 4) & 0x0F;
+    
+    match version {
+        4 => {
+            // IPv4: Source IP at offset 12-15, Dest IP at offset 16-19
+            if data.len() < 20 {
+                return false;
+            }
+            
+            // Swap the 4-byte source and destination addresses
+            for i in 0..4 {
+                data.swap(12 + i, 16 + i);
+            }
+            
+            // Zero out the checksum (bytes 10-11) so WinDivert recalculates it
+            data[10] = 0;
+            data[11] = 0;
+            
+            true
+        }
+        6 => {
+            // IPv6: Source IP at offset 8-23, Dest IP at offset 24-39
+            if data.len() < 40 {
+                return false;
+            }
+            
+            // Swap the 16-byte source and destination addresses
+            for i in 0..16 {
+                data.swap(8 + i, 24 + i);
+            }
+            
+            true
+        }
+        _ => false,
+    }
+}
+
+/// Attempt to send a packet with the MGO2 bypass technique.
+/// If the initial send fails, swap source/destination IPs and retry.
+fn send_with_bypass(
+    wd: &mut WinDivert<NetworkLayer>,
+    packet_data: &mut PacketData,
+    enable_bypass: bool,
+) -> std::result::Result<(), windivert::error::WinDivertError> {
+    // First attempt - normal send
+    match wd.send(&packet_data.packet) {
+        Ok(_bytes_sent) => Ok(()),
+        Err(e) => {
+            if !enable_bypass {
+                return Err(e);
+            }
+            
+            // Send failed - try the MGO2 bypass technique
+            warn!("Send failed, attempting IP swap bypass: {}", e);
+            
+            // Swap source and destination IPs
+            if !swap_ip_addresses(packet_data) {
+                return Err(e);
+            }
+            
+            // Mark as outbound (flip the direction bit)
+            let current = packet_data.packet.address.outbound();
+            packet_data.packet.address.set_outbound(!current);
+            
+            // Retry the send
+            match wd.send(&packet_data.packet) {
+                Ok(_bytes_sent) => {
+                    debug!("IP swap bypass successful");
+                    Ok(())
+                }
+                Err(e2) => {
+                    // Swap back to restore original state
+                    swap_ip_addresses(packet_data);
+                    let current = packet_data.packet.address.outbound();
+                    packet_data.packet.address.set_outbound(!current);
+                    Err(e2)
+                }
+            }
+        }
+    }
+}
 
 /// Starts the packet processing loop that handles network packet manipulation.
 ///
@@ -68,8 +161,15 @@ pub fn start_packet_processing(
 
     info!("Starting packet interception.");
 
+    // Track whether bypass is enabled
+    let mut enable_bypass = false;
+    
+    // Clumsy uses 40ms processing cycles - match this timing
+    const CYCLE_TIME_MS: u64 = 40;
+    
     // Main processing loop
     while running.load(Ordering::SeqCst) {
+        let cycle_start = Instant::now();
         let mut packets = Vec::new();
 
         // Collect all available packets from the channel
@@ -83,6 +183,7 @@ pub fn start_packet_processing(
             Ok(settings) => {
                 // Always update burst release delay from settings (persists even when burst disabled)
                 state.burst_release_delay_us = settings.burst_release_delay_us;
+                enable_bypass = settings.lag_bypass;
                 
                 if let Err(e) = process_packets(&settings, &mut packets, &mut state, &statistics) {
                     error!("Error processing packets: {}", e);
@@ -103,8 +204,8 @@ pub fn start_packet_processing(
         if pacing_needed {
             info!("BURST REPLAY: Sending {} packets with {}us delay each", packets.len(), release_delay);
         }
-        for packet_data in &packets {
-            if let Err(e) = wd.send(&packet_data.packet) {
+        for mut packet_data in packets {
+            if let Err(e) = send_with_bypass(&mut wd, &mut packet_data, enable_bypass) {
                 error!("Failed to send packet: {}", e);
                 continue;
             }
@@ -124,12 +225,19 @@ pub fn start_packet_processing(
             sent_packet_count = 0;
             last_log_time = Instant::now();
         }
+        
+        // Maintain 40ms cycle time like Clumsy does
+        // This ensures packets are processed at a consistent rate
+        let elapsed = cycle_start.elapsed();
+        if elapsed < Duration::from_millis(CYCLE_TIME_MS) {
+            std::thread::sleep(Duration::from_millis(CYCLE_TIME_MS) - elapsed);
+        }
     }
 
     // FLUSH BURST BUFFER ON SHUTDOWN - release all buffered packets before closing
     if !state.burst.buffer.is_empty() {
-        while let Some((packet, _)) = state.burst.buffer.pop_front() {
-            if let Err(e) = wd.send(&packet.packet) {
+        while let Some((mut packet, _)) = state.burst.buffer.pop_front() {
+            if let Err(e) = send_with_bypass(&mut wd, &mut packet, enable_bypass) {
                 error!("Failed to send buffered packet on shutdown: {}", e);
             } else {
                 sent_packet_count += 1;

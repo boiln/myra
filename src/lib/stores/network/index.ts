@@ -19,7 +19,8 @@ const buildSettings = (modules: ModuleInfo[]) => {
                     inbound: module.config.inbound,
                     outbound: module.config.outbound,
                     probability: module.config.chance / 100,
-                    duration_ms: module.config.duration_ms,
+                    delay_ms: module.config.duration_ms,  // UI duration_ms is the delay time
+                    duration_ms: 0,  // Effect duration (0 = infinite)
                 };
                 break;
 
@@ -62,7 +63,8 @@ const buildSettings = (modules: ModuleInfo[]) => {
                     outbound: module.config.outbound,
                     probability: module.config.chance / 100,
                     duration_ms: module.config.duration_ms,
-                    limit_kbps: module.config.limit_kbps || 100,
+                    limit: module.config.limit_kbps || 100,  // Map UI limit_kbps to Rust limit
+                    use_wfp: module.config.use_wfp ?? false,
                 };
                 break;
 

@@ -28,6 +28,14 @@ windivert-sys = "0.10.0"
 
 # Windows API bindings
 winapi = { version = "0.3.9", features = ["securitybaseapi", "winnt", "shellapi", "winuser", "wingdi", "windef"] }
+windows = { version = "0.58", features = [
+    "Win32_Foundation",
+    "Win32_NetworkManagement_QoS",
+    "Win32_NetworkManagement_Ndis",
+    "Win32_Networking_WinSock",
+    "Win32_System_Com",
+    "Win32_Media",
+] }
 
 # Error handling and utilities
 thiserror = "2.0.17"

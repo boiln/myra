@@ -21,6 +21,7 @@ import {
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { create } from "zustand";
+import { QuickPresets } from "./quick-presets";
 
 interface PresetUIState {
     presetName: string;
@@ -143,6 +144,7 @@ export function PresetManager() {
                     <span className="text-sm text-muted-foreground">Configs:</span>
                     <span className="text-sm font-medium">{currentPreset || "default"}</span>
                     <div className="flex-1" />
+                    <QuickPresets />
                     <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
                         <DialogTrigger asChild>
                             <Button

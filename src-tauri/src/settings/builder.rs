@@ -124,6 +124,8 @@ impl SettingsBuilder {
             throttle_ms,
             duration_ms: 0,
             drop: false,
+            max_buffer: 2000,
+            freeze_mode: false,
         });
         self
     }
@@ -265,6 +267,8 @@ impl SettingsBuilder {
             limit: limit_kbps,
             probability: Probability::new(1.0).unwrap_or_default(),
             duration_ms: 0,
+            passthrough_threshold: 200,
+            use_wfp: false,
         });
         self
     }

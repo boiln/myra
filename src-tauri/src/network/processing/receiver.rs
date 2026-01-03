@@ -85,7 +85,9 @@ pub fn receive_packets(
             }
             match wd_handle.recv(Some(&mut buffer)) {
                 Ok(packet) => {
-                    let packet_data = PacketData::from(packet.into_owned());
+                    // Capture direction before taking ownership
+                    let is_outbound = packet.address.outbound();
+                    let packet_data = PacketData::new(packet.into_owned(), is_outbound);
                     if packet_sender.send(packet_data).is_err() {
                         if should_shutdown(&running) {
                             break;

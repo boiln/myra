@@ -33,8 +33,8 @@ const DEFAULT_BINDINGS: Record<string, HotkeyBinding> = {
         shortcut: "F9",
         enabled: true,
     },
-    toggleFreeze: {
-        action: "toggleFreeze",
+    toggleDrop: {
+        action: "toggleDrop",
         shortcut: null,
         enabled: false,
     },

@@ -3,11 +3,58 @@
 //! This module provides centralized management of WinDivert handles,
 //! including creation, configuration, and proper cleanup.
 
-use log::{debug, error, info};
+use log::{debug, error, info, warn};
 use windivert::error::WinDivertError;
 use windivert::layer::NetworkLayer;
 use windivert::{CloseAction, WinDivert};
 use windivert_sys::WinDivertFlags;
+
+#[cfg(windows)]
+extern "system" {
+    fn timeBeginPeriod(uPeriod: u32) -> u32;
+    fn timeEndPeriod(uPeriod: u32) -> u32;
+}
+
+/// Timer resolution tracker for high-precision timing (like Clumsy 0.6)
+static TIMER_RESOLUTION_SET: std::sync::atomic::AtomicBool = 
+    std::sync::atomic::AtomicBool::new(false);
+
+/// Set Windows timer resolution to 4ms for high-precision timing
+/// This is what Clumsy 0.6 (Wan-Destroyer) does to bypass lag detection
+#[cfg(windows)]
+pub fn set_high_precision_timer() {
+    use std::sync::atomic::Ordering;
+    if !TIMER_RESOLUTION_SET.load(Ordering::SeqCst) {
+        unsafe {
+            let result = timeBeginPeriod(4);
+            if result == 0 {
+                info!("Set Windows timer resolution to 4ms for high-precision timing");
+                TIMER_RESOLUTION_SET.store(true, Ordering::SeqCst);
+            } else {
+                warn!("Failed to set high-precision timer: {}", result);
+            }
+        }
+    }
+}
+
+/// Restore Windows timer resolution
+#[cfg(windows)]
+pub fn restore_timer_resolution() {
+    use std::sync::atomic::Ordering;
+    if TIMER_RESOLUTION_SET.load(Ordering::SeqCst) {
+        unsafe {
+            timeEndPeriod(4);
+            TIMER_RESOLUTION_SET.store(false, Ordering::SeqCst);
+            info!("Restored Windows timer resolution");
+        }
+    }
+}
+
+#[cfg(not(windows))]
+pub fn set_high_precision_timer() {}
+
+#[cfg(not(windows))]
+pub fn restore_timer_resolution() {}
 
 /// Default priority for packet interception.
 pub const DEFAULT_PRIORITY: i16 = 1;
@@ -142,8 +189,23 @@ impl HandleManager {
         };
 
         match WinDivert::<NetworkLayer>::network(&filter, config.priority, flags) {
-            Ok(handle) => {
+            Ok(mut handle) => {
                 debug!("WinDivert handle opened successfully");
+                
+                // Set higher queue params like Clumsy 0.6 (Wan-Destroyer)
+                // Queue length = 2048 packets, Queue time = 1024ms
+                use windivert_sys::WinDivertParam;
+                if let Err(e) = handle.set_param(WinDivertParam::QueueLength, 2048) {
+                    warn!("Failed to set WinDivert queue length: {}", e);
+                } else {
+                    info!("Set WinDivert queue length to 2048 packets");
+                }
+                if let Err(e) = handle.set_param(WinDivertParam::QueueTime, 1024) {
+                    warn!("Failed to set WinDivert queue time: {}", e);
+                } else {
+                    info!("Set WinDivert queue time to 1024ms");
+                }
+                
                 self.handle = Some(handle);
                 self.current_config = Some(config);
                 Ok(())

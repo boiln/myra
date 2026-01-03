@@ -15,6 +15,12 @@ export interface ModuleConfig {
     buffer_ms?: number;
     keepalive_ms?: number;
     release_delay_us?: number;
+    drop?: boolean;
+    max_buffer?: number;
+    lag_bypass?: boolean;
+    freeze_mode?: boolean;
+    use_wfp?: boolean;
+    passthrough_threshold?: number;
 }
 
 export interface ModuleInfo {
@@ -58,6 +64,7 @@ export interface PacketManipulationSettings {
     bandwidth?: BandwidthOptions;
     burst?: BurstOptions;
     burst_release_delay_us?: number;
+    lag_bypass?: boolean;  // MGO2 bypass - swap IPs on send failure
 }
 
 export interface DropOptions {
@@ -73,7 +80,8 @@ export interface DelayOptions {
     inbound?: boolean;
     outbound?: boolean;
     probability: number;
-    duration_ms: number;
+    delay_ms: number;      // The actual delay time in ms
+    duration_ms: number;   // Effect duration (0 = infinite)
 }
 
 export interface ThrottleOptions {
@@ -83,6 +91,9 @@ export interface ThrottleOptions {
     probability: number;
     duration_ms: number;
     throttle_ms?: number;
+    drop?: boolean;        // If true, drop buffered packets; if false, release them
+    max_buffer?: number;   // Max packets to buffer (default 2000)
+    freeze_mode?: boolean; // If true, disable cooldown for death loop effect (may DC faster)
 }
 
 export interface ReorderOptions {
@@ -116,8 +127,12 @@ export interface BandwidthOptions {
     inbound?: boolean;
     outbound?: boolean;
     probability: number;
-    limit_kbps: number;
+    limit: number;          // Bandwidth limit in KB/s (matches Rust 'limit' field)
     duration_ms: number;
+    /** Passthrough packets smaller than this size (bytes) to keep connection alive. Default: 64 */
+    passthrough_threshold?: number;
+    /** Use WFP token bucket algorithm (like NetLimiter) instead of inline packet pacing */
+    use_wfp?: boolean;
 }
 
 export interface BurstOptions {

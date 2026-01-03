@@ -76,6 +76,8 @@ impl PacketModule for BurstModule {
             Duration::from_millis(options.buffer_ms),
             Duration::from_millis(options.keepalive_ms),
             options.probability,
+            options.inbound,
+            options.outbound,
             &mut stats.burst_stats,
         );
         Ok(())
@@ -98,6 +100,11 @@ impl PacketModule for BurstModule {
 /// **Keepalive (keepalive_ms > 0):**
 /// Lets one packet through every keepalive_ms to prevent disconnection
 ///
+/// **Direction filtering:**
+/// - `apply_inbound`: Buffer inbound (download) packets
+/// - `apply_outbound`: Buffer outbound (upload) packets
+/// - Packets not matching direction settings pass through unmodified
+///
 /// This creates the "teleport" effect - your actions are recorded locally,
 /// then all sent at once when the buffer releases.
 pub fn burst_packets<'a>(
@@ -108,6 +115,8 @@ pub fn burst_packets<'a>(
     buffer_duration: Duration,
     keepalive_duration: Duration,
     probability: Probability,
+    apply_inbound: bool,
+    apply_outbound: bool,
     stats: &mut BurstStats,
 ) {
     let now = Instant::now();
@@ -134,20 +143,39 @@ pub fn burst_packets<'a>(
         }
     }
 
-    // If keepalive is due, extract first packet to preserve it
+    // If keepalive is due, find a packet that matches direction and preserve it
     let keepalive_packet = if send_keepalive && !packets.is_empty() {
-        Some(packets.remove(0))
+        // Find first packet that would be buffered (matches direction)
+        let keepalive_idx = packets.iter().position(|p| {
+            (p.is_outbound && apply_outbound) || (!p.is_outbound && apply_inbound)
+        });
+        keepalive_idx.map(|idx| packets.remove(idx))
     } else {
         None
     };
 
-    // Buffer packets based on probability
+    // Buffer packets based on probability AND direction
     let mut i = 0;
     while i < packets.len() {
-        if rng.random::<f64>() >= probability.value() {
+        let packet = &packets[i];
+        
+        // Check if this packet's direction should be buffered
+        let should_buffer_direction = 
+            (packet.is_outbound && apply_outbound) || 
+            (!packet.is_outbound && apply_inbound);
+        
+        if !should_buffer_direction {
+            // Direction doesn't match - let packet through
             i += 1;
             continue;
         }
+        
+        if rng.random::<f64>() >= probability.value() {
+            // Probability says don't buffer
+            i += 1;
+            continue;
+        }
+        
         let packet = packets.remove(i);
         let static_packet: PacketData<'static> = unsafe { std::mem::transmute(packet) };
         buffer.push_back((static_packet, now));
@@ -213,21 +241,27 @@ mod tests {
     #[test]
     fn test_packet_buffering() {
         unsafe {
+            // Create outbound packets for testing
             let mut packets = vec![
-                PacketData::from(WinDivertPacket::<NetworkLayer>::new(vec![1, 2, 3])),
-                PacketData::from(WinDivertPacket::<NetworkLayer>::new(vec![4, 5, 6])),
+                PacketData::new(WinDivertPacket::<NetworkLayer>::new(vec![1, 2, 3]), true),
+                PacketData::new(WinDivertPacket::<NetworkLayer>::new(vec![4, 5, 6]), true),
             ];
             let mut buffer = VecDeque::new();
             let mut cycle_start = None;
+            let mut last_keepalive = None;
             let mut stats = BurstStats::new(0.05);
 
-            // Buffer with 100% probability
+            // Buffer with 100% probability, both directions
             burst_packets(
                 &mut packets,
                 &mut buffer,
                 &mut cycle_start,
+                &mut last_keepalive,
                 Duration::from_millis(1000),
+                Duration::from_millis(0), // No keepalive
                 Probability::new(1.0).unwrap(),
+                true,  // apply_inbound
+                true,  // apply_outbound
                 &mut stats,
             );
 

@@ -27,7 +27,7 @@ pub struct ModuleInfo {
 ///
 /// Contains settings that control how a module behaves,
 /// including which directions to affect and the probability of action.
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct ModuleConfig {
     /// Whether to apply to inbound traffic
     pub inbound: bool,
@@ -58,6 +58,24 @@ pub struct ModuleConfig {
     /// Optional release delay in microseconds (for burst replay speed)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub release_delay_us: Option<u64>,
+    /// Optional drop flag (for throttle - drop buffered packets instead of releasing)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub drop: Option<bool>,
+    /// Optional max buffer size (for throttle)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_buffer: Option<usize>,
+    /// MGO2 bypass mode - swap IPs on failed sends
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub lag_bypass: Option<bool>,
+    /// Freeze mode - disable cooldown for death loop effect (may DC faster)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub freeze_mode: Option<bool>,
+    /// Passthrough threshold - packets smaller than this size pass through (for bandwidth)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub passthrough_threshold: Option<usize>,
+    /// Use WFP (WinDivert) token bucket algorithm for precise rate limiting (for bandwidth)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub use_wfp: Option<bool>,
 }
 
 /// Additional parameters for a network condition simulation module.

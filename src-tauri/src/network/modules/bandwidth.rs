@@ -6,9 +6,10 @@ use crate::settings::bandwidth::BandwidthOptions;
 use std::collections::VecDeque;
 use std::time::Instant;
 
-/// Maximum size of the packet buffer in bytes (10 MB)
-/// When this limit is exceeded, packets will be dropped from the buffer
-const MAX_BUFFER_SIZE: usize = 10 * 1024 * 1024; // 10 MB in bytes
+/// Maximum size of the packet buffer in bytes (100 MB)
+/// Increased from 10MB to prevent packet drops during heavy throttling
+/// When this limit is exceeded, oldest packets will be dropped from the buffer
+const MAX_BUFFER_SIZE: usize = 100 * 1024 * 1024; // 100 MB in bytes
 
 /// Unit struct for the Bandwidth packet module.
 ///
@@ -17,12 +18,21 @@ const MAX_BUFFER_SIZE: usize = 10 * 1024 * 1024; // 10 MB in bytes
 #[derive(Debug, Default)]
 pub struct BandwidthModule;
 
+/// A packet with its scheduled release time for pacing
+#[derive(Debug)]
+struct ScheduledPacket<'a> {
+    packet: PacketData<'a>,
+    release_time: Instant,
+}
+
 /// State maintained by the bandwidth module between processing calls.
 #[derive(Debug)]
 pub struct BandwidthState {
     pub buffer: VecDeque<PacketData<'static>>,
     pub total_buffer_size: usize,
     pub last_send_time: Instant,
+    /// For packet pacing mode: tracks when the next packet can be released
+    pub next_release_time: Instant,
 }
 
 impl Default for BandwidthState {
@@ -31,6 +41,7 @@ impl Default for BandwidthState {
             buffer: VecDeque::new(),
             total_buffer_size: 0,
             last_send_time: Instant::now(),
+            next_release_time: Instant::now(),
         }
     }
 }
@@ -52,7 +63,8 @@ impl PacketModule for BandwidthModule {
     }
 
     fn should_skip(&self, options: &Self::Options) -> bool {
-        options.limit == 0
+        // Skip if limit is 0 OR if using WFP mode (external throttle handles it)
+        options.limit == 0 || options.use_wfp
     }
 
     fn process<'a>(
@@ -73,8 +85,11 @@ impl PacketModule for BandwidthModule {
             packets,
             buffer,
             &mut state.total_buffer_size,
-            &mut state.last_send_time,
+            &mut state.next_release_time,
             options.limit,
+            options.inbound,
+            options.outbound,
+            options.passthrough_threshold,
             &mut stats.bandwidth_stats,
         );
         Ok(())
@@ -93,6 +108,8 @@ impl PacketModule for BandwidthModule {
 /// * `total_buffer_size` - Running total of the buffer size in bytes
 /// * `last_send_time` - The time when packets were last sent, used to calculate allowable bytes
 /// * `bandwidth_limit_kbps` - The maximum bandwidth allowed in kilobits per second
+/// * `apply_inbound` - Whether to apply bandwidth limiting to inbound (download) traffic
+/// * `apply_outbound` - Whether to apply bandwidth limiting to outbound (upload) traffic
 /// * `stats` - Statistics tracker for bandwidth usage
 ///
 /// # Example
@@ -111,6 +128,8 @@ impl PacketModule for BandwidthModule {
 ///     &mut total_buffer_size,
 ///     &mut last_send_time,
 ///     bandwidth_limit_kbps,
+///     true,  // apply to inbound
+///     true,  // apply to outbound
 ///     &mut stats,
 /// );
 /// ```
@@ -120,44 +139,103 @@ pub fn bandwidth_limiter<'a>(
     total_buffer_size: &mut usize,
     last_send_time: &mut Instant,
     bandwidth_limit_kbps: usize,
+    apply_inbound: bool,
+    apply_outbound: bool,
+    passthrough_threshold: usize,
     stats: &mut BandwidthStats,
 ) {
-    let incoming_packet_count = packets.len();
+    bandwidth_limiter_paced(
+        packets,
+        buffer,
+        total_buffer_size,
+        last_send_time,
+        bandwidth_limit_kbps,
+        apply_inbound,
+        apply_outbound,
+        passthrough_threshold,
+        stats,
+    )
+}
 
-    stats.storage_packet_count += incoming_packet_count;
+/// Packet-pacing bandwidth limiter (like NetLimiter)
+/// Releases packets one at a time at smooth intervals based on rate limit
+/// This keeps the connection alive and provides continuous data flow
+fn bandwidth_limiter_paced<'a>(
+    packets: &mut Vec<PacketData<'a>>,
+    buffer: &mut VecDeque<PacketData<'a>>,
+    total_buffer_size: &mut usize,
+    next_release_time: &mut Instant,
+    bandwidth_limit_kbps: usize,
+    apply_inbound: bool,
+    apply_outbound: bool,
+    passthrough_threshold: usize,
+    stats: &mut BandwidthStats,
+) {
+    // Separate packets by direction and size
+    // Small packets (ACKs, keepalives) pass through to keep connection alive
+    let mut passthrough = Vec::new();
+    let mut to_buffer = Vec::new();
+    
+    for packet in packets.drain(..) {
+        let packet_size = packet.packet.data.len();
+        let matches_direction = (packet.is_outbound && apply_outbound) 
+            || (!packet.is_outbound && apply_inbound);
+        
+        // Small packets always pass through (keepalives, ACKs)
+        // This keeps the connection alive like NetLimiter does
+        let is_small = passthrough_threshold > 0 && packet_size <= passthrough_threshold;
+        
+        if matches_direction && !is_small {
+            to_buffer.push(packet);
+        } else {
+            // Packets not matching direction OR small keepalive packets pass through
+            passthrough.push(packet);
+        }
+    }
+    
+    stats.storage_packet_count += to_buffer.len();
 
-    add_packets_to_buffer(buffer, packets, total_buffer_size);
+    add_packets_to_buffer(buffer, &mut to_buffer, total_buffer_size);
     maintain_buffer_size(buffer, total_buffer_size, stats);
 
     let now = Instant::now();
-    let elapsed = now.duration_since(*last_send_time).as_secs_f64();
-    let bytes_allowed = ((bandwidth_limit_kbps as f64) * 1024.0 * elapsed) as usize;
-
-    let mut bytes_sent = 0;
     let mut to_send = Vec::new();
-
-    while let Some(packet_data) = buffer.front() {
-        let packet_size = packet_data.packet.data.len();
-
-        if bytes_sent + packet_size > bytes_allowed {
-            break;
-        }
-
-        bytes_sent += packet_size;
-
+    let mut bytes_sent = 0;
+    
+    // Packet pacing: release packets when their "transmission time" has passed
+    // At 1 KB/s, a 500 byte packet takes 500ms to "transmit"
+    // This mimics NetLimiter's smooth rate limiting
+    
+    // Only release if we've reached the next release time
+    if now >= *next_release_time {
         if let Some(packet) = remove_packet_from_buffer(buffer, total_buffer_size, stats) {
+            let packet_size = packet.packet.data.len();
+            bytes_sent = packet_size;
+            
+            // Calculate how long this packet "takes" to transmit at our rate
+            // At 1 KB/s (1024 bytes/sec), 500 bytes takes 500/1024 = 0.488 seconds
+            let bytes_per_sec = (bandwidth_limit_kbps as f64) * 1024.0;
+            let transmission_time_secs = if bytes_per_sec > 0.0 {
+                packet_size as f64 / bytes_per_sec
+            } else {
+                1.0 // Default to 1 second if rate is 0
+            };
+            
+            // Schedule next release after this packet's "transmission time"
+            let transmission_duration = std::time::Duration::from_secs_f64(transmission_time_secs);
+            *next_release_time = now + transmission_duration;
+            
             to_send.push(packet);
         }
     }
 
+    // Add passthrough packets first, then rate-limited packets
+    packets.extend(passthrough);
     packets.extend(to_send);
 
-    if bytes_sent == 0 {
-        return;
+    if bytes_sent > 0 {
+        stats.record(bytes_sent);
     }
-
-    stats.record(bytes_sent);
-    *last_send_time = now;
 }
 
 /// Adds a single packet to the buffer and updates the total buffer size
@@ -277,6 +355,9 @@ mod tests {
             total_buffer_size,
             &mut last_send_time,
             bandwidth_limit,
+            true,  // apply inbound
+            true,  // apply outbound
+            0,     // no passthrough threshold
             &mut stats,
         );
 
@@ -305,6 +386,9 @@ mod tests {
             &mut total_buffer_size,
             &mut last_send_time,
             bandwidth_limit,
+            true,
+            true,
+            0,
             &mut stats,
         );
 
@@ -330,6 +414,9 @@ mod tests {
             &mut total_buffer_size,
             &mut last_send_time,
             bandwidth_limit,
+            true,
+            true,
+            0,
             &mut stats,
         );
 
@@ -354,6 +441,9 @@ mod tests {
             &mut total_buffer_size,
             &mut last_send_time,
             bandwidth_limit,
+            true,
+            true,
+            0,
             &mut stats,
         );
 
@@ -376,6 +466,9 @@ mod tests {
             &mut total_buffer_size,
             &mut last_send_time,
             bandwidth_limit,
+            true,
+            true,
+            0,
             &mut stats,
         );
 

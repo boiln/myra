@@ -10,6 +10,7 @@ use log::{error, info};
 use tauri::State;
 
 use crate::commands::state::PacketProcessingState;
+use crate::network::core::set_high_precision_timer;
 use crate::network::processing::{receive_packets, start_packet_processing};
 use crate::settings::Settings;
 
@@ -54,6 +55,9 @@ pub async fn start_processing(
 
     // Set running flag BEFORE spawning threads so they don't exit immediately
     state.running.store(true, Ordering::SeqCst);
+
+    // Set high-precision timer like Clumsy 0.6 (Wan-Destroyer) to bypass lag detection
+    set_high_precision_timer();
 
     let running_recv = state.running.clone();
     let settings_recv = state.settings.clone();

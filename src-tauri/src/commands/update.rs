@@ -82,6 +82,10 @@ fn build_settings_from_modules(modules: Vec<ModuleInfo>) -> Result<Settings, Str
             "burst" => {
                 // Always capture release_delay_us at top level so it persists when burst is disabled
                 settings.burst_release_delay_us = module.config.release_delay_us.unwrap_or(500);
+                // Capture lag_bypass setting if present
+                if let Some(lag_bypass) = module.config.lag_bypass {
+                    settings.lag_bypass = lag_bypass;
+                }
                 settings.burst = Some(build_burst_options(module)?);
             }
             _ => {
@@ -132,9 +136,11 @@ fn build_throttle_options(module: &ModuleInfo) -> Result<ThrottleOptions, String
         inbound: module.config.inbound,
         outbound: module.config.outbound,
         probability,
-        throttle_ms: module.config.throttle_ms.unwrap_or(30),
+        throttle_ms: module.config.throttle_ms.unwrap_or(300),
         duration_ms: module.config.duration_ms.unwrap_or(0),
-        drop: false,
+        drop: module.config.drop.unwrap_or(false),
+        max_buffer: module.config.max_buffer.unwrap_or(2000),
+        freeze_mode: module.config.freeze_mode.unwrap_or(false),
     })
 }
 
@@ -165,6 +171,8 @@ fn build_bandwidth_options(module: &ModuleInfo) -> Result<BandwidthOptions, Stri
         limit,
         probability,
         duration_ms: module.config.duration_ms.unwrap_or(0),
+        passthrough_threshold: module.config.passthrough_threshold.unwrap_or(200),
+        use_wfp: module.config.use_wfp.unwrap_or(false),
     })
 }
 

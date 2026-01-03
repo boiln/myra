@@ -3,6 +3,7 @@
 /// This struct tracks statistics related to network throttling, including:
 /// - Whether throttling is currently active
 /// - The total number of packets dropped due to throttling
+/// - Current number of buffered packets
 #[derive(Debug)]
 pub struct ThrottleStats {
     /// Flag indicating whether throttling is currently active
@@ -10,6 +11,9 @@ pub struct ThrottleStats {
 
     /// Total number of packets dropped due to throttling
     pub(crate) dropped_count: usize,
+
+    /// Current number of packets in the buffer
+    pub(crate) buffered_count: usize,
 }
 
 impl Default for ThrottleStats {
@@ -34,6 +38,7 @@ impl ThrottleStats {
         ThrottleStats {
             is_throttling: false,
             dropped_count: 0,
+            buffered_count: 0,
         }
     }
 
@@ -61,6 +66,12 @@ impl ThrottleStats {
     pub fn reset(&mut self) {
         self.is_throttling = false;
         self.dropped_count = 0;
+        self.buffered_count = 0;
+    }
+
+    /// Returns the current number of buffered packets
+    pub fn buffered_count(&self) -> usize {
+        self.buffered_count
     }
 }
 

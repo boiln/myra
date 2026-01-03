@@ -95,6 +95,10 @@ fn main() {
             commands::stop_flow_tracking,
             commands::get_flow_filter,
             commands::is_flow_tracking,
+            // Traffic Control (NetLimiter-style) commands
+            commands::start_tc_bandwidth,
+            commands::stop_tc_bandwidth,
+            commands::get_tc_bandwidth_status,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

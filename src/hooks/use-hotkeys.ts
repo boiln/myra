@@ -32,9 +32,9 @@ export function useHotkeys() {
                 console.log("Hotkey: Toggle Filter");
                 toggleActive();
             },
-            toggleFreeze: () => {
-                console.log("Hotkey: Toggle Freeze");
-                toggleModule("drop", "Freeze");
+            toggleDrop: () => {
+                console.log("Hotkey: Toggle Drop");
+                toggleModule("drop", "Drop");
             },
             toggleDelay: () => {
                 console.log("Hotkey: Toggle Delay");

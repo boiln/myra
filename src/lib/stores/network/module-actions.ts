@@ -24,7 +24,8 @@ export const createModuleSlice: StateCreator<
             case "delay":
                 newSettings.delay = {
                     probability,
-                    duration_ms: config.duration_ms || 100,
+                    delay_ms: config.duration_ms || 100,  // UI duration_ms is the delay time
+                    duration_ms: 0,  // Effect duration (0 = infinite)
                 };
                 break;
 
@@ -53,8 +54,9 @@ export const createModuleSlice: StateCreator<
             case "bandwidth":
                 newSettings.bandwidth = {
                     probability,
-                    limit_kbps: config.limit_kbps || 500,
+                    limit: config.limit_kbps || 500,  // Map UI limit_kbps to Rust limit
                     duration_ms,
+                    use_wfp: config.use_wfp ?? false,
                 };
                 break;
 
@@ -89,7 +91,7 @@ export const createModuleSlice: StateCreator<
         }
 
         try {
-            await ManipulationService.updateSettings(newSettings);
+            await ManipulationService.updateSettings(newSettings, get().isActive);
             await get().loadStatus();
         } catch (error) {
             console.error("Failed to update module config:", error);
@@ -120,7 +122,7 @@ export const createModuleSlice: StateCreator<
         });
 
         try {
-            await ManipulationService.updateSettings(await get().buildSettings());
+            await ManipulationService.updateSettings(await get().buildSettings(), get().isActive);
         } catch (error) {
             console.error("Failed to update module settings:", error);
         }
@@ -167,7 +169,7 @@ export const createModuleSlice: StateCreator<
         });
 
         try {
-            await ManipulationService.updateSettings(await get().buildSettings());
+            await ManipulationService.updateSettings(await get().buildSettings(), get().isActive);
         } catch (error) {
             console.error("Failed to apply module settings:", error);
         }

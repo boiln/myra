@@ -6,6 +6,10 @@ fn default_true() -> bool {
     true
 }
 
+fn default_max_buffer() -> usize {
+    2000
+}
+
 #[derive(Parser, Debug, Serialize, Deserialize, Clone)]
 pub struct ThrottleOptions {
     /// Whether this module is enabled
@@ -28,9 +32,10 @@ pub struct ThrottleOptions {
     #[serde(default)]
     pub probability: Probability,
 
-    /// Duration in milliseconds for each throttling period
-    #[arg(long = "throttle-ms", default_value_t = 30, id = "throttle-ms")]
-    #[serde(default)]
+    /// Timeframe in milliseconds - how long to buffer packets before releasing/dropping
+    /// This is the "lag window" duration
+    #[arg(long = "throttle-ms", default_value_t = 300, id = "throttle-ms")]
+    #[serde(default = "default_throttle_ms")]
     pub throttle_ms: u64,
 
     /// Duration for which the effect is applied in milliseconds (0 = infinite)
@@ -42,10 +47,28 @@ pub struct ThrottleOptions {
     #[serde(default)]
     pub duration_ms: u64,
 
-    /// Indicates whether throttled packets should be dropped
+    /// If true, DROP all buffered packets when timeframe ends (like Clumsy's "Drop Throttled")
+    /// If false, RELEASE all buffered packets when timeframe ends
     #[arg(long = "throttle-drop", default_value_t = false, id = "throttle-drop")]
     #[serde(default)]
     pub drop: bool,
+
+    /// Maximum number of packets to buffer (default 2000)
+    /// When buffer is full, triggers immediate release/drop
+    #[arg(long = "throttle-max-buffer", default_value_t = 2000, id = "throttle-max-buffer")]
+    #[serde(default = "default_max_buffer")]
+    pub max_buffer: usize,
+
+    /// Freeze mode - disables cooldown gap between throttle cycles
+    /// When true: Continuous buffering for freeze effect (may disconnect faster)
+    /// When false: Normal mode with cooldown between cycles (more stable)
+    #[arg(long = "throttle-freeze-mode", default_value_t = false, id = "throttle-freeze-mode")]
+    #[serde(default)]
+    pub freeze_mode: bool,
+}
+
+fn default_throttle_ms() -> u64 {
+    300
 }
 
 impl Default for ThrottleOptions {
@@ -55,9 +78,11 @@ impl Default for ThrottleOptions {
             inbound: true,
             outbound: true,
             probability: Probability::default(),
-            throttle_ms: 30,
+            throttle_ms: 300,
             duration_ms: 0,
             drop: false,
+            max_buffer: 2000,
+            freeze_mode: false,
         }
     }
 }

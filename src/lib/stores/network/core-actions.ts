@@ -45,7 +45,7 @@ export const createCoreSlice: StateCreator<
                 },
                 {
                     name: "drop",
-                    display_name: "Freeze",
+                    display_name: "Drop",
                     enabled: settings.drop?.enabled ?? false,
                     config: {
                         inbound: settings.drop?.inbound ?? getExistingDirections("drop").inbound,
@@ -96,7 +96,7 @@ export const createCoreSlice: StateCreator<
                             ? Math.round(settings.bandwidth.probability * 100)
                             : 100,
                         enabled: settings.bandwidth?.enabled ?? false,
-                        limit_kbps: settings.bandwidth?.limit_kbps || 500,
+                        limit_kbps: settings.bandwidth?.limit || 500,
                         duration_ms: 0, // 0 = infinite effect duration
                     },
                 },

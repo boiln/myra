@@ -23,8 +23,10 @@ pub mod duplicate;
 pub mod manipulation;
 pub mod reorder;
 pub mod tamper;
+pub mod tc_bandwidth;
 pub mod throttle;
 
 // Re-export commonly used types
 pub use builder::SettingsBuilder;
 pub use manipulation::Settings;
+pub use tc_bandwidth::{TcBandwidthOptions, TcDirection};

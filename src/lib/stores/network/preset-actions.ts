@@ -39,7 +39,7 @@ export const createPresetSlice: StateCreator<
                 enabled: binding.enabled,
             }));
             
-            await ManipulationService.updateSettings(settings);
+            await ManipulationService.updateSettings(settings, get().isActive);
             await ManipulationService.updateFilter(filter);
             await ManipulationService.saveConfig(name, filterTarget || undefined, hotkeys);
             await get().loadPresets();
@@ -55,7 +55,7 @@ export const createPresetSlice: StateCreator<
 
             if (!response) return;
 
-            await ManipulationService.updateSettings(response.settings);
+            await ManipulationService.updateSettings(response.settings, get().isActive);
 
             if (response.filter) {
                 await ManipulationService.updateFilter(response.filter);
@@ -110,13 +110,18 @@ export const createPresetSlice: StateCreator<
         try {
             const configs = await ManipulationService.listConfigs();
 
-            if (configs.includes(DEFAULT_PRESET_NAME)) return;
+            if (configs.includes(DEFAULT_PRESET_NAME)) {
+                // Default config exists - LOAD it on startup
+                await get().loadPreset(DEFAULT_PRESET_NAME);
+                return;
+            }
 
+            // No default config exists - create one from current settings
             const settings = await ManipulationService.getSettings();
             const filter = await ManipulationService.getFilter();
             const filterTarget = get().filterTarget;
 
-            await ManipulationService.updateSettings(settings);
+            await ManipulationService.updateSettings(settings, get().isActive);
             await ManipulationService.updateFilter(filter);
             await ManipulationService.saveConfig(DEFAULT_PRESET_NAME, filterTarget || undefined);
 

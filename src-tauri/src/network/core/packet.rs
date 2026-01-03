@@ -14,15 +14,31 @@ pub struct PacketData<'a> {
 
     /// Timestamp when the packet was captured
     pub arrival_time: Instant,
+
+    /// Whether this packet is outbound (upload) or inbound (download)
+    pub is_outbound: bool,
+}
+
+impl<'a> PacketData<'a> {
+    /// Creates a PacketData instance from a WinDivertPacket with direction info.
+    pub fn new(packet: WinDivertPacket<'a, NetworkLayer>, is_outbound: bool) -> Self {
+        PacketData {
+            packet,
+            arrival_time: Instant::now(),
+            is_outbound,
+        }
+    }
 }
 
 impl<'a> From<WinDivertPacket<'a, NetworkLayer>> for PacketData<'a> {
     /// Creates a PacketData instance from a WinDivertPacket,
     /// automatically recording the current time as arrival time.
+    /// Defaults to outbound=false (inbound) when direction is unknown.
     fn from(packet: WinDivertPacket<'a, NetworkLayer>) -> Self {
         PacketData {
             packet,
             arrival_time: Instant::now(),
+            is_outbound: false, // Default when direction unknown
         }
     }
 }

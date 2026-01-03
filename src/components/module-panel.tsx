@@ -64,6 +64,15 @@ export function ModulePanel() {
         }
     };
 
+    const handleBooleanSettingChange = async (module: ModuleInfo, setting: string, value: boolean) => {
+        try {
+            const newConfig = { ...module.config, [setting]: value };
+            await updateModuleSettings(module.name || "", newConfig);
+        } catch (error) {
+            console.error("Error updating boolean setting:", error);
+        }
+    };
+
     return (
         <div className="relative z-10 flex flex-col">
             <Card className="border-border bg-card/90">
@@ -87,6 +96,7 @@ export function ModulePanel() {
                                     onModuleToggle={handleModuleToggle}
                                     onDirectionToggle={handleDirectionToggle}
                                     onSettingChange={handleSettingChange}
+                                    onBooleanSettingChange={handleBooleanSettingChange}
                                 />
                             ))}
                         </div>

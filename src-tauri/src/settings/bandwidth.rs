@@ -6,6 +6,10 @@ fn default_true() -> bool {
     true
 }
 
+fn default_passthrough_threshold() -> usize {
+    200  // Increased to let kill confirmations and small control packets through
+}
+
 #[derive(Parser, Debug, Serialize, Deserialize, Default, Clone)]
 pub struct BandwidthOptions {
     /// Whether this module is enabled
@@ -41,4 +45,18 @@ pub struct BandwidthOptions {
     )]
     #[serde(default)]
     pub duration_ms: u64,
+
+    /// Passthrough packets smaller than this size (bytes) to keep connection alive
+    /// Small packets are usually ACKs/keepalives. Set to 0 to disable.
+    /// Default: 64 bytes
+    #[arg(skip)]
+    #[serde(default = "default_passthrough_threshold")]
+    pub passthrough_threshold: usize,
+
+    /// Use WFP (WinDivert) token bucket algorithm for precise rate limiting
+    /// When true: Uses separate WinDivert handle with proper token bucket (like NetLimiter)
+    /// When false: Uses inline packet pacing through the main processor
+    #[arg(skip)]
+    #[serde(default)]
+    pub use_wfp: bool,
 }

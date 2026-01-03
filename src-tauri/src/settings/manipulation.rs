@@ -5,6 +5,7 @@ use crate::settings::drop::DropOptions;
 use crate::settings::duplicate::DuplicateOptions;
 use crate::settings::reorder::ReorderOptions;
 use crate::settings::tamper::TamperOptions;
+use crate::settings::tc_bandwidth::TcBandwidthOptions;
 use crate::settings::throttle::ThrottleOptions;
 use serde::{Deserialize, Serialize, Serializer};
 
@@ -65,6 +66,16 @@ pub struct Settings {
     /// even when burst is disabled
     #[serde(default = "default_burst_release_delay")]
     pub burst_release_delay_us: u64,
+
+    /// Enable MGO2/lag bypass mode - when send fails, swap IPs and retry
+    /// This technique can bypass certain game anti-lag detection
+    #[serde(default)]
+    pub lag_bypass: bool,
+
+    /// Traffic Control bandwidth limiting (NetLimiter-style)
+    /// Works at OS socket layer for true rate limiting
+    #[serde(default, serialize_with = "serialize_option")]
+    pub tc_bandwidth: Option<TcBandwidthOptions>,
 }
 
 fn default_burst_release_delay() -> u64 {

@@ -7,7 +7,7 @@ import { HotkeyBadge } from "@/components/hotkey-badge";
 
 // Map module names to hotkey actions
 const MODULE_HOTKEY_ACTIONS: Record<string, string> = {
-    drop: "toggleFreeze",
+    drop: "toggleDrop",
     delay: "toggleDelay",
     throttle: "toggleThrottle",
     duplicate: "toggleDuplicate",
@@ -23,6 +23,7 @@ interface ModuleRowProps {
     onModuleToggle: (module: ModuleInfo) => Promise<void>;
     onDirectionToggle: (module: ModuleInfo, direction: "inbound" | "outbound") => Promise<void>;
     onSettingChange: (module: ModuleInfo, setting: string, value: number) => void;
+    onBooleanSettingChange?: (module: ModuleInfo, setting: string, value: boolean) => void;
 }
 
 export function ModuleRow({
@@ -31,6 +32,7 @@ export function ModuleRow({
     onModuleToggle,
     onDirectionToggle,
     onSettingChange,
+    onBooleanSettingChange,
 }: ModuleRowProps) {
     const [inputValues, setInputValues] = React.useState<Record<string, string>>({});
 
@@ -94,7 +96,7 @@ export function ModuleRow({
     };
 
     return (
-        <div key={module.name} className="flex items-center gap-x-4 py-2 first:pt-0.5 last:pb-0.5">
+        <div key={module.name} className="flex items-center gap-x-3 py-2 first:pt-0.5 last:pb-0.5">
             {/* Active Indicator */}
             <span
                 className={`h-2 w-2 shrink-0 rounded-full ${
@@ -104,21 +106,21 @@ export function ModuleRow({
             ></span>
 
             {/* Module Enable Checkbox */}
-            <div className="flex w-[110px] shrink-0 items-center gap-1.5">
+            <div className="flex shrink-0 items-center gap-1.5">
                 <MyraCheckbox
                     id={`${module.name}-enable`}
                     checked={module.enabled}
                     onCheckedChange={() => onModuleToggle(module)}
                     label={module.display_name}
-                    labelClassName="text-sm font-medium text-foreground"
+                    labelClassName="text-sm font-medium text-foreground w-[70px]"
                 />
                 {MODULE_HOTKEY_ACTIONS[module.name] && (
                     <HotkeyBadge action={MODULE_HOTKEY_ACTIONS[module.name]} />
                 )}
             </div>
 
-            {/* Module-specific input - inline label like clumsy */}
-            <div className="w-[120px] shrink-0">
+            {/* Module-specific inputs - right after module name */}
+            <div className="flex shrink-0 items-center gap-2">
                 {module.name === "delay" && (
                     <div className="flex items-center gap-1">
                         <Label
@@ -139,23 +141,35 @@ export function ModuleRow({
                     </div>
                 )}
                 {module.name === "throttle" && (
-                    <div className="flex items-center gap-1">
-                        <Label
-                            htmlFor={`${module.name}-throttle-time`}
-                            className="whitespace-nowrap text-xs text-foreground/70"
-                        >
-                            Time(ms):
-                        </Label>
-                        <Input
-                            id={`${module.name}-throttle-time`}
-                            value={getDisplayValue("throttle_ms")}
-                            onChange={(e) => handleInputChange(e, "throttle_ms", 1, 60000, true)}
-                            className="h-6 w-[50px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
+                    <>
+                        <div className="flex items-center gap-1">
+                            <Label
+                                htmlFor={`${module.name}-throttle-time`}
+                                className="whitespace-nowrap text-xs text-foreground/70"
+                            >
+                                Time(ms):
+                            </Label>
+                            <Input
+                                id={`${module.name}-throttle-time`}
+                                value={getDisplayValue("throttle_ms")}
+                                onChange={(e) => handleInputChange(e, "throttle_ms", 1, 60000, true)}
+                                className="h-6 w-[50px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
+                                disabled={!module.enabled}
+                                type="text"
+                                inputMode="numeric"
+                            />
+                        </div>
+                        <MyraCheckbox
+                            id={`${module.name}-freeze-mode`}
+                            checked={module.config.freeze_mode ?? false}
+                            onCheckedChange={(checked) => 
+                                onBooleanSettingChange?.(module, "freeze_mode", checked === true)
+                            }
                             disabled={!module.enabled}
-                            type="text"
-                            inputMode="numeric"
+                            label="Freeze"
+                            labelClassName={`text-xs text-foreground ${!module.enabled ? "opacity-50" : ""}`}
                         />
-                    </div>
+                    </>
                 )}
                 {module.name === "duplicate" && (
                     <div className="flex items-center gap-1">
@@ -169,7 +183,7 @@ export function ModuleRow({
                             id={`${module.name}-count`}
                             value={getDisplayValue("count")}
                             onChange={(e) => handleInputChange(e, "count", 1, 10, true)}
-                            className="h-6 w-[50px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
+                            className="h-6 w-[40px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
                             disabled={!module.enabled}
                             type="text"
                             inputMode="numeric"
@@ -177,23 +191,36 @@ export function ModuleRow({
                     </div>
                 )}
                 {module.name === "bandwidth" && (
-                    <div className="flex items-center gap-1">
-                        <Label
-                            htmlFor={`${module.name}-limit`}
-                            className="whitespace-nowrap text-xs text-foreground/70"
-                        >
-                            Limit(KB/s):
-                        </Label>
-                        <Input
-                            id={`${module.name}-limit`}
-                            value={getDisplayValue("limit_kbps")}
-                            onChange={(e) => handleInputChange(e, "limit_kbps", 1, 100000, true)}
-                            className="h-6 w-[50px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
+                    <>
+                        <div className="flex items-center gap-1">
+                            <Label
+                                htmlFor={`${module.name}-limit`}
+                                className="whitespace-nowrap text-xs text-foreground/70"
+                            >
+                                Limit(KB/s):
+                            </Label>
+                            <Input
+                                id={`${module.name}-limit`}
+                                value={getDisplayValue("limit_kbps")}
+                                onChange={(e) => handleInputChange(e, "limit_kbps", 0.1, 100000, false)}
+                                className="h-6 w-[55px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
+                                disabled={!module.enabled}
+                                type="text"
+                                inputMode="decimal"
+                                step="0.1"
+                            />
+                        </div>
+                        <MyraCheckbox
+                            id={`${module.name}-use-wfp`}
+                            checked={module.config.use_wfp ?? false}
+                            onCheckedChange={(checked) => 
+                                onBooleanSettingChange?.(module, "use_wfp", checked === true)
+                            }
                             disabled={!module.enabled}
-                            type="text"
-                            inputMode="numeric"
+                            label="WFP"
+                            labelClassName={`text-xs text-foreground ${!module.enabled ? "opacity-50" : ""}`}
                         />
-                    </div>
+                    </>
                 )}
                 {module.name === "reorder" && (
                     <div className="flex items-center gap-1">
@@ -215,72 +242,73 @@ export function ModuleRow({
                     </div>
                 )}
                 {module.name === "burst" && (
-                    <div className="flex items-center gap-1">
-                        <Label
-                            htmlFor={`${module.name}-buffer`}
-                            className="whitespace-nowrap text-xs text-foreground/70"
-                        >
-                            Buffer(ms):
-                        </Label>
-                        <Input
-                            id={`${module.name}-buffer`}
-                            value={getDisplayValue("buffer_ms")}
-                            onChange={(e) => handleInputChange(e, "buffer_ms", 0, 10000, true)}
-                            className="h-6 w-[50px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
-                            disabled={!module.enabled}
-                            type="text"
-                            inputMode="numeric"
-                        />
-                    </div>
-                )}
-                {module.name === "burst" && (
-                    <div className="flex items-center gap-1">
-                        <Label
-                            htmlFor={`${module.name}-keepalive`}
-                            className="whitespace-nowrap text-xs text-foreground/70"
-                        >
-                            Keepalive(ms):
-                        </Label>
-                        <Input
-                            id={`${module.name}-keepalive`}
-                            value={getDisplayValue("keepalive_ms")}
-                            onChange={(e) => handleInputChange(e, "keepalive_ms", 0, 5000, true)}
-                            className="h-6 w-[50px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
-                            disabled={!module.enabled}
-                            type="text"
-                            inputMode="numeric"
-                        />
-                    </div>
-                )}
-                {module.name === "burst" && (
-                    <div className="flex items-center gap-1">
-                        <Label
-                            htmlFor={`${module.name}-release-delay`}
-                            className="whitespace-nowrap text-xs text-foreground/70"
-                        >
-                            Replay(μs):
-                        </Label>
-                        <Input
-                            id={`${module.name}-release-delay`}
-                            value={getDisplayValue("release_delay_us")}
-                            onChange={(e) => handleInputChange(e, "release_delay_us", 0, 50000, true)}
-                            className="h-6 w-[55px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
-                            disabled={!module.enabled}
-                            type="text"
-                            inputMode="numeric"
-                        />
-                    </div>
+                    <>
+                        <div className="flex items-center gap-1">
+                            <Label
+                                htmlFor={`${module.name}-buffer`}
+                                className="whitespace-nowrap text-xs text-foreground/70"
+                            >
+                                Buffer(ms):
+                            </Label>
+                            <Input
+                                id={`${module.name}-buffer`}
+                                value={getDisplayValue("buffer_ms")}
+                                onChange={(e) => handleInputChange(e, "buffer_ms", 0, 10000, true)}
+                                className="h-6 w-[45px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
+                                disabled={!module.enabled}
+                                type="text"
+                                inputMode="numeric"
+                            />
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <Label
+                                htmlFor={`${module.name}-keepalive`}
+                                className="whitespace-nowrap text-xs text-foreground/70"
+                            >
+                                Keepalive(ms):
+                            </Label>
+                            <Input
+                                id={`${module.name}-keepalive`}
+                                value={getDisplayValue("keepalive_ms")}
+                                onChange={(e) => handleInputChange(e, "keepalive_ms", 0, 5000, true)}
+                                className="h-6 w-[45px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
+                                disabled={!module.enabled}
+                                type="text"
+                                inputMode="numeric"
+                            />
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <Label
+                                htmlFor={`${module.name}-release-delay`}
+                                className="whitespace-nowrap text-xs text-foreground/70"
+                            >
+                                Replay(μs):
+                            </Label>
+                            <Input
+                                id={`${module.name}-release-delay`}
+                                value={getDisplayValue("release_delay_us")}
+                                onChange={(e) => handleInputChange(e, "release_delay_us", 0, 50000, true)}
+                                className="h-6 w-[50px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
+                                disabled={!module.enabled}
+                                type="text"
+                                inputMode="numeric"
+                            />
+                        </div>
+                    </>
                 )}
             </div>
 
-            {/* Direction Controls - like clumsy */}
+            {/* Spacer to push right controls to the right */}
+            <div className="flex-1" />
+
+            {/* Direction Controls - docked right */}
             <div className="flex items-center gap-2">
                 <MyraCheckbox
                     id={`${module.name}-inbound`}
                     checked={module.config.inbound}
                     onCheckedChange={() => onDirectionToggle(module, "inbound")}
                     disabled={!module.enabled}
-                    label="Download"
+                    label="In"
                     labelClassName={`text-xs text-foreground ${!module.enabled ? "opacity-50" : ""}`}
                 />
                 <MyraCheckbox
@@ -288,38 +316,38 @@ export function ModuleRow({
                     checked={module.config.outbound}
                     onCheckedChange={() => onDirectionToggle(module, "outbound")}
                     disabled={!module.enabled}
-                    label="Upload"
+                    label="Out"
                     labelClassName={`text-xs text-foreground ${!module.enabled ? "opacity-50" : ""}`}
                 />
             </div>
 
-            {/* Chance - inline label like clumsy */}
+            {/* Chance - docked right */}
             <div className="flex items-center gap-1">
                 <Label
                     htmlFor={`${module.name}-chance`}
                     className="whitespace-nowrap text-xs text-foreground/70"
                 >
-                    Chance(%):
+                    %:
                 </Label>
                 <Input
                     id={`${module.name}-chance`}
                     value={getDisplayValue("chance")}
                     onChange={(e) => handleInputChange(e, "chance", 0, 100)}
-                    className="h-6 w-[45px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
+                    className="h-6 w-[40px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
                     disabled={!module.enabled}
                     type="text"
                     inputMode="decimal"
                 />
             </div>
 
-            {/* Duration - for modules that need it (not delay since it uses Time above) */}
+            {/* Duration - docked right (not for delay since it uses Time above) */}
             {module.name !== "delay" && (
                 <div className="flex items-center gap-1">
                     <Label
                         htmlFor={`${module.name}-duration`}
                         className="whitespace-nowrap text-xs text-foreground/70"
                     >
-                        Duration(ms):
+                        Dur(ms):
                     </Label>
                     <Input
                         id={`${module.name}-duration`}

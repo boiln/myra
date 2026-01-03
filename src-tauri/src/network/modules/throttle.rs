@@ -4,29 +4,40 @@ use crate::network::modules::stats::throttle_stats::ThrottleStats;
 use crate::network::modules::traits::{ModuleContext, PacketModule};
 use crate::network::types::probability::Probability;
 use crate::settings::throttle::ThrottleOptions;
+use log::{debug, info};
 use rand::Rng;
 use std::collections::VecDeque;
 use std::time::{Duration, Instant};
 
 /// Unit struct for the Throttle packet module.
 ///
-/// This module simulates network throttling by either dropping packets
-/// or storing them temporarily during throttle periods.
+/// This module implements Clumsy-style throttling:
+/// - Buffers packets during a timeframe
+/// - When timeframe ends OR buffer is full, either releases or drops all packets
+/// - Supports direction filtering (inbound/outbound)
 #[derive(Debug, Default)]
 pub struct ThrottleModule;
 
 /// State maintained by the throttle module between processing calls.
 #[derive(Debug)]
 pub struct ThrottleState {
-    pub storage: VecDeque<PacketData<'static>>,
-    pub throttled_start_time: Instant,
+    /// Queue of buffered packets
+    pub buffer: VecDeque<PacketData<'static>>,
+    /// When the current throttle cycle started (None = not throttling)
+    pub cycle_start: Option<Instant>,
+    /// When the last flush occurred (for cooldown period)
+    pub last_flush: Option<Instant>,
+    /// When we last let a packet through as keepalive (during throttle)
+    pub last_leak: Option<Instant>,
 }
 
 impl Default for ThrottleState {
     fn default() -> Self {
         Self {
-            storage: VecDeque::new(),
-            throttled_start_time: Instant::now(),
+            buffer: VecDeque::new(),
+            cycle_start: None,
+            last_flush: None,
+            last_leak: None,
         }
     }
 }
@@ -56,161 +67,319 @@ impl PacketModule for ThrottleModule {
     ) -> Result<()> {
         let mut stats = ctx.write_stats(self.name())?;
 
-        let storage: &mut VecDeque<PacketData<'a>> =
-            unsafe { std::mem::transmute(&mut state.storage) };
+        let buffer: &mut VecDeque<PacketData<'a>> =
+            unsafe { std::mem::transmute(&mut state.buffer) };
 
-        throttle_packages(
+        throttle_packets(
             packets,
-            storage,
-            &mut state.throttled_start_time,
+            buffer,
+            &mut state.cycle_start,
+            &mut state.last_flush,
+            &mut state.last_leak,
             options.probability,
             Duration::from_millis(options.throttle_ms),
             options.drop,
+            options.max_buffer,
+            options.inbound,
+            options.outbound,
+            options.freeze_mode,
             &mut stats.throttle_stats,
         );
         Ok(())
     }
 }
 
-/// Throttles network packets by either dropping them or storing them temporarily
+/// Network throttle implementation.
 ///
-/// This function simulates network throttling by controlling the flow of packets.
-/// When throttling is active (based on probability and duration):
-/// - If drop mode is enabled, packets are discarded entirely
-/// - If drop mode is disabled, packets are stored temporarily and released when throttling stops
+/// # How it works
+///
+/// 1. When a packet matching direction arrives, start buffering
+/// 2. Buffer packets for the timeframe duration OR until max_buffer reached
+/// 3. When timeframe ends or buffer full:
+///    - If drop=true: DROP all buffered packets
+///    - If drop=false: RELEASE all buffered packets at once
+/// 4. Repeat based on probability
+///
+/// This creates a "stutter" effect - packets are held then burst released.
 ///
 /// # Arguments
 ///
-/// * `packets` - Vector of packets to process; may be modified by this function
-/// * `storage` - Queue for storing packets when throttling is active and drop mode is disabled
-/// * `throttled_start_time` - Time when the current throttling period began
-/// * `throttle_probability` - Probability of starting a new throttling period
-/// * `throttle_duration` - Duration of each throttling period
-/// * `drop` - If true, packets are dropped during throttling; if false, they are stored
-/// * `stats` - Statistics collector for throttling operations
-///
-/// # Example
-///
-/// ```
-/// let mut packets = vec![packet1, packet2];
-/// let mut storage = VecDeque::new();
-/// let mut throttled_start_time = Instant::now();
-/// let throttle_probability = Probability::new(0.1).unwrap(); // 10% chance
-/// let throttle_duration = Duration::from_millis(500);
-/// let drop = false; // Store packets rather than dropping them
-/// let mut stats = ThrottleStats::new();
-///
-/// throttle_packages(
-///     &mut packets,
-///     &mut storage,
-///     &mut throttled_start_time,
-///     throttle_probability,
-///     throttle_duration,
-///     drop,
-///     &mut stats,
-/// );
-/// ```
-pub fn throttle_packages<'a>(
+/// * `packets` - Packets to process
+/// * `buffer` - Storage for buffered packets
+/// * `cycle_start` - When current throttle cycle started
+/// * `last_flush` - When the last flush occurred (for cooldown)
+/// * `probability` - Chance of starting a new throttle cycle
+/// * `timeframe` - How long to buffer packets
+/// * `drop` - If true, drop buffered packets; if false, release them
+/// * `max_buffer` - Maximum packets to buffer before forcing release/drop
+/// * `apply_inbound` - Apply to inbound (download) packets
+/// * `apply_outbound` - Apply to outbound (upload) packets
+/// * `freeze_mode` - If true, disable cooldown for continuous buffering (freeze effect)
+/// * `last_leak` - When we last let a packet through as keepalive
+/// * `stats` - Statistics tracker
+pub fn throttle_packets<'a>(
     packets: &mut Vec<PacketData<'a>>,
-    storage: &mut VecDeque<PacketData<'a>>,
-    throttled_start_time: &mut Instant,
-    throttle_probability: Probability,
-    throttle_duration: Duration,
+    buffer: &mut VecDeque<PacketData<'a>>,
+    cycle_start: &mut Option<Instant>,
+    last_flush: &mut Option<Instant>,
+    last_leak: &mut Option<Instant>,
+    probability: Probability,
+    timeframe: Duration,
     drop: bool,
+    max_buffer: usize,
+    apply_inbound: bool,
+    apply_outbound: bool,
+    freeze_mode: bool,
     stats: &mut ThrottleStats,
 ) {
-    if is_throttled(throttle_duration, throttled_start_time) {
+    let now = Instant::now();
+    
+    // Cooldown period after flush
+    // In freeze_mode: No cooldown - continuous buffering creates freeze effect
+    // In normal mode: 40ms cooldown - allows packets to flow, prevents disconnects
+    let in_cooldown = if freeze_mode {
+        false // Freeze mode: no cooldown, immediate re-buffer
+    } else {
+        let cooldown = Duration::from_millis(40);
+        match last_flush {
+            Some(flush_time) => now.duration_since(*flush_time) < cooldown,
+            None => false,
+        }
+    };
+    let _ = last_leak; // Reserved for future use
+
+    // Check if we need to release/drop buffered packets
+    let should_flush = match cycle_start {
+        Some(start) => {
+            let elapsed = now.duration_since(*start);
+            // Flush if timeframe elapsed OR buffer full
+            elapsed >= timeframe || buffer.len() >= max_buffer
+        }
+        None => false,
+    };
+
+    // Track if we just flushed to prevent immediate re-buffering
+    let mut just_flushed = false;
+    
+    if should_flush {
+        let count = buffer.len();
         if drop {
-            stats.dropped_count += packets.len();
-            packets.clear();
+            // Drop Throttled mode - discard all buffered packets
+            info!("THROTTLE: Dropping {} buffered packets", count);
+            buffer.clear();
+            stats.dropped_count += count;
+        } else {
+            // Release mode - send all buffered packets at once
+            info!("THROTTLE: Releasing {} buffered packets (throttle was {}ms)", 
+                  count, timeframe.as_millis());
+            while let Some(packet) = buffer.pop_front() {
+                packets.push(packet);
+            }
+        }
+        *cycle_start = None;
+        *last_flush = Some(now); // Start cooldown
+        stats.is_throttling = false;
+        just_flushed = true; // Mark that we just flushed
+    }
+
+    // If not currently throttling and not in cooldown (or just flushed), check if we should start
+    // In freeze_mode: can start immediately after flush (just_flushed doesn't block)
+    // In normal mode: just_flushed prevents immediate restart, cooldown prevents on next call
+    let can_start_new_cycle = if freeze_mode {
+        cycle_start.is_none() // In freeze mode, only check if not already throttling
+    } else {
+        cycle_start.is_none() && !in_cooldown && !just_flushed // Normal mode: respect cooldown and just_flushed
+    };
+    
+    if can_start_new_cycle {
+        if rand::rng().random_bool(probability.value()) {
+            *cycle_start = Some(now);
+            info!("THROTTLE: Starting new {}ms throttle cycle", timeframe.as_millis());
+        }
+    } else if in_cooldown {
+        // During cooldown, packets pass through freely
+        // This is logged only occasionally to avoid spam
+        if stats.buffered_count > 0 {
+            info!("THROTTLE: In cooldown, {} packets passing through", packets.len());
+            stats.buffered_count = 0;
+        }
+    }
+
+    // If throttling, buffer matching packets
+    // But let very small packets through (ACKs, keepalives) to maintain connection
+    const KEEPALIVE_THRESHOLD: usize = 80; // Packets <= this size pass through (ACKs, keepalives)
+    
+    if cycle_start.is_some() {
+        let mut buffered_this_cycle = 0;
+        let mut passthrough_count = 0;
+        let mut i = 0;
+        while i < packets.len() {
+            let packet = &packets[i];
+
+            // Check direction
+            let should_buffer = (packet.is_outbound && apply_outbound)
+                || (!packet.is_outbound && apply_inbound);
+
+            if !should_buffer {
+                i += 1;
+                continue;
+            }
+
+            // Let very small packets through to keep connection alive (ACKs, TCP keepalives)
+            // This mimics how NetLimiter keeps TCP happy at socket layer
+            let packet_size = packet.packet.data.len();
+            if packet_size <= KEEPALIVE_THRESHOLD {
+                // Small packet - let it through as keepalive
+                passthrough_count += 1;
+                i += 1;
+                continue;
+            }
+
+            // Check buffer limit
+            if buffer.len() >= max_buffer {
+                // Buffer full - stop buffering, will flush next cycle
+                break;
+            }
+
+            let packet = packets.remove(i);
+            let static_packet: PacketData<'static> = unsafe { std::mem::transmute(packet) };
+            buffer.push_back(static_packet);
+            buffered_this_cycle += 1;
         }
 
-        if !drop {
-            storage.extend(packets.drain(..));
+        if buffered_this_cycle > 0 || passthrough_count > 0 {
+            debug!("THROTTLE: Buffered {} packets, {} small packets passed through (total buffered: {})", 
+                  buffered_this_cycle, passthrough_count, buffer.len());
         }
 
         stats.is_throttling = true;
-        return;
+        stats.buffered_count = buffer.len();
     }
-
-    packets.extend(storage.drain(..));
-
-    if rand::rng().random_bool(throttle_probability.value()) {
-        *throttled_start_time = Instant::now();
-    }
-
-    stats.is_throttling = false;
-}
-
-/// Determines if throttling is currently active
-///
-/// # Arguments
-///
-/// * `throttle_duration` - Duration of each throttling period
-/// * `throttled_start_time` - Time when the current throttling period began
-///
-/// # Returns
-///
-/// `true` if currently within a throttling period, `false` otherwise
-fn is_throttled(throttle_duration: Duration, throttled_start_time: &mut Instant) -> bool {
-    throttled_start_time.elapsed() <= throttle_duration
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use std::time::Duration;
+    use windivert::layer::NetworkLayer;
+    use windivert::packet::WinDivertPacket;
 
-    /// Creates a simple test packet for testing
-    fn create_test_packet<'a>(id: u8) -> PacketData<'a> {
-        // This is a simplification - in real tests we'd create proper packet data
+    #[test]
+    fn test_throttle_buffering() {
         unsafe {
-            let data = vec![id; 10]; // Simple packet with 10 bytes all set to id
-            PacketData::from(windivert::packet::WinDivertPacket::<
-                windivert::layer::NetworkLayer,
-            >::new(data))
+            let mut packets = vec![
+                PacketData::new(WinDivertPacket::<NetworkLayer>::new(vec![1, 2, 3]), true),
+                PacketData::new(WinDivertPacket::<NetworkLayer>::new(vec![4, 5, 6]), true),
+                PacketData::new(WinDivertPacket::<NetworkLayer>::new(vec![7, 8, 9]), true),
+            ];
+            let mut buffer = VecDeque::new();
+            let mut cycle_start = Some(Instant::now());
+            let mut last_flush = None;
+            let mut last_leak = None;
+            let mut stats = ThrottleStats::new();
+
+            throttle_packets(
+                &mut packets,
+                &mut buffer,
+                &mut cycle_start,
+                &mut last_flush,
+                &mut last_leak,
+                Probability::new(1.0).unwrap(),
+                Duration::from_secs(10), // Long timeframe
+                false,
+                2000,
+                true,
+                true,
+                false, // freeze_mode
+                &mut stats,
+            );
+
+            // All packets should be buffered
+            assert_eq!(packets.len(), 0);
+            assert_eq!(buffer.len(), 3);
+            assert!(stats.is_throttling);
         }
     }
 
     #[test]
-    fn test_is_throttled() {
-        // Test with a throttling period that has not yet elapsed
-        let throttle_duration = Duration::from_secs(1);
-        let mut start_time = Instant::now();
-        assert!(is_throttled(throttle_duration, &mut start_time));
+    fn test_throttle_release_on_timeframe_end() {
+        unsafe {
+            let mut packets = Vec::new();
+            let mut buffer = VecDeque::new();
+            buffer.push_back(PacketData::new(
+                WinDivertPacket::<NetworkLayer>::new(vec![1, 2, 3]),
+                true,
+            ));
+            buffer.push_back(PacketData::new(
+                WinDivertPacket::<NetworkLayer>::new(vec![4, 5, 6]),
+                true,
+            ));
 
-        // Test with a throttling period that has elapsed
-        let throttle_duration = Duration::from_millis(1);
-        let mut start_time = Instant::now() - Duration::from_secs(1);
-        assert!(!is_throttled(throttle_duration, &mut start_time));
+            // Set cycle start in the past so timeframe has elapsed
+            let mut cycle_start = Some(Instant::now() - Duration::from_secs(10));
+            let mut last_flush = None;
+            let mut last_leak = None;
+            let mut stats = ThrottleStats::new();
+
+            throttle_packets(
+                &mut packets,
+                &mut buffer,
+                &mut cycle_start,
+                &mut last_flush,
+                &mut last_leak,
+                Probability::new(0.0).unwrap(), // Don't start new cycle
+                Duration::from_millis(100),     // Short timeframe (already elapsed)
+                false,                          // Release mode
+                2000,
+                true,
+                true,
+                false, // freeze_mode
+                &mut stats,
+            );
+
+            // Buffered packets should be released
+            assert_eq!(packets.len(), 2);
+            assert_eq!(buffer.len(), 0);
+            // last_flush should be set after release
+            assert!(last_flush.is_some());
+        }
     }
 
     #[test]
-    fn test_throttle_packages_drop_mode() {
-        let mut packets = vec![create_test_packet(1), create_test_packet(2)];
-        let mut storage = VecDeque::new();
-        let mut throttled_start_time = Instant::now();
-        let throttle_probability = Probability::new(1.0).unwrap(); // Always throttle
-        let throttle_duration = Duration::from_secs(1); // Long enough to ensure throttling is active
-        let drop = true; // Drop mode enabled
-        let mut stats = ThrottleStats::new();
+    fn test_throttle_drop_mode() {
+        unsafe {
+            let mut packets = Vec::new();
+            let mut buffer = VecDeque::new();
+            buffer.push_back(PacketData::new(
+                WinDivertPacket::<NetworkLayer>::new(vec![1, 2, 3]),
+                true,
+            ));
 
-        throttle_packages(
-            &mut packets,
-            &mut storage,
-            &mut throttled_start_time,
-            throttle_probability,
-            throttle_duration,
-            drop,
-            &mut stats,
-        );
+            let mut cycle_start = Some(Instant::now() - Duration::from_secs(10));
+            let mut last_flush = None;
+            let mut last_leak = None;
+            let mut stats = ThrottleStats::new();
 
-        assert!(packets.is_empty(), "Packets should be dropped in drop mode");
-        assert!(
-            storage.is_empty(),
-            "Storage should remain empty in drop mode"
-        );
-        assert!(stats.is_throttling, "Throttling status should be true");
-        assert_eq!(stats.dropped_count, 2, "Should record 2 dropped packets");
+            throttle_packets(
+                &mut packets,
+                &mut buffer,
+                &mut cycle_start,
+                &mut last_flush,
+                &mut last_leak,
+                Probability::new(0.0).unwrap(),
+                Duration::from_millis(100),
+                true, // Drop mode
+                2000,
+                true,
+                true,
+                false, // freeze_mode
+                &mut stats,
+            );
+
+            // Packets should be dropped, not released
+            assert_eq!(packets.len(), 0);
+            assert_eq!(buffer.len(), 0);
+            assert_eq!(stats.dropped_count, 1);
+        }
     }
 }
