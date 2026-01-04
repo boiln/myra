@@ -66,6 +66,13 @@ export interface PacketManipulationSettings {
     burst?: BurstOptions;
     burst_release_delay_us?: number;
     lag_bypass?: boolean;  // swap IPs on send failure
+    tap?: TapOptions;      // Tap feature settings
+}
+
+export interface TapOptions {
+    enabled: boolean;
+    interval_ms: number;   // How often to tap (every X ms)
+    duration_ms: number;   // How long to keep modules off (X ms)
 }
 
 export interface DropOptions {
@@ -193,6 +200,7 @@ export interface LoadConfigResponse {
         shortcut: string | null;
         enabled: boolean;
     }[];
+    tap?: TapOptions;
 }
 
 export interface NetworkDevice {

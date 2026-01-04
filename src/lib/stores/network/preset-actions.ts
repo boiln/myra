@@ -3,6 +3,7 @@ import { NetworkStore } from "@/lib/stores/network/types";
 import { ManipulationService } from "@/lib/services/manipulation";
 import { DEFAULT_PRESET_NAME } from "@/lib/stores/network/constants";
 import { useHotkeyStore } from "@/lib/stores/hotkey-store";
+import { useTapStore } from "@/lib/stores/tap-store";
 
 export const createPresetSlice: StateCreator<
     NetworkStore,
@@ -39,9 +40,17 @@ export const createPresetSlice: StateCreator<
                 enabled: binding.enabled,
             }));
             
+            // Get tap settings
+            const tapSettings = useTapStore.getState().settings;
+            const tap = {
+                enabled: tapSettings.enabled,
+                interval_ms: tapSettings.intervalMs,
+                duration_ms: tapSettings.durationMs,
+            };
+            
             await ManipulationService.updateSettings(settings, get().isActive);
             await ManipulationService.updateFilter(filter);
-            await ManipulationService.saveConfig(name, filterTarget || undefined, hotkeys);
+            await ManipulationService.saveConfig(name, filterTarget || undefined, hotkeys, tap);
             await get().loadPresets();
             set({ currentPreset: name });
         } catch (error) {
@@ -93,6 +102,15 @@ export const createPresetSlice: StateCreator<
                 await useHotkeyStore.getState().restoreBindings(response.hotkeys);
             }
 
+            // Restore tap settings if present (but always default enabled to false for safety)
+            if (response.tap) {
+                useTapStore.getState().updateSettings({
+                    enabled: false,  // Always start with tap disabled for safety
+                    intervalMs: response.tap.interval_ms,
+                    durationMs: response.tap.duration_ms,
+                });
+            }
+
             await get().loadStatus();
             set({ currentPreset: name });
         } catch (error) {
@@ -129,10 +147,18 @@ export const createPresetSlice: StateCreator<
             const settings = await ManipulationService.getSettings();
             const filter = await ManipulationService.getFilter();
             const filterTarget = get().filterTarget;
+            
+            // Get tap settings (always save with enabled: false by default)
+            const tapSettings = useTapStore.getState().settings;
+            const tap = {
+                enabled: false,  // Always default to disabled
+                interval_ms: tapSettings.intervalMs,
+                duration_ms: tapSettings.durationMs,
+            };
 
             await ManipulationService.updateSettings(settings, get().isActive);
             await ManipulationService.updateFilter(filter);
-            await ManipulationService.saveConfig(DEFAULT_PRESET_NAME, filterTarget || undefined);
+            await ManipulationService.saveConfig(DEFAULT_PRESET_NAME, filterTarget || undefined, undefined, tap);
 
             await get().loadPresets();
         } catch (error) {

@@ -2,12 +2,14 @@ import { useEffect } from "react";
 import { Header } from "@/components/header";
 import { ModulePanel } from "@/components/module-panel";
 import { NetworkControls } from "@/components/network-controls";
+import { TapControl } from "@/components/tap-control";
 import { StatusBar } from "@/components/status-bar";
 import { useNetworkStore } from "@/lib/stores/network";
 import { ToastProvider } from "@/components/providers/toast-provider";
 import { PresetManager } from "@/components/presets/preset-manager";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useHotkeys } from "@/hooks/use-hotkeys";
+import { useTap } from "@/hooks/use-tap";
 
 function App() {
     const loadStatus = useNetworkStore((state) => state.loadStatus);
@@ -16,6 +18,9 @@ function App() {
 
     // Initialize global hotkeys
     useHotkeys();
+
+    // Initialize tap feature
+    useTap();
 
     useEffect(() => {
         const initialize = async () => {
@@ -40,6 +45,7 @@ function App() {
                             <PresetManager />
                             <NetworkControls />
                         </div>
+                        <TapControl />
                         <ModulePanel />
                     </div>
                 </main>

@@ -250,7 +250,8 @@ export const ManipulationService = {
     async saveConfig(
         name: string,
         filterTarget?: FilterTarget,
-        hotkeys?: { action: string; shortcut: string | null; enabled: boolean }[]
+        hotkeys?: { action: string; shortcut: string | null; enabled: boolean }[],
+        tap?: { enabled: boolean; interval_ms: number; duration_ms: number }
     ): Promise<void> {
         // Convert camelCase to snake_case for Rust
         const rustFilterTarget = filterTarget ? {
@@ -264,7 +265,7 @@ export const ManipulationService = {
             include_outbound: filterTarget.includeOutbound ?? true,
         } : undefined;
         
-        return invoke("save_config", { name, filterTarget: rustFilterTarget, hotkeys });
+        return invoke("save_config", { name, filterTarget: rustFilterTarget, hotkeys, tap });
     },
 
     async loadConfig(name: string): Promise<LoadConfigResponse> {

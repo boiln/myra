@@ -53,6 +53,28 @@ pub struct HotkeyBinding {
     pub enabled: bool,
 }
 
+/// Tap feature settings (frontend-only, stored in config for persistence)
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct TapSettings {
+    /// Whether tap is enabled (should always default to false)
+    #[serde(default)]
+    pub enabled: bool,
+    /// How often to tap in milliseconds
+    #[serde(default = "default_tap_interval")]
+    pub interval_ms: u64,
+    /// How long to keep modules off in milliseconds
+    #[serde(default = "default_tap_duration")]
+    pub duration_ms: u64,
+}
+
+fn default_tap_interval() -> u64 {
+    3000
+}
+
+fn default_tap_duration() -> u64 {
+    600
+}
+
 /// Configuration file structure for storing application settings
 ///
 /// Contains both the packet manipulation settings and the active filter string.
@@ -69,6 +91,9 @@ struct ConfigFile {
     /// Hotkey bindings
     #[serde(default)]
     hotkeys: Option<Vec<HotkeyBinding>>,
+    /// Tap feature settings
+    #[serde(default)]
+    tap: Option<TapSettings>,
 }
 
 /// Saves the current configuration to a named file
@@ -89,6 +114,7 @@ pub async fn save_config(
     name: String,
     filter_target: Option<FilterTarget>,
     hotkeys: Option<Vec<HotkeyBinding>>,
+    tap: Option<TapSettings>,
 ) -> Result<(), String> {
     let settings = state
         .settings
@@ -109,6 +135,7 @@ pub async fn save_config(
         filter,
         filter_target,
         hotkeys,
+        tap,
     };
 
     let content = toml::to_string_pretty(&config)
@@ -132,6 +159,7 @@ pub struct LoadConfigResponse {
     pub filter: Option<String>,
     pub filter_target: Option<FilterTarget>,
     pub hotkeys: Option<Vec<HotkeyBinding>>,
+    pub tap: Option<TapSettings>,
 }
 
 /// Loads a named configuration file and updates application state
@@ -175,6 +203,7 @@ pub async fn load_config(
         filter: config.filter,
         filter_target: config.filter_target,
         hotkeys: config.hotkeys,
+        tap: config.tap,
     })
 }
 
