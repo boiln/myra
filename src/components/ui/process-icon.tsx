@@ -21,46 +21,50 @@ export function ProcessIcon({ icon, name, className = "h-4 w-4" }: ProcessIconPr
             return;
         }
 
-        // Check if it's our raw format: data:image/raw;width=32;height=32;base64,...
-        if (icon.startsWith("data:image/raw;")) {
-            try {
-                const base64Part = icon.split("base64,")[1];
-                if (!base64Part) {
-                    setImageUrl(null);
-                    return;
-                }
-
-                // Decode base64 to binary
-                const binaryString = atob(base64Part);
-                const bytes = new Uint8Array(binaryString.length);
-                for (let i = 0; i < binaryString.length; i++) {
-                    bytes[i] = binaryString.charCodeAt(i);
-                }
-
-                // Create canvas and draw RGBA data
-                const canvas = document.createElement("canvas");
-                canvas.width = 32;
-                canvas.height = 32;
-                const ctx = canvas.getContext("2d");
-                if (!ctx) {
-                    setImageUrl(null);
-                    return;
-                }
-
-                const imageData = ctx.createImageData(32, 32);
-                imageData.data.set(bytes);
-                ctx.putImageData(imageData, 0, 0);
-
-                // Convert to data URL
-                setImageUrl(canvas.toDataURL("image/png"));
-            } catch (e) {
-                console.error("Failed to process icon:", e);
-                setImageUrl(null);
-            }
-        } else if (icon.startsWith("data:image/png")) {
-            // Already a PNG data URL
+        // Already a PNG data URL
+        if (icon.startsWith("data:image/png")) {
             setImageUrl(icon);
-        } else {
+            return;
+        }
+
+        // Check if it's our raw format: data:image/raw;width=32;height=32;base64,...
+        if (!icon.startsWith("data:image/raw;")) {
+            setImageUrl(null);
+            return;
+        }
+
+        try {
+            const base64Part = icon.split("base64,")[1];
+            if (!base64Part) {
+                setImageUrl(null);
+                return;
+            }
+
+            // Decode base64 to binary
+            const binaryString = atob(base64Part);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+
+            // Create canvas and draw RGBA data
+            const canvas = document.createElement("canvas");
+            canvas.width = 32;
+            canvas.height = 32;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) {
+                setImageUrl(null);
+                return;
+            }
+
+            const imageData = ctx.createImageData(32, 32);
+            imageData.data.set(bytes);
+            ctx.putImageData(imageData, 0, 0);
+
+            // Convert to data URL
+            setImageUrl(canvas.toDataURL("image/png"));
+        } catch (e) {
+            console.error("Failed to process icon:", e);
             setImageUrl(null);
         }
     }, [icon, imageError]);

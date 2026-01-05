@@ -387,29 +387,39 @@ fn run_sender(
     
     // Release remaining buffered packets IMMEDIATELY before exiting
     // This is critical - we must flush all packets or the game will D/C
-    if let Ok(mut buf) = buffer.lock() {
-        let remaining = buf.packets.len();
-        if remaining > 0 {
-            info!("WFP Throttle: FLUSHING {} buffered packets immediately", remaining);
-            let mut sent = 0;
-            let mut failed = 0;
-            if let Ok(guard) = wd.lock() {
-                if let Some(handle) = guard.as_ref() {
-                    while let Some((packet, _)) = buf.packets.pop_front() {
-                        match handle.send(&packet) {
-                            Ok(_) => sent += 1,
-                            Err(_) => failed += 1,
-                        }
-                    }
-                } else {
-                    warn!("WFP Throttle: Handle already closed, {} packets LOST!", remaining);
+    let Ok(mut buf) = buffer.lock() else {
+        warn!("WFP Throttle: Could not lock buffer for flush!");
+        unsafe {
+            windows::Win32::Media::timeEndPeriod(1);
+        }
+        info!("WFP Throttle: Sender thread exiting");
+        return;
+    };
+
+    let remaining = buf.packets.len();
+    if remaining > 0 {
+        info!("WFP Throttle: FLUSHING {} buffered packets immediately", remaining);
+        let mut sent = 0;
+        let mut failed = 0;
+        if let Ok(guard) = wd.lock() {
+            let Some(handle) = guard.as_ref() else {
+                warn!("WFP Throttle: Handle already closed, {} packets LOST!", remaining);
+                buf.total_bytes = 0;
+                unsafe {
+                    windows::Win32::Media::timeEndPeriod(1);
+                }
+                info!("WFP Throttle: Sender thread exiting");
+                return;
+            };
+            while let Some((packet, _)) = buf.packets.pop_front() {
+                match handle.send(&packet) {
+                    Ok(_) => sent += 1,
+                    Err(_) => failed += 1,
                 }
             }
-            info!("WFP Throttle: Flushed {} packets (sent={}, failed={})", remaining, sent, failed);
-            buf.total_bytes = 0;
         }
-    } else {
-        warn!("WFP Throttle: Could not lock buffer for flush!");
+        info!("WFP Throttle: Flushed {} packets (sent={}, failed={})", remaining, sent, failed);
+        buf.total_bytes = 0;
     }
     
     unsafe {

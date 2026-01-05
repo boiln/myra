@@ -151,7 +151,10 @@ export const useHotkeyStore = create<HotkeyState & HotkeyActions>()(
                     } catch (e) {
                         console.error("Failed to register shortcut:", e);
                     }
-                } else if (!newEnabled) {
+                    return;
+                }
+
+                if (!newEnabled) {
                     try {
                         await unregister(binding.shortcut);
                         registeredShortcuts.delete(binding.shortcut);

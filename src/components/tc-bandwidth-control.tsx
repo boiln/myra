@@ -42,10 +42,11 @@ export function TcBandwidthControl() {
             if (!checked) {
                 await stopTcBandwidth();
                 setEnabled(false);
-            } else {
-                await startTcBandwidth(limitKbps, direction);
-                setEnabled(true);
+                return;
             }
+
+            await startTcBandwidth(limitKbps, direction);
+            setEnabled(true);
         } catch (e: any) {
             setError(e.toString());
         } finally {

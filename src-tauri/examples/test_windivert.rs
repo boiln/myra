@@ -52,7 +52,8 @@ fn main() {
 
         if count == 0 {
             println!("NO packets received!");
-        } else {
+        }
+        if count > 0 {
             println!("Received {} packets", count);
         }
 

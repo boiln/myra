@@ -51,9 +51,10 @@ export function ModulePanel() {
             } catch (error) {
                 console.error("Error updating setting:", error);
             }
-        } else {
-            debouncedSettingChange(module, setting, value);
+            return;
         }
+
+        debouncedSettingChange(module, setting, value);
     };
 
     const handleDirectionToggle = async (module: ModuleInfo, direction: "inbound" | "outbound") => {

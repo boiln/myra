@@ -13,18 +13,7 @@ export function useActiveTimer(isActive: boolean) {
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
-        if (isActive) {
-            // Start or resume timer
-            if (startTimeRef.current === null) {
-                startTimeRef.current = Date.now();
-            }
-
-            intervalRef.current = setInterval(() => {
-                if (startTimeRef.current !== null) {
-                    setElapsedMs(Date.now() - startTimeRef.current);
-                }
-            }, 100); // Update every 100ms for smooth display
-        } else {
+        if (!isActive) {
             // Stop timer and reset
             if (intervalRef.current) {
                 clearInterval(intervalRef.current);
@@ -32,7 +21,19 @@ export function useActiveTimer(isActive: boolean) {
             }
             startTimeRef.current = null;
             setElapsedMs(0);
+            return;
         }
+
+        // Start or resume timer
+        if (startTimeRef.current === null) {
+            startTimeRef.current = Date.now();
+        }
+
+        intervalRef.current = setInterval(() => {
+            if (startTimeRef.current !== null) {
+                setElapsedMs(Date.now() - startTimeRef.current);
+            }
+        }, 100); // Update every 100ms for smooth display
 
         return () => {
             if (intervalRef.current) {

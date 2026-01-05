@@ -79,32 +79,35 @@ pub fn receive_packets(
         }
 
         // Process packets if WinDivert handle exists
-        if let Some(wd_handle) = handle_manager.handle() {
-            if logged_missing_handle {
-                logged_missing_handle = false;
+        let Some(wd_handle) = handle_manager.handle() else {
+            if !logged_missing_handle {
+                debug!("WinDivert handle is not initialized. Waiting for filter.");
+                logged_missing_handle = true;
             }
-            match wd_handle.recv(Some(&mut buffer)) {
-                Ok(packet) => {
-                    // Capture direction before taking ownership
-                    let is_outbound = packet.address.outbound();
-                    let packet_data = PacketData::new(packet.into_owned(), is_outbound);
-                    if packet_sender.send(packet_data).is_err() {
-                        if should_shutdown(&running) {
-                            break;
-                        }
-                        error!("Failed to send packet data to main thread");
-                    }
-                }
-                Err(e) => {
-                    error!("Failed to receive packet: {}", e);
+            continue;
+        };
+
+        if logged_missing_handle {
+            logged_missing_handle = false;
+        }
+        match wd_handle.recv(Some(&mut buffer)) {
+            Ok(packet) => {
+                // Capture direction before taking ownership
+                let is_outbound = packet.address.outbound();
+                let packet_data = PacketData::new(packet.into_owned(), is_outbound);
+                if packet_sender.send(packet_data).is_err() {
                     if should_shutdown(&running) {
                         break;
                     }
+                    error!("Failed to send packet data to main thread");
                 }
             }
-        } else if !logged_missing_handle {
-            debug!("WinDivert handle is not initialized. Waiting for filter.");
-            logged_missing_handle = true;
+            Err(e) => {
+                error!("Failed to receive packet: {}", e);
+                if should_shutdown(&running) {
+                    break;
+                }
+            }
         }
     }
 

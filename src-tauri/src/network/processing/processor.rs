@@ -169,20 +169,21 @@ pub fn start_packet_processing(
             return;
         }
 
-        // If duration is large enough, sleep all but ~1ms, then spin.
-        if duration >= Duration::from_millis(2) {
-            let to_sleep = duration - Duration::from_millis(1);
-            std::thread::sleep(to_sleep);
-            let target = Instant::now() + Duration::from_millis(1);
-            while Instant::now() < target {
-                std::hint::spin_loop();
-            }
-        } else {
-            // For very short durations, busy-wait only
+        // For very short durations, busy-wait only
+        if duration < Duration::from_millis(2) {
             let target = Instant::now() + duration;
             while Instant::now() < target {
                 std::hint::spin_loop();
             }
+            return;
+        }
+
+        // If duration is large enough, sleep all but ~1ms, then spin.
+        let to_sleep = duration - Duration::from_millis(1);
+        std::thread::sleep(to_sleep);
+        let target = Instant::now() + Duration::from_millis(1);
+        while Instant::now() < target {
+            std::hint::spin_loop();
         }
     }
 

@@ -50,10 +50,16 @@ export const ManipulationService = {
                 : bandwidth.inbound ? "inbound" 
                 : "outbound";
             await this.startWfpThrottle(bandwidth.limit || 1, direction);
-        } else if (!shouldBeActive && wfpThrottleActive) {
+            return;
+        }
+
+        if (!shouldBeActive && wfpThrottleActive) {
             // Stop WFP throttle
             await this.stopWfpThrottle();
-        } else if (shouldBeActive && wfpThrottleActive) {
+            return;
+        }
+
+        if (shouldBeActive && wfpThrottleActive) {
             // Update: restart with new settings
             const direction = bandwidth!.inbound && bandwidth!.outbound ? "both" 
                 : bandwidth!.inbound ? "inbound" 

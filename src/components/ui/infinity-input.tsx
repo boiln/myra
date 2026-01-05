@@ -75,7 +75,10 @@ export function InfinityInput({
         if (e.key === "Escape") {
             setIsEditing(false);
             setLocalValue(isInfinity ? "" : value.toString());
-        } else if (e.key === "Enter") {
+            return;
+        }
+
+        if (e.key === "Enter") {
             setIsEditing(false);
         }
     };

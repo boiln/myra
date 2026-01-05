@@ -161,7 +161,10 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
     useEffect(() => {
         if (mode === "process" && processes.length === 0) {
             loadProcesses();
-        } else if (mode === "device" && devices.length === 0) {
+            return;
+        }
+
+        if (mode === "device" && devices.length === 0) {
             loadDevices();
         }
     }, [mode, processes.length, devices.length, loadProcesses, loadDevices]);
