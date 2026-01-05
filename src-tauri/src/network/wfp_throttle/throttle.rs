@@ -1,10 +1,3 @@
-//! Precise bandwidth throttle using WinDivert with high-resolution timing
-//! 
-//! This creates NetLimiter-like behavior by:
-//! 1. Capturing packets based on direction (excluding system-critical traffic)
-//! 2. Releasing them at a controlled rate (bytes per second)
-//! 3. Letting TCP control packets through immediately to maintain connection
-
 use std::collections::VecDeque;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
@@ -128,7 +121,7 @@ impl WfpThrottle {
         
         // Spawn sender thread
         let running_tx = running.clone();
-        let buffer_tx = buffer.clone();
+        let buffer_tx = buffer;
         let wd_tx = wd.clone();
         
         let sender_handle = thread::Builder::new()
@@ -214,10 +207,7 @@ fn run_receiver(
         
         // Get handle, recv, then release lock before processing
         let recv_result = {
-            let guard = match wd.lock() {
-                Ok(g) => g,
-                Err(_) => break,
-            };
+            let Ok(guard) = wd.lock() else { break };
             match guard.as_ref() {
                 Some(handle) => handle.recv(Some(&mut recv_buffer)),
                 None => break, // Handle was closed
@@ -232,7 +222,6 @@ fn run_receiver(
                 
                 // Small packets (TCP ACKs, SYNs, keepalives, control packets) pass through
                 // This is critical to maintain connection - these are protocol overhead
-                // not actual data being transferred. NetLimiter does the same.
                 if packet_size <= MIN_PAYLOAD_THRESHOLD {
                     passthrough_count += 1;
                     if let Ok(guard) = wd.lock() {
@@ -312,10 +301,7 @@ fn run_sender(
     while running.load(Ordering::SeqCst) {
         // Check if handle is still valid
         {
-            let guard = match wd.lock() {
-                Ok(g) => g,
-                Err(_) => break,
-            };
+            let Ok(guard) = wd.lock() else { break };
             if guard.is_none() {
                 break; // Handle was closed
             }
@@ -336,10 +322,7 @@ fn run_sender(
         let mut released = false;
         loop {
             let packet_to_send = {
-                let mut buf = match buffer.lock() {
-                    Ok(b) => b,
-                    Err(_) => break,
-                };
+                let Ok(mut buf) = buffer.lock() else { break };
                 
                 let Some((packet, queued_time)) = buf.packets.front() else {
                     break;
@@ -378,10 +361,7 @@ fn run_sender(
         }
         
         // Sleep a bit - shorter if we just released packets
-        let sleep_duration = match released {
-            true => Duration::from_micros(100),
-            false => Duration::from_millis(1),
-        };
+        let sleep_duration = if released { Duration::from_micros(100) } else { Duration::from_millis(1) };
         thread::sleep(sleep_duration);
     }
     

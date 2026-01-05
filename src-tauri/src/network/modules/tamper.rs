@@ -32,9 +32,9 @@ impl PacketModule for TamperModule {
         options.duration_ms
     }
 
-    fn process<'a>(
+    fn process(
         &self,
-        packets: &mut Vec<PacketData<'a>>,
+        packets: &mut Vec<PacketData<'_>>,
         options: &Self::Options,
         _state: &mut Self::State,
         ctx: &mut ModuleContext,
@@ -189,7 +189,7 @@ pub fn tamper_packets(
 ///
 /// # Returns
 ///
-/// A HashSet containing the indices of all modified bytes
+/// A `HashSet` containing the indices of all modified bytes
 fn apply_tampering(data: &mut [u8], bytes_to_tamper: usize) -> HashSet<usize> {
     let mut tampered_indices = HashSet::new();
     let mut tampered_count = 0;
@@ -226,7 +226,7 @@ fn apply_tampering(data: &mut [u8], bytes_to_tamper: usize) -> HashSet<usize> {
 /// A vector of boolean flags where true indicates a tampered byte
 fn calculate_tampered_flags(data_len: usize, tampered_indices: &HashSet<usize>) -> Vec<bool> {
     let mut tampered_flags = vec![false; data_len];
-    for &index in tampered_indices.iter() {
+    for &index in tampered_indices {
         if index < data_len {
             tampered_flags[index] = true;
         }
@@ -262,7 +262,7 @@ fn get_ip_version(data: &[u8]) -> Option<(u8, &[u8])> {
 /// A tuple of (header length in bytes, protocol number)
 fn parse_ipv4_header(data: &[u8]) -> (usize, u8) {
     let header_length = ((data[0] & 0x0F) * 4) as usize;
-    let protocol = data[9]; // Protocol field
+    let protocol = data[9];
     (header_length, protocol)
 }
 
@@ -277,7 +277,7 @@ fn parse_ipv4_header(data: &[u8]) -> (usize, u8) {
 /// A tuple of (header length in bytes, next header type)
 fn parse_ipv6_header(data: &[u8]) -> (usize, u8) {
     let header_length = 40; // IPv6 header is always 40 bytes
-    let next_header = data[6]; // Next header field
+    let next_header = data[6];
     (header_length, next_header)
 }
 

@@ -28,7 +28,7 @@ pub struct ModuleContext<'a, 'b> {
     pub effect_start: &'b mut Instant,
 }
 
-impl<'a, 'b> ModuleContext<'a, 'b> {
+impl ModuleContext<'_, '_> {
     /// Acquires a write lock on the statistics, returning a Result instead of panicking.
     ///
     /// # Arguments
@@ -37,7 +37,7 @@ impl<'a, 'b> ModuleContext<'a, 'b> {
     ///
     /// # Returns
     ///
-    /// A write guard to the statistics or a MyraError if the lock is poisoned.
+    /// A write guard to the statistics or a `MyraError` if the lock is poisoned.
     pub fn write_stats(
         &self,
         module_name: &str,
@@ -79,7 +79,7 @@ impl<'a, 'b> ModuleContext<'a, 'b> {
 /// }
 /// ```
 pub trait PacketModule {
-    /// Configuration options for this module - must implement ModuleOptions
+    /// Configuration options for this module - must implement `ModuleOptions`
     type Options: ModuleOptions;
 
     /// Persistent state maintained between processing calls
@@ -105,9 +105,9 @@ pub trait PacketModule {
     /// # Returns
     ///
     /// `Ok(())` on success, or a `MyraError` if processing fails.
-    fn process<'a>(
+    fn process(
         &self,
-        packets: &mut Vec<PacketData<'a>>,
+        packets: &mut Vec<PacketData<'_>>,
         options: &Self::Options,
         state: &mut Self::State,
         ctx: &mut ModuleContext,

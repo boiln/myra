@@ -147,10 +147,10 @@ pub fn bandwidth_limiter<'a>(
         apply_outbound,
         passthrough_threshold,
         stats,
-    )
+    );
 }
 
-/// Packet-pacing bandwidth limiter (like NetLimiter)
+/// Packet-pacing bandwidth limiter
 /// Releases packets one at a time at smooth intervals based on rate limit
 /// This keeps the connection alive and provides continuous data flow
 fn bandwidth_limiter_paced<'a>(
@@ -194,7 +194,6 @@ fn bandwidth_limiter_paced<'a>(
     
     // Packet pacing: release packets when their "transmission time" has passed
     // At 1 KB/s, a 500 byte packet takes 500ms to "transmit"
-    // This mimics NetLimiter's smooth rate limiting
     
     // Only release if we've reached the next release time
     if now >= *next_release_time {
@@ -205,10 +204,7 @@ fn bandwidth_limiter_paced<'a>(
             // Calculate how long this packet "takes" to transmit at our rate
             // At 1 KB/s (1024 bytes/sec), 500 bytes takes 500/1024 = 0.488 seconds
             let bytes_per_sec = (bandwidth_limit_kbps as f64) * 1024.0;
-            let transmission_time_secs = match bytes_per_sec > 0.0 {
-                true => packet_size as f64 / bytes_per_sec,
-                false => 1.0, // Default to 1 second if rate is 0
-            };
+            let transmission_time_secs = if bytes_per_sec > 0.0 { packet_size as f64 / bytes_per_sec } else { 1.0 };
             
             // Schedule next release after this packet's "transmission time"
             let transmission_duration = std::time::Duration::from_secs_f64(transmission_time_secs);
@@ -309,7 +305,7 @@ fn maintain_buffer_size(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::network::core::packet_data::PacketData;
+    use crate::network::core::packet::PacketData;
     use crate::network::modules::bandwidth::{
         add_packet_to_buffer, add_packets_to_buffer, bandwidth_limiter, remove_packet_from_buffer,
         MAX_BUFFER_SIZE,

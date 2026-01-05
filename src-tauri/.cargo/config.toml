@@ -1,0 +1,25 @@
+# Cargo configuration for Myra
+# Windows-specific build settings
+
+[build]
+# Use all available CPU cores for compilation
+jobs = -1
+
+[target.x86_64-pc-windows-msvc]
+# Linker flags for Windows builds
+rustflags = [
+    # Enable full LTO for better optimization
+    "-C", "embed-bitcode=yes",
+]
+
+[env]
+# Ensure consistent locale for builds
+LANG = "en_US.UTF-8"
+
+[net]
+# Retry failed downloads
+retry = 3
+
+[term]
+# Show warnings in color
+color = "auto"

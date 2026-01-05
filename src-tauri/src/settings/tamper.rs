@@ -46,7 +46,7 @@ pub struct TamperOptions {
 
 impl Default for TamperOptions {
     fn default() -> Self {
-        TamperOptions {
+        Self {
             enabled: false,
             inbound: true,
             outbound: true,

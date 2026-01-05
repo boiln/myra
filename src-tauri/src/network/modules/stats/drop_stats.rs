@@ -23,7 +23,7 @@ pub struct DropStats {
 }
 
 impl DropStats {
-    /// Creates a new DropStats instance with the specified alpha parameter for EWMA.
+    /// Creates a new `DropStats` instance with the specified alpha parameter for EWMA.
     ///
     /// # Arguments
     ///
@@ -32,7 +32,7 @@ impl DropStats {
     ///
     /// # Returns
     ///
-    /// A new DropStats instance initialized with zeroed counters.
+    /// A new `DropStats` instance initialized with zeroed counters.
     ///
     /// # Example
     ///
@@ -67,10 +67,7 @@ impl DropStats {
         }
 
         // Update the EWMA with the new drop status (1.0 if dropped, 0.0 if not)
-        let current_drop_rate = match dropped {
-            true => 1.0,
-            false => 0.0,
-        };
+        let current_drop_rate = if dropped { 1.0 } else { 0.0 };
         self.ewma.update(current_drop_rate);
     }
 

@@ -1,8 +1,3 @@
-//! Settings for Traffic Control (NetLimiter-style) bandwidth limiting
-//!
-//! This provides true OS-level bandwidth limiting that operates at the
-//! socket layer, like NetLimiter does.
-
 use serde::{Deserialize, Serialize};
 
 /// Direction for TC bandwidth limiting
@@ -25,7 +20,7 @@ pub struct TcBandwidthOptions {
     #[serde(default)]
     pub enabled: bool,
     
-    /// Bandwidth limit in KB/s (like NetLimiter)
+    /// Bandwidth limit in KB/s
     /// Default: 1 KB/s
     #[serde(default = "default_limit")]
     pub limit_kbps: u32,
@@ -36,7 +31,7 @@ pub struct TcBandwidthOptions {
 }
 
 fn default_limit() -> u32 {
-    1 // 1 KB/s default, like NetLimiter
+    1 // 1 KB/s default
 }
 
 impl TcBandwidthOptions {

@@ -1,6 +1,6 @@
-//! WinDivert handle management.
+//! `WinDivert` handle management.
 //!
-//! This module provides centralized management of WinDivert handles,
+//! This module provides centralized management of `WinDivert` handles,
 //! including creation, configuration, and proper cleanup.
 
 use log::{debug, error, info, warn};
@@ -65,7 +65,7 @@ pub const DEFAULT_PRIORITY: i16 = 1;
 /// Port used by Tauri for local communication.
 const TAURI_PORT: u16 = 1420;
 
-/// Configuration for creating a WinDivert handle.
+/// Configuration for creating a `WinDivert` handle.
 #[derive(Debug, Clone)]
 pub struct HandleConfig {
     /// Filter expression for packet matching
@@ -90,7 +90,7 @@ impl Default for HandleConfig {
 }
 
 impl HandleConfig {
-    /// Creates a new HandleConfig with the given filter.
+    /// Creates a new `HandleConfig` with the given filter.
     pub fn with_filter(filter: impl Into<String>) -> Self {
         Self {
             filter: filter.into(),
@@ -133,9 +133,9 @@ impl HandleConfig {
     }
 }
 
-/// Manages WinDivert handle lifecycle.
+/// Manages `WinDivert` handle lifecycle.
 ///
-/// This struct provides a safe wrapper around WinDivert handles,
+/// This struct provides a safe wrapper around `WinDivert` handles,
 /// ensuring proper initialization and cleanup.
 pub struct HandleManager {
     handle: Option<WinDivert<NetworkLayer>>,
@@ -143,7 +143,7 @@ pub struct HandleManager {
 }
 
 impl HandleManager {
-    /// Creates a new HandleManager without an active handle.
+    /// Creates a new `HandleManager` without an active handle.
     pub fn new() -> Self {
         Self {
             handle: None,
@@ -156,12 +156,7 @@ impl HandleManager {
         self.handle.is_some()
     }
 
-    /// Returns the current configuration, if any.
-    pub fn config(&self) -> Option<&HandleConfig> {
-        self.current_config.as_ref()
-    }
-
-    /// Opens a new WinDivert handle with the given configuration.
+    /// Opens a new `WinDivert` handle with the given configuration.
     ///
     /// If a handle is already open, it will be closed first.
     ///
@@ -200,11 +195,11 @@ impl HandleManager {
                 use windivert_sys::WinDivertParam;
                 match handle.set_param(WinDivertParam::QueueLength, 2048) {
                     Err(e) => warn!("Failed to set WinDivert queue length: {}", e),
-                    Ok(_) => info!("Set WinDivert queue length to 2048 packets"),
+                    Ok(()) => info!("Set WinDivert queue length to 2048 packets"),
                 }
                 match handle.set_param(WinDivertParam::QueueTime, 1024) {
                     Err(e) => warn!("Failed to set WinDivert queue time: {}", e),
-                    Ok(_) => info!("Set WinDivert queue time to 1024ms"),
+                    Ok(()) => info!("Set WinDivert queue time to 1024ms"),
                 }
                 
                 self.handle = Some(handle);
@@ -222,38 +217,6 @@ impl HandleManager {
 
     /// Updates the handle with a new filter, only reopening if the filter changed.
     ///
-    /// # Arguments
-    ///
-    /// * `filter` - The new filter string
-    ///
-    /// # Returns
-    ///
-    /// * `Ok(true)` - If the handle was updated
-    /// * `Ok(false)` - If no update was needed (filter unchanged)
-    /// * `Err(WinDivertError)` - If handle update failed
-    pub fn update_filter(&mut self, filter: &str) -> Result<bool, WinDivertError> {
-        let needs_update = match &self.current_config {
-            Some(config) => config.filter != filter,
-            None => true,
-        };
-
-        if !needs_update {
-            return Ok(false);
-        }
-        
-        let config = self
-            .current_config
-            .clone()
-            .map(|mut c| {
-                c.filter = filter.to_string();
-                c
-            })
-            .unwrap_or_else(|| HandleConfig::with_filter(filter));
-
-        self.open(config)?;
-        Ok(true)
-    }
-
     /// Closes the current handle if one is open.
     ///
     /// # Returns
@@ -270,7 +233,7 @@ impl HandleManager {
         Ok(())
     }
 
-    /// Returns a reference to the underlying WinDivert handle.
+    /// Returns a reference to the underlying `WinDivert` handle.
     ///
     /// # Returns
     ///
@@ -280,7 +243,7 @@ impl HandleManager {
         self.handle.as_ref()
     }
 
-    /// Returns a mutable reference to the underlying WinDivert handle.
+    /// Returns a mutable reference to the underlying `WinDivert` handle.
     ///
     /// # Returns
     ///
@@ -307,7 +270,7 @@ impl Drop for HandleManager {
 
 /// Flushes the Windows Filtering Platform (WFP) cache.
 ///
-/// This is a workaround for WinDivert caching issues. It opens and
+/// This is a workaround for `WinDivert` caching issues. It opens and
 /// immediately closes a handle with a no-match filter to clear stale state.
 pub fn flush_wfp_cache() {
     // Try multiple priorities to ensure thorough cache flush
@@ -321,7 +284,7 @@ pub fn flush_wfp_cache() {
     }
 }
 
-/// Creates a WinDivert filter that excludes Tauri app ports.
+/// Creates a `WinDivert` filter that excludes Tauri app ports.
 ///
 /// Takes a user-provided filter and adds conditions to exclude traffic
 /// on ports used by the Tauri app to prevent disrupting the app's functionality.
@@ -347,13 +310,10 @@ pub fn construct_filter_with_exclusions(user_filter: &Option<String>) -> Option<
             let has_invalid_direction = filter_lower.contains("outbound and inbound")
                 || filter_lower.contains("inbound and outbound");
             
-            let corrected_filter = match has_invalid_direction {
-                true => {
-                    log::warn!("Filter '{}' is invalid: a packet cannot be both outbound AND inbound. Using 'true' to capture all traffic.", filter);
-                    "true".to_string()
-                }
-                false => filter.clone(),
-            };
+            let corrected_filter = if has_invalid_direction {
+                log::warn!("Filter '{}' is invalid: a packet cannot be both outbound AND inbound. Using 'true' to capture all traffic.", filter);
+                "true".to_string()
+            } else { filter.clone() };
             format!("({}) and {}", corrected_filter, tauri_exclusion)
         }
         _ => tauri_exclusion,

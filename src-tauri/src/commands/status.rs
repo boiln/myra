@@ -10,7 +10,6 @@ use tauri::State;
 
 use crate::commands::state::PacketProcessingState;
 use crate::commands::types::{ModuleConfig, ModuleInfo, ModuleParams, ProcessingStatus};
-use crate::settings::manipulation::PacketManipulationSettings;
 use crate::settings::Settings;
 
 /// Gets the current status of the processing engine.
@@ -55,12 +54,12 @@ pub async fn get_status(
 ///
 /// # Returns
 ///
-/// * `Ok(PacketManipulationSettings)` - The current settings
+/// * `Ok(Settings)` - The current settings
 /// * `Err(String)` - If there was an error retrieving settings
 #[tauri::command]
 pub async fn get_settings(
     state: State<'_, PacketProcessingState>,
-) -> Result<PacketManipulationSettings, String> {
+) -> Result<Settings, String> {
     Ok(state
         .settings
         .lock()
@@ -68,7 +67,7 @@ pub async fn get_settings(
         .clone())
 }
 
-/// Gets the current WinDivert filter expression.
+/// Gets the current `WinDivert` filter expression.
 ///
 /// # Arguments
 ///
@@ -87,7 +86,7 @@ pub async fn get_filter(state: State<'_, PacketProcessingState>) -> Result<Optio
         .clone())
 }
 
-/// Updates the WinDivert filter expression.
+/// Updates the `WinDivert` filter expression.
 ///
 /// Changes which packets are captured for manipulation.
 ///
@@ -113,256 +112,182 @@ pub async fn update_filter(
     Ok(())
 }
 
-/// Builds a list of ModuleInfo from the current settings.
+/// Builds a list of `ModuleInfo` from the current settings.
 /// Always returns all modules with their settings, using enabled field to track active state.
 fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
     use crate::settings::lag::LagOptions;
 
-    let mut modules = Vec::new();
+    // Helper to create ModuleInfo with common defaults
+    let module = |name: &str, display_name: &str, enabled: bool, config: ModuleConfig| ModuleInfo {
+        name: name.to_string(),
+        display_name: display_name.to_string(),
+        enabled,
+        config,
+        params: None,
+    };
 
-    // Lag module - always include
-    let lag = settings.lag.as_ref().cloned().unwrap_or_else(|| LagOptions {
+    // Lag module
+    let lag = settings.lag.clone().unwrap_or_else(|| LagOptions {
         enabled: false,
         inbound: true,
         outbound: true,
         delay_ms: 1000,
         ..Default::default()
     });
-    modules.push(ModuleInfo {
-        name: "lag".to_string(),
-        display_name: "Lag".to_string(),
-        enabled: lag.enabled,
-        config: ModuleConfig {
-            inbound: lag.inbound,
-            outbound: lag.outbound,
-            chance: lag.probability.value() * 100.0,
-            enabled: lag.enabled,
-            duration_ms: Some(lag.delay_ms),
-            throttle_ms: Some(lag.delay_ms),
-            limit_kbps: None,
-            count: None,
-            buffer_ms: None,
-            keepalive_ms: None,
-            release_delay_us: None,
-            drop: None,
-            max_buffer: None,
-            lag_bypass: None,
-            freeze_mode: None,
-            passthrough_threshold: None,
-            use_wfp: None,
-            reverse: None,
-        },
+    let lag_info = ModuleInfo {
         params: Some(ModuleParams {
             lag_time: Some(lag.delay_ms),
         }),
-    });
+        ..module(
+            "lag",
+            "Lag",
+            lag.enabled,
+            ModuleConfig {
+                inbound: lag.inbound,
+                outbound: lag.outbound,
+                chance: lag.probability.value() * 100.0,
+                enabled: lag.enabled,
+                duration_ms: Some(lag.delay_ms),
+                throttle_ms: Some(lag.delay_ms),
+                ..Default::default()
+            },
+        )
+    };
 
-    // Drop module (Freeze) - always include
-    let drop = settings.drop.as_ref().cloned().unwrap_or_default();
-    modules.push(ModuleInfo {
-        name: "drop".to_string(),
-        display_name: "Drop".to_string(),
-        enabled: drop.enabled,
-        config: ModuleConfig {
+    // Drop module
+    let drop = settings.drop.clone().unwrap_or_default();
+    let drop_info = module(
+        "drop",
+        "Drop",
+        drop.enabled,
+        ModuleConfig {
             inbound: drop.inbound,
             outbound: drop.outbound,
             chance: drop.probability.value() * 100.0,
             enabled: drop.enabled,
             duration_ms: Some(drop.duration_ms),
-            throttle_ms: None,
-            limit_kbps: None,
-            count: None,
-            buffer_ms: None,
-            keepalive_ms: None,
-            release_delay_us: None,
-            drop: None,
-            max_buffer: None,
-            lag_bypass: None,
-            freeze_mode: None,
-            passthrough_threshold: None,
-            use_wfp: None,
-            reverse: None,
+            ..Default::default()
         },
-        params: None,
-    });
+    );
 
-    // Throttle module - always include
-    let throttle = settings.throttle.as_ref().cloned().unwrap_or_default();
-    modules.push(ModuleInfo {
-        name: "throttle".to_string(),
-        display_name: "Throttle".to_string(),
-        enabled: throttle.enabled,
-        config: ModuleConfig {
+    // Throttle module
+    let throttle = settings.throttle.clone().unwrap_or_default();
+    let throttle_info = module(
+        "throttle",
+        "Throttle",
+        throttle.enabled,
+        ModuleConfig {
             inbound: throttle.inbound,
             outbound: throttle.outbound,
             chance: throttle.probability.value() * 100.0,
             enabled: throttle.enabled,
             duration_ms: Some(throttle.duration_ms),
             throttle_ms: Some(throttle.throttle_ms),
-            limit_kbps: None,
-            count: None,
-            buffer_ms: None,
-            keepalive_ms: None,
-            release_delay_us: None,
             drop: Some(throttle.drop),
             max_buffer: Some(throttle.max_buffer),
-            lag_bypass: None,
             freeze_mode: Some(throttle.freeze_mode),
-            passthrough_threshold: None,
-            use_wfp: None,
-            reverse: None,
+            ..Default::default()
         },
-        params: None,
-    });
+    );
 
-    // Duplicate module - always include
-    let duplicate = settings.duplicate.as_ref().cloned().unwrap_or_default();
-    modules.push(ModuleInfo {
-        name: "duplicate".to_string(),
-        display_name: "Duplicate".to_string(),
-        enabled: duplicate.enabled,
-        config: ModuleConfig {
+    // Duplicate module
+    let duplicate = settings.duplicate.clone().unwrap_or_default();
+    let duplicate_info = module(
+        "duplicate",
+        "Duplicate",
+        duplicate.enabled,
+        ModuleConfig {
             inbound: duplicate.inbound,
             outbound: duplicate.outbound,
             chance: duplicate.probability.value() * 100.0,
             enabled: duplicate.enabled,
             duration_ms: Some(duplicate.duration_ms),
-            throttle_ms: None,
-            limit_kbps: None,
             count: Some(duplicate.count),
-            buffer_ms: None,
-            keepalive_ms: None,
-            release_delay_us: None,
-            drop: None,
-            max_buffer: None,
-            lag_bypass: None,
-            freeze_mode: None,
-            passthrough_threshold: None,
-            use_wfp: None,
-            reverse: None,
+            ..Default::default()
         },
-        params: None,
-    });
+    );
 
-    // Bandwidth module - always include
-    let bandwidth = settings.bandwidth.as_ref().cloned().unwrap_or_default();
-    let limit_kbps = Some(match bandwidth.limit {
-        0 => 50, // Default limit
-        limit => limit as u64,
-    });
-    modules.push(ModuleInfo {
-        name: "bandwidth".to_string(),
-        display_name: "Bandwidth".to_string(),
-        enabled: bandwidth.enabled,
-        config: ModuleConfig {
+    // Bandwidth module
+    let bandwidth = settings.bandwidth.clone().unwrap_or_default();
+    let bandwidth_info = module(
+        "bandwidth",
+        "Bandwidth",
+        bandwidth.enabled,
+        ModuleConfig {
             inbound: bandwidth.inbound,
             outbound: bandwidth.outbound,
             chance: bandwidth.probability.value() * 100.0,
             enabled: bandwidth.enabled,
             duration_ms: Some(bandwidth.duration_ms),
-            throttle_ms: None,
-            limit_kbps,
-            count: None,
-            buffer_ms: None,
-            keepalive_ms: None,
-            release_delay_us: None,
-            drop: None,
-            max_buffer: None,
-            lag_bypass: None,
-            freeze_mode: None,
+            limit_kbps: Some(if bandwidth.limit == 0 { 50 } else { bandwidth.limit as u64 }),
             passthrough_threshold: Some(bandwidth.passthrough_threshold),
             use_wfp: Some(bandwidth.use_wfp),
-            reverse: None,
+            ..Default::default()
         },
-        params: None,
-    });
+    );
 
-    // Tamper module - always include
-    let tamper = settings.tamper.as_ref().cloned().unwrap_or_default();
-    modules.push(ModuleInfo {
-        name: "tamper".to_string(),
-        display_name: "Tamper".to_string(),
-        enabled: tamper.enabled,
-        config: ModuleConfig {
+    // Tamper module
+    let tamper = settings.tamper.clone().unwrap_or_default();
+    let tamper_info = module(
+        "tamper",
+        "Tamper",
+        tamper.enabled,
+        ModuleConfig {
             inbound: tamper.inbound,
             outbound: tamper.outbound,
             chance: tamper.probability.value() * 100.0,
             enabled: tamper.enabled,
             duration_ms: Some(tamper.duration_ms),
-            throttle_ms: None,
-            limit_kbps: None,
-            count: None,
-            buffer_ms: None,
-            keepalive_ms: None,
-            release_delay_us: None,
-            drop: None,
-            max_buffer: None,
-            lag_bypass: None,
-            freeze_mode: None,
-            passthrough_threshold: None,
-            use_wfp: None,
-            reverse: None,
+            ..Default::default()
         },
-        params: None,
-    });
+    );
 
-    // Reorder module - always include
-    let reorder = settings.reorder.as_ref().cloned().unwrap_or_default();
-    modules.push(ModuleInfo {
-        name: "reorder".to_string(),
-        display_name: "Reorder".to_string(),
-        enabled: reorder.enabled,
-        config: ModuleConfig {
+    // Reorder module
+    let reorder = settings.reorder.clone().unwrap_or_default();
+    let reorder_info = module(
+        "reorder",
+        "Reorder",
+        reorder.enabled,
+        ModuleConfig {
             inbound: reorder.inbound,
             outbound: reorder.outbound,
             chance: reorder.probability.value() * 100.0,
             enabled: reorder.enabled,
             duration_ms: Some(reorder.duration_ms),
             throttle_ms: Some(reorder.max_delay),
-            limit_kbps: None,
-            count: None,
-            buffer_ms: None,
-            keepalive_ms: None,
-            release_delay_us: None,
-            drop: None,
-            max_buffer: None,
-            lag_bypass: None,
-            freeze_mode: None,
-            passthrough_threshold: None,
-            use_wfp: None,
-            reverse: None,
+            ..Default::default()
         },
-        params: None,
-    });
+    );
 
-    // Burst module (lag switch) - always include
-    let burst = settings.burst.as_ref().cloned().unwrap_or_default();
-    modules.push(ModuleInfo {
-        name: "burst".to_string(),
-        display_name: "Burst".to_string(),
-        enabled: burst.enabled,
-        config: ModuleConfig {
+    // Burst module
+    let burst = settings.burst.clone().unwrap_or_default();
+    let burst_info = module(
+        "burst",
+        "Burst",
+        burst.enabled,
+        ModuleConfig {
             inbound: burst.inbound,
             outbound: burst.outbound,
             chance: burst.probability.value() * 100.0,
             enabled: burst.enabled,
             duration_ms: Some(burst.duration_ms),
-            throttle_ms: None,
-            limit_kbps: None,
-            count: None,
             buffer_ms: Some(burst.buffer_ms),
             keepalive_ms: Some(burst.keepalive_ms),
             release_delay_us: Some(burst.release_delay_us),
-            drop: None,
-            max_buffer: None,
             lag_bypass: Some(settings.lag_bypass),
-            freeze_mode: None,
-            passthrough_threshold: None,
-            use_wfp: None,
             reverse: Some(burst.reverse),
+            ..Default::default()
         },
-        params: None,
-    });
+    );
 
-    modules
+    vec![
+        lag_info,
+        drop_info,
+        throttle_info,
+        duplicate_info,
+        bandwidth_info,
+        tamper_info,
+        reorder_info,
+        burst_info,
+    ]
 }

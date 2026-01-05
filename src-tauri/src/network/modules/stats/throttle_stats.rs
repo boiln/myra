@@ -23,11 +23,11 @@ impl Default for ThrottleStats {
 }
 
 impl ThrottleStats {
-    /// Creates a new ThrottleStats instance with default values
+    /// Creates a new `ThrottleStats` instance with default values
     ///
     /// # Returns
     ///
-    /// A new ThrottleStats instance with throttling disabled and zero dropped packets
+    /// A new `ThrottleStats` instance with throttling disabled and zero dropped packets
     ///
     /// # Example
     ///
@@ -35,7 +35,7 @@ impl ThrottleStats {
     /// let stats = ThrottleStats::new();
     /// ```
     pub fn new() -> Self {
-        ThrottleStats {
+        Self {
             is_throttling: false,
             dropped_count: 0,
             buffered_count: 0,
@@ -95,6 +95,7 @@ mod tests {
         let mut stats = ThrottleStats {
             is_throttling: true,
             dropped_count: 10,
+            buffered_count: 5,
         };
 
         stats.reset();

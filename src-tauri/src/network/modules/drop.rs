@@ -29,9 +29,9 @@ impl PacketModule for DropModule {
         options.duration_ms
     }
 
-    fn process<'a>(
+    fn process(
         &self,
-        packets: &mut Vec<PacketData<'a>>,
+        packets: &mut Vec<PacketData<'_>>,
         options: &Self::Options,
         _state: &mut Self::State,
         ctx: &mut ModuleContext,
@@ -68,8 +68,8 @@ impl PacketModule for DropModule {
 ///
 /// drop_packets(&mut packets, probability, &mut stats);
 /// ```
-pub fn drop_packets<'a>(
-    packets: &mut Vec<PacketData<'a>>,
+pub fn drop_packets(
+    packets: &mut Vec<PacketData<'_>>,
     drop_probability: Probability,
     apply_inbound: bool,
     apply_outbound: bool,

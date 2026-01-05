@@ -48,7 +48,7 @@ impl Probability {
             return Err(ProbabilityError::OutOfRange(value));
         }
 
-        Ok(Probability(value))
+        Ok(Self(value))
     }
 
     /// Returns the underlying probability value.
@@ -78,7 +78,7 @@ impl FromStr for Probability {
         let value: f64 = s
             .parse()
             .map_err(|_| ProbabilityError::ParseError(s.to_string()))?;
-        Probability::new(value)
+        Self::new(value)
     }
 }
 
@@ -104,7 +104,7 @@ impl Default for Probability {
     ///
     /// * `Self` - A Probability with value 0.0
     fn default() -> Self {
-        Probability(0.0)
+        Self(0.0)
     }
 }
 

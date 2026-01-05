@@ -1,6 +1,6 @@
 //! Packet receiving module.
 //!
-//! This module handles receiving network packets using WinDivert
+//! This module handles receiving network packets using `WinDivert`
 //! and forwarding them to the processing thread.
 
 use crate::network::core::{
@@ -12,7 +12,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{mpsc, Arc, Mutex};
 use windivert::error::WinDivertError;
 
-/// Receives network packets using WinDivert.
+/// Receives network packets using `WinDivert`.
 ///
 /// This function runs in a separate thread and continuously receives packets
 /// from the network. It sends these packets to the main processing thread
@@ -28,7 +28,7 @@ use windivert::error::WinDivertError;
 /// # Returns
 ///
 /// * `Ok(())` - If thread completes cleanly
-/// * `Err(WinDivertError)` - If there's an error with WinDivert operations
+/// * `Err(WinDivertError)` - If there's an error with `WinDivert` operations
 pub fn receive_packets(
     packet_sender: mpsc::Sender<PacketData<'_>>,
     running: Arc<AtomicBool>,
@@ -42,13 +42,12 @@ pub fn receive_packets(
 
     while running.load(Ordering::SeqCst) {
         // Check for filter updates
-        let current_filter = match filter.lock() {
-            Ok(filter_guard) => construct_filter_with_exclusions(&filter_guard),
-            Err(e) => {
-                error!("Failed to lock filter for reading: {}", e);
-                continue;
-            }
+        let Ok(filter_guard) = filter.lock() else {
+            error!("Failed to lock filter for reading");
+            continue;
         };
+        let current_filter = construct_filter_with_exclusions(&filter_guard);
+        drop(filter_guard);
 
         // If filter changed, update WinDivert handle
         if current_filter != last_filter {

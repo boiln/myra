@@ -20,6 +20,7 @@ pub struct ThrottleModule;
 
 /// State maintained by the throttle module between processing calls.
 #[derive(Debug)]
+#[derive(Default)]
 pub struct ThrottleState {
     /// Queue of buffered packets
     pub buffer: VecDeque<PacketData<'static>>,
@@ -31,16 +32,6 @@ pub struct ThrottleState {
     pub last_leak: Option<Instant>,
 }
 
-impl Default for ThrottleState {
-    fn default() -> Self {
-        Self {
-            buffer: VecDeque::new(),
-            cycle_start: None,
-            last_flush: None,
-            last_leak: None,
-        }
-    }
-}
 
 impl PacketModule for ThrottleModule {
     type Options = ThrottleOptions;
@@ -94,7 +85,7 @@ impl PacketModule for ThrottleModule {
 /// # How it works
 ///
 /// 1. When a packet matching direction arrives, start buffering
-/// 2. Buffer packets for the timeframe duration OR until max_buffer reached
+/// 2. Buffer packets for the timeframe duration OR until `max_buffer` reached
 /// 3. When timeframe ends or buffer full:
 ///    - If drop=true: DROP all buffered packets
 ///    - If drop=false: RELEASE all buffered packets at once
@@ -144,19 +135,14 @@ pub fn throttle_packets<'a>(
         .unwrap_or(false);
 
     // Check if we need to release/drop buffered packets
-    let should_flush = match cycle_start {
-        Some(start) => {
-            let elapsed = now.duration_since(*start);
-            // Flush if timeframe elapsed OR buffer full
-            elapsed >= timeframe || buffer.len() >= max_buffer
-        }
-        None => false,
-    };
+    let should_flush = cycle_start.as_ref().is_some_and(|start| {
+        let elapsed = now.duration_since(*start);
+        // Flush if timeframe elapsed OR buffer full
+        elapsed >= timeframe || buffer.len() >= max_buffer
+    });
 
     // Track if we just flushed to prevent immediate re-buffering
-    let mut just_flushed = false;
-    
-    if should_flush {
+    let just_flushed = if should_flush {
         let count = buffer.len();
         if drop {
             // Drop Throttled mode - discard all buffered packets
@@ -174,8 +160,10 @@ pub fn throttle_packets<'a>(
         *cycle_start = None;
         *last_flush = Some(now); // Start cooldown
         stats.is_throttling = false;
-        just_flushed = true; // Mark that we just flushed
-    }
+        true // Mark that we just flushed
+    } else {
+        false
+    };
 
     // If not currently throttling and not in cooldown (or just flushed), check if we should start
     // In freeze_mode: can start immediately after flush (just_flushed doesn't block)
@@ -220,8 +208,6 @@ pub fn throttle_packets<'a>(
                 continue;
             }
 
-            // Let very small packets through to keep connection alive (ACKs, TCP keepalives)
-            // This mimics how NetLimiter keeps TCP happy at socket layer
             let packet_size = packet.packet.data.len();
             if packet_size <= KEEPALIVE_THRESHOLD {
                 // Small packet - let it through as keepalive

@@ -83,7 +83,7 @@ fn default_tap_duration() -> u64 {
 struct ConfigFile {
     /// Packet manipulation settings
     settings: Settings,
-    /// WinDivert filter string
+    /// `WinDivert` filter string
     filter: Option<String>,
     /// Filter target configuration (process, device, etc.)
     #[serde(default)]
@@ -152,7 +152,7 @@ pub async fn save_config(
     Ok(())
 }
 
-/// Response structure for load_config that includes filter target
+/// Response structure for `load_config` that includes filter target
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LoadConfigResponse {
     pub settings: Settings,

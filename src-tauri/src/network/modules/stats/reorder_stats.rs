@@ -13,7 +13,7 @@ pub struct ReorderStats {
 }
 
 impl ReorderStats {
-    /// Creates a new ReorderStats with specified alpha for EWMA calculation
+    /// Creates a new `ReorderStats` with specified alpha for EWMA calculation
     ///
     /// # Arguments
     ///
@@ -38,10 +38,7 @@ impl ReorderStats {
             self.reordered_packets += 1;
         }
 
-        let current_reorder_rate = match reordered {
-            true => 1.0,
-            false => 0.0,
-        };
+        let current_reorder_rate = if reordered { 1.0 } else { 0.0 };
         self.ewma.update(current_reorder_rate);
     }
 }

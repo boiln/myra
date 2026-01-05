@@ -1,10 +1,3 @@
-/**
- * Traffic Control (NetLimiter-style) bandwidth limiting service
- * 
- * This provides true OS-level bandwidth limiting at the socket layer,
- * operating like NetLimiter does.
- */
-
 import { invoke } from "@tauri-apps/api/core";
 
 export type TcDirection = "inbound" | "outbound" | "both";

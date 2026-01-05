@@ -135,11 +135,11 @@ export interface BandwidthOptions {
     inbound?: boolean;
     outbound?: boolean;
     probability: number;
-    limit: number;          // Bandwidth limit in KB/s (matches Rust 'limit' field)
+    limit: number; // Bandwidth limit in KB/s (matches Rust 'limit' field)
     duration_ms: number;
     /** Passthrough packets smaller than this size (bytes) to keep connection alive. Default: 64 */
     passthrough_threshold?: number;
-    /** Use WFP token bucket algorithm (like NetLimiter) instead of inline packet pacing */
+    /** Use WFP token bucket algorithm instead of inline packet pacing */
     use_wfp?: boolean;
 }
 

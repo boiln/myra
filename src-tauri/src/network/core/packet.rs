@@ -4,12 +4,12 @@ use windivert::packet::WinDivertPacket;
 
 /// Represents a network packet with metadata for processing.
 ///
-/// This structure wraps a WinDivert packet and associates it with
+/// This structure wraps a `WinDivert` packet and associates it with
 /// timing information, which is crucial for implementing various
 /// network condition simulations like delays and bandwidth limits.
 #[derive(Debug, Clone)]
 pub struct PacketData<'a> {
-    /// The actual network packet from WinDivert
+    /// The actual network packet from `WinDivert`
     pub packet: WinDivertPacket<'a, NetworkLayer>,
 
     /// Timestamp when the packet was captured
@@ -20,7 +20,7 @@ pub struct PacketData<'a> {
 }
 
 impl<'a> PacketData<'a> {
-    /// Creates a PacketData instance from a WinDivertPacket with direction info.
+    /// Creates a `PacketData` instance from a `WinDivertPacket` with direction info.
     pub fn new(packet: WinDivertPacket<'a, NetworkLayer>, is_outbound: bool) -> Self {
         PacketData {
             packet,
@@ -31,7 +31,7 @@ impl<'a> PacketData<'a> {
 }
 
 impl<'a> From<WinDivertPacket<'a, NetworkLayer>> for PacketData<'a> {
-    /// Creates a PacketData instance from a WinDivertPacket,
+    /// Creates a `PacketData` instance from a `WinDivertPacket`,
     /// automatically recording the current time as arrival time.
     /// Defaults to outbound=false (inbound) when direction is unknown.
     fn from(packet: WinDivertPacket<'a, NetworkLayer>) -> Self {
@@ -44,7 +44,7 @@ impl<'a> From<WinDivertPacket<'a, NetworkLayer>> for PacketData<'a> {
 }
 
 /// Methods for working with packet data
-impl<'a> PacketData<'a> {
+impl PacketData<'_> {
     /// Returns the size of the packet in bytes
     pub fn size(&self) -> usize {
         self.packet.data.len()

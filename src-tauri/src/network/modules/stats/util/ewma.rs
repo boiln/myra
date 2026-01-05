@@ -49,7 +49,7 @@ impl Ewma {
             alpha > 0.0 && alpha <= 1.0,
             "Alpha should be between 0 and 1"
         );
-        Ewma {
+        Self {
             alpha,
             current_value: None,
         }
@@ -77,7 +77,7 @@ impl Ewma {
     /// ```
     pub fn update(&mut self, new_value: f64) -> f64 {
         self.current_value = Some(match self.current_value {
-            Some(current) => current * (1.0 - self.alpha) + new_value * self.alpha,
+            Some(current) => current.mul_add(1.0 - self.alpha, new_value * self.alpha),
             None => new_value, // If no previous value exists, just set to new_value
         });
         self.current_value.unwrap()

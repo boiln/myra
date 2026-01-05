@@ -1,12 +1,3 @@
-//! Prelude module for convenient imports.
-//!
-//! This module re-exports commonly used types and traits from the crate,
-//! allowing users to import everything they need with a single use statement:
-//!
-//! ```rust
-//! use myra::prelude::*;
-//! ```
-
 // Error handling
 pub use crate::error::{MyraError, Result};
 

@@ -44,8 +44,10 @@ impl PacketModule for LagModule {
     ) -> Result<()> {
         let mut stats = ctx.write_stats(self.name())?;
 
-        // Safety: We need to transmute lifetimes here because the storage persists
-        // across processing calls. The packets are owned by the storage until released.
+        // SAFETY: The storage outlives each processing call. Packets are moved into
+        // storage and only released when their lag duration has elapsed. The transmute
+        // extends the lifetime to 'static for storage, but packets are always consumed
+        // or released before the storage is dropped.
         let storage: &mut VecDeque<PacketData<'a>> = unsafe { std::mem::transmute(state) };
 
         lag_packets(

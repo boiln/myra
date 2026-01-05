@@ -1,6 +1,6 @@
 //! Flow tracking for process-based filtering.
 //!
-//! Uses WinDivert's Flow layer to track network connections by process ID,
+//! Uses `WinDivert`'s Flow layer to track network connections by process ID,
 //! enabling reliable process-based packet filtering.
 
 use log::{debug, error, info, warn};
@@ -98,15 +98,14 @@ impl FlowTracker {
             return Vec::new();
         };
 
-        let flows = match self.flows.read() {
-            Ok(guard) => guard,
-            Err(_) => return Vec::new(),
+        let Ok(flows) = self.flows.read() else {
+            return Vec::new();
         };
 
         flows.get(&pid).map(|p| p.flows.clone()).unwrap_or_default()
     }
 
-    /// Build a WinDivert filter string for the tracked flows
+    /// Build a `WinDivert` filter string for the tracked flows
     pub fn build_filter(&self) -> Option<String> {
         let flows = self.get_flows();
 
@@ -222,9 +221,8 @@ fn run_flow_tracker(
         }
 
         let event = addr.event();
-        let mut flows_guard = match flows.write() {
-            Ok(g) => g,
-            Err(_) => continue,
+        let Ok(mut flows_guard) = flows.write() else {
+            continue;
         };
 
         let process_flows = flows_guard.entry(pid).or_default();

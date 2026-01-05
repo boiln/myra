@@ -1,10 +1,3 @@
-/**
- * Traffic Control (NetLimiter-style) Bandwidth Control
- * 
- * This provides OS-level bandwidth limiting that operates at the socket layer,
- * like NetLimiter does. It's separate from the WinDivert-based modules.
- */
-
 import { useState, useEffect } from "react";
 import { startTcBandwidth, stopTcBandwidth, getTcBandwidthStatus, TcDirection, TcBandwidthStatus } from "@/lib/services/tc-bandwidth";
 import { MyraCheckbox } from "./ui/myra-checkbox";
@@ -17,7 +10,6 @@ export function TcBandwidthControl() {
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
-    // Poll status periodically
     useEffect(() => {
         const fetchStatus = async () => {
             try {

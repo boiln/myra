@@ -12,7 +12,7 @@ pub struct DuplicateStats {
 }
 
 impl DuplicateStats {
-    /// Creates a new DuplicateStats with specified alpha for EWMA calculation
+    /// Creates a new `DuplicateStats` with specified alpha for EWMA calculation
     ///
     /// # Arguments
     ///

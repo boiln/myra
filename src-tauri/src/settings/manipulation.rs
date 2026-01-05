@@ -67,12 +67,11 @@ pub struct Settings {
     #[serde(default = "default_burst_release_delay")]
     pub burst_release_delay_us: u64,
 
-    /// Enable MGO2/lag bypass mode - when send fails, swap IPs and retry
+    /// When send fails, swap IPs and retry
     /// This technique can bypass certain game anti-lag detection
     #[serde(default)]
     pub lag_bypass: bool,
 
-    /// Traffic Control bandwidth limiting (NetLimiter-style)
     /// Works at OS socket layer for true rate limiting
     #[serde(default, serialize_with = "serialize_option")]
     pub tc_bandwidth: Option<TcBandwidthOptions>,
@@ -99,9 +98,6 @@ impl Default for Settings {
         }
     }
 }
-
-/// Type alias for backward compatibility.
-pub type PacketManipulationSettings = Settings;
 
 // Implement ModuleOptions trait for all option types
 use crate::network::modules::traits::ModuleOptions;
@@ -153,5 +149,3 @@ impl ModuleOptions for BurstOptions {
         self.enabled
     }
 }
-
-

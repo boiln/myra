@@ -44,7 +44,7 @@ pub struct ReorderOptions {
 
 impl Default for ReorderOptions {
     fn default() -> Self {
-        ReorderOptions {
+        Self {
             enabled: false,
             inbound: true,
             outbound: true,

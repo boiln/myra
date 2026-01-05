@@ -34,9 +34,9 @@ impl PacketModule for DuplicateModule {
         options.count == 0 || options.probability.value() <= 0.0
     }
 
-    fn process<'a>(
+    fn process(
         &self,
-        packets: &mut Vec<PacketData<'a>>,
+        packets: &mut Vec<PacketData<'_>>,
         options: &Self::Options,
         _state: &mut Self::State,
         ctx: &mut ModuleContext,
@@ -105,7 +105,7 @@ pub fn duplicate_packets(
 
 #[cfg(test)]
 mod tests {
-    use crate::network::core::packet_data::PacketData;
+    use crate::network::core::packet::PacketData;
     use crate::network::modules::duplicate::duplicate_packets;
     use crate::network::modules::stats::duplicate_stats::DuplicateStats;
     use crate::network::types::probability::Probability;

@@ -51,7 +51,7 @@ pub async fn update_settings(
     Ok(())
 }
 
-/// Builds Settings from a list of ModuleInfo.
+/// Builds Settings from a list of `ModuleInfo`.
 fn build_settings_from_modules(modules: Vec<ModuleInfo>) -> Result<Settings, String> {
     let mut settings = Settings::default();
 

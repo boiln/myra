@@ -15,21 +15,21 @@ pub struct DelayedPacket<'a> {
     pub delay_until: Instant,
 }
 
-impl<'a> PartialEq for DelayedPacket<'a> {
+impl PartialEq for DelayedPacket<'_> {
     fn eq(&self, other: &Self) -> bool {
         self.delay_until == other.delay_until
     }
 }
 
-impl<'a> Eq for DelayedPacket<'a> {}
+impl Eq for DelayedPacket<'_> {}
 
-impl<'a> PartialOrd for DelayedPacket<'a> {
+impl PartialOrd for DelayedPacket<'_> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl<'a> Ord for DelayedPacket<'a> {
+impl Ord for DelayedPacket<'_> {
     fn cmp(&self, other: &Self) -> Ordering {
         // Note: We flip the ordering here to turn BinaryHeap into a min-heap based on delay_until
         other.delay_until.cmp(&self.delay_until)

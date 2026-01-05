@@ -15,18 +15,18 @@ pub struct LagStats {
 }
 
 impl Default for LagStats {
-    /// Creates a new LagStats instance with default values.
+    /// Creates a new `LagStats` instance with default values.
     fn default() -> Self {
         Self::new()
     }
 }
 
 impl LagStats {
-    /// Creates a new LagStats instance with zeroed counters.
+    /// Creates a new `LagStats` instance with zeroed counters.
     ///
     /// # Returns
     ///
-    /// A new LagStats instance initialized with zero counts.
+    /// A new `LagStats` instance initialized with zero counts.
     ///
     /// # Example
     ///
@@ -34,7 +34,7 @@ impl LagStats {
     /// let stats = LagStats::new();
     /// ```
     pub fn new() -> Self {
-        LagStats {
+        Self {
             lagged_package_count: 0,
             max_lagged: 0,
             total_processed: 0,

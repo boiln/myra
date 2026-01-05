@@ -23,7 +23,7 @@ use crate::settings::Settings;
 ///
 /// * `state` - The application state containing shared resources
 /// * `settings` - The packet manipulation settings to apply
-/// * `filter` - Optional WinDivert filter expression to select packets
+/// * `filter` - Optional `WinDivert` filter expression to select packets
 ///
 /// # Returns
 ///

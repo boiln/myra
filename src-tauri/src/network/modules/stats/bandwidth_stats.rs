@@ -31,7 +31,7 @@ pub struct BandwidthStats {
 }
 
 impl BandwidthStats {
-    /// Creates a new BandwidthStats instance with the specified alpha value for the EWMA
+    /// Creates a new `BandwidthStats` instance with the specified alpha value for the EWMA
     ///
     /// The alpha value controls how quickly the EWMA responds to changes in throughput.
     /// Higher values (closer to 1.0) give more weight to recent measurements.
@@ -47,7 +47,7 @@ impl BandwidthStats {
     /// let stats = BandwidthStats::new(0.5); // Equal weight to recent and historical data
     /// ```
     pub fn new(alpha: f64) -> Self {
-        BandwidthStats {
+        Self {
             storage_packet_count: 0,
             total_byte_count: 0,
             ewma: Ewma::new(alpha),

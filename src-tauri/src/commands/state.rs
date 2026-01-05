@@ -23,7 +23,7 @@ pub struct PacketProcessingState {
     pub settings: Arc<Mutex<Settings>>,
     /// Statistics collected during packet processing
     pub statistics: Arc<RwLock<PacketProcessingStatistics>>,
-    /// Current WinDivert filter expression
+    /// Current `WinDivert` filter expression
     pub filter: Arc<Mutex<Option<String>>>,
     /// Flow tracker for process-based filtering
     pub flow_tracker: Arc<Mutex<FlowTracker>>,
@@ -42,7 +42,7 @@ impl Default for PacketProcessingState {
 }
 
 impl PacketProcessingState {
-    /// Creates a new PacketProcessingState with default values.
+    /// Creates a new `PacketProcessingState` with default values.
     pub fn new() -> Self {
         Self::default()
     }

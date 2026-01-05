@@ -70,7 +70,7 @@ fn default_throttle_ms() -> u64 {
 
 impl Default for ThrottleOptions {
     fn default() -> Self {
-        ThrottleOptions {
+        Self {
             enabled: false,
             inbound: true,
             outbound: true,

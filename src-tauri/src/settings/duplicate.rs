@@ -42,7 +42,7 @@ pub struct DuplicateOptions {
 
 impl Default for DuplicateOptions {
     fn default() -> Self {
-        DuplicateOptions {
+        Self {
             enabled: false,
             inbound: true,
             outbound: true,

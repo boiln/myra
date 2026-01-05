@@ -1,15 +1,10 @@
 use crate::error::{MyraError, Result};
 use crate::network::core::PacketData;
-use crate::network::modules::burst::flush_buffer;
+use crate::network::modules::registry::process_all_modules;
 use crate::network::modules::stats::PacketProcessingStatistics;
-use crate::network::modules::traits::ModuleContext;
-use crate::network::modules::{
-    BandwidthModule, BurstModule, LagModule, DropModule, DuplicateModule, PacketModule,
-    ReorderModule, TamperModule, ThrottleModule,
-};
 use crate::network::processing::module_state::ModuleProcessingState;
 use crate::settings::Settings;
-use crate::utils::{is_effect_active, log_statistics};
+use crate::utils::log_statistics;
 use log::{debug, error, info, warn};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::Receiver;
@@ -20,7 +15,7 @@ use windivert::{CloseAction, WinDivert};
 use windivert_sys::WinDivertFlags;
 
 /// Swap source and destination IP addresses in a packet (MGO2 bypass technique).
-/// This is called when WinDivertSend fails - swapping IPs and retrying can bypass
+/// This is called when `WinDivertSend` fails - swapping IPs and retrying can bypass
 /// certain game anti-lag detection mechanisms.
 fn swap_ip_addresses(packet_data: &mut PacketData) -> bool {
     // Get mutable access to the packet data
@@ -67,10 +62,9 @@ fn swap_ip_addresses(packet_data: &mut PacketData) -> bool {
     }
 }
 
-/// Attempt to send a packet with the MGO2 bypass technique.
 /// If the initial send fails, swap source/destination IPs and retry.
 fn send_with_bypass(
-    wd: &mut WinDivert<NetworkLayer>,
+    wd: &WinDivert<NetworkLayer>,
     packet_data: &mut PacketData,
     enable_bypass: bool,
 ) -> std::result::Result<(), windivert::error::WinDivertError> {
@@ -114,7 +108,7 @@ fn send_with_bypass(
 
 /// Starts the packet processing loop that handles network packet manipulation.
 ///
-/// This function creates a WinDivert handle configured for sending packets only,
+/// This function creates a `WinDivert` handle configured for sending packets only,
 /// then enters a processing loop where it:
 /// 1. Receives packets from the provided channel
 /// 2. Applies various packet manipulations based on settings
@@ -131,7 +125,7 @@ fn send_with_bypass(
 ///
 /// # Returns
 ///
-/// Result indicating success or a MyraError if something fails
+/// Result indicating success or a `MyraError` if something fails
 pub fn start_packet_processing(
     settings: Arc<Mutex<Settings>>,
     packet_receiver: Receiver<PacketData>,
@@ -178,7 +172,7 @@ pub fn start_packet_processing(
         }
 
         // If duration is large enough, sleep all but ~1ms, then spin.
-        let to_sleep = duration - Duration::from_millis(1);
+        let to_sleep = duration.checked_sub(Duration::from_millis(1)).unwrap();
         std::thread::sleep(to_sleep);
         let target = Instant::now() + Duration::from_millis(1);
         while Instant::now() < target {
@@ -230,8 +224,8 @@ pub fn start_packet_processing(
             info!("BURST REPLAY: Sending {} packets with {}us delay each", packets.len(), release_delay);
         }
         for mut packet_data in packets {
-            if let Err(e) = send_with_bypass(&mut wd, &mut packet_data, enable_bypass) {
-                error!("Failed to send packet: {}", e);
+            if let Err(e) = send_with_bypass(&wd, &mut packet_data, enable_bypass) {
+                error!("Failed to send packet: {e}");
                 continue;
             }
 
@@ -255,15 +249,15 @@ pub fn start_packet_processing(
         // This ensures packets are processed at a consistent rate
         let elapsed = cycle_start.elapsed();
         if elapsed < Duration::from_millis(CYCLE_TIME_MS) {
-            std::thread::sleep(Duration::from_millis(CYCLE_TIME_MS) - elapsed);
+            std::thread::sleep(Duration::from_millis(CYCLE_TIME_MS).checked_sub(elapsed).unwrap());
         }
     }
 
     // FLUSH BURST BUFFER ON SHUTDOWN - release all buffered packets before closing
     if !state.burst.buffer.is_empty() {
         while let Some((mut packet, _)) = state.burst.buffer.pop_front() {
-            if let Err(e) = send_with_bypass(&mut wd, &mut packet, enable_bypass) {
-                error!("Failed to send buffered packet on shutdown: {}", e);
+            if let Err(e) = send_with_bypass(&wd, &mut packet, enable_bypass) {
+                error!("Failed to send buffered packet on shutdown: {e}");
             }
         }
         // Give packets time to actually transmit before closing handle
@@ -303,17 +297,8 @@ pub fn start_packet_processing(
 
 /// Processes packets according to the current manipulation settings.
 ///
-/// This function applies various packet manipulations in sequence based on the
-/// provided settings. Each manipulation is only applied if it's enabled in the settings.
-///
-/// The manipulations include:
-/// - Packet dropping
-/// - Packet delaying
-/// - Network throttling
-/// - Packet reordering
-/// - Packet tampering (corruption)
-/// - Packet duplication
-/// - Bandwidth limiting
+/// Delegates to the module registry which handles all modules in order:
+/// drop → lag → throttle → reorder → tamper → duplicate → bandwidth → burst
 ///
 /// # Arguments
 ///
@@ -325,198 +310,18 @@ pub fn start_packet_processing(
 /// # Returns
 ///
 /// `Ok(())` on success, or `MyraError` if any module fails to process.
-pub fn process_packets<'a>(
+pub fn process_packets(
     settings: &Settings,
-    packets: &mut Vec<PacketData<'a>>,
+    packets: &mut Vec<PacketData<'_>>,
     state: &mut ModuleProcessingState,
     statistics: &Arc<RwLock<PacketProcessingStatistics>>,
 ) -> Result<()> {
-    let has_packets = !packets.is_empty();
-
-    // Debug: log active modules
-    if has_packets {
+    if !packets.is_empty() {
         debug!(
-            "Processing {} packets. Active modules: drop={}, lag={}, throttle={}, reorder={}, tamper={}, duplicate={}, bandwidth={}, burst={}",
-            packets.len(),
-            settings.drop.as_ref().map(|d| d.enabled).unwrap_or(false),
-            settings.lag.as_ref().map(|d| d.enabled).unwrap_or(false),
-            settings.throttle.as_ref().map(|t| t.enabled).unwrap_or(false),
-            settings.reorder.as_ref().map(|r| r.enabled).unwrap_or(false),
-            settings.tamper.as_ref().map(|t| t.enabled).unwrap_or(false),
-            settings.duplicate.as_ref().map(|d| d.enabled).unwrap_or(false),
-            settings.bandwidth.as_ref().map(|b| b.enabled).unwrap_or(false),
-            settings.burst.as_ref().map(|b| b.enabled).unwrap_or(false)
+            "Processing {} packets through module registry",
+            packets.len()
         );
     }
 
-    // Process each module using the trait-based approach
-    process_module(
-        &DropModule,
-        settings.drop.as_ref(),
-        packets,
-        &mut (),
-        &mut state.effect_start_times.drop,
-        statistics,
-        has_packets,
-    )?;
-
-    process_module(
-        &LagModule,
-        settings.lag.as_ref(),
-        packets,
-        &mut state.lag,
-        &mut state.effect_start_times.lag,
-        statistics,
-        has_packets,
-    )?;
-
-    process_module(
-        &ThrottleModule,
-        settings.throttle.as_ref(),
-        packets,
-        &mut state.throttle,
-        &mut state.effect_start_times.throttle,
-        statistics,
-        has_packets,
-    )?;
-
-    process_module(
-        &ReorderModule,
-        settings.reorder.as_ref(),
-        packets,
-        &mut state.reorder,
-        &mut state.effect_start_times.reorder,
-        statistics,
-        has_packets,
-    )?;
-
-    process_module(
-        &TamperModule,
-        settings.tamper.as_ref(),
-        packets,
-        &mut (),
-        &mut state.effect_start_times.tamper,
-        statistics,
-        has_packets,
-    )?;
-
-    process_module(
-        &DuplicateModule,
-        settings.duplicate.as_ref(),
-        packets,
-        &mut (),
-        &mut state.effect_start_times.duplicate,
-        statistics,
-        has_packets,
-    )?;
-
-    process_module(
-        &BandwidthModule,
-        settings.bandwidth.as_ref(),
-        packets,
-        &mut state.bandwidth,
-        &mut state.effect_start_times.bandwidth,
-        statistics,
-        has_packets,
-    )?;
-
-    // Special handling for burst module - flush buffer when disabled
-    let burst_enabled = settings.burst.as_ref().map(|b| b.enabled).unwrap_or(false);
-    if state.burst_was_enabled && !burst_enabled {
-        // Burst was just disabled - flush all buffered packets
-        let buffer_size = state.burst.buffer.len();
-        let reverse = settings.burst.as_ref().map(|b| b.reverse).unwrap_or(false);
-        
-        info!(
-            "BURST DISABLED: Flushing {} buffered packets (reverse={})",
-            buffer_size,
-            reverse
-        );
-        
-        let buffer: &mut std::collections::VecDeque<(PacketData<'a>, Instant)> =
-            unsafe { std::mem::transmute(&mut state.burst.buffer) };
-        flush_buffer(packets, buffer, &mut state.burst.cycle_start, reverse);
-    }
-    state.burst_was_enabled = burst_enabled;
-
-    process_module(
-        &BurstModule,
-        settings.burst.as_ref(),
-        packets,
-        &mut state.burst,
-        &mut state.effect_start_times.burst,
-        statistics,
-        has_packets,
-    )?;
-
-    Ok(())
-}
-
-/// Generic function to process a single module.
-///
-/// Handles the common logic of checking if a module should run,
-/// managing effect duration, and invoking the module's process function.
-///
-/// # Type Parameters
-///
-/// * `M` - The module type implementing `PacketModule`
-///
-/// # Arguments
-///
-/// * `module` - The module instance to use for processing
-/// * `options` - Optional configuration for the module
-/// * `packets` - Vector of packets to process
-/// * `module_state` - Module-specific state
-/// * `effect_start` - When the effect started (for duration tracking)
-/// * `statistics` - Shared statistics
-/// * `has_packets` - Whether there are packets to process
-///
-/// # Returns
-///
-/// `Ok(())` on success, or `MyraError` if processing fails.
-fn process_module<'a, M>(
-    module: &M,
-    options: Option<&M::Options>,
-    packets: &mut Vec<PacketData<'a>>,
-    module_state: &mut M::State,
-    effect_start: &mut Instant,
-    statistics: &Arc<RwLock<PacketProcessingStatistics>>,
-    has_packets: bool,
-) -> Result<()>
-where
-    M: PacketModule,
-{
-    use crate::network::modules::traits::ModuleOptions;
-    
-    let Some(opts) = options else {
-        return Ok(());
-    };
-
-    // Check if module is enabled
-    if !opts.is_enabled() {
-        return Ok(());
-    }
-
-    // Check if module should be skipped based on its options
-    if module.should_skip(opts) {
-        return Ok(());
-    }
-
-    let duration_ms = module.get_duration_ms(opts);
-    let effect_active = is_effect_active(duration_ms, *effect_start);
-
-    // If effect duration has expired, don't process
-    // Effect will reset when filter is restarted
-    if !effect_active {
-        return Ok(());
-    }
-
-    // Create context and process
-    let mut ctx = ModuleContext {
-        statistics,
-        has_packets,
-        effect_start,
-    };
-
-    module.process(packets, opts, module_state, &mut ctx)
+    process_all_modules(settings, packets, state, statistics)
 }

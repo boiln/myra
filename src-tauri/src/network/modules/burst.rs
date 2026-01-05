@@ -19,6 +19,7 @@ pub struct BurstModule;
 
 /// State maintained by the burst module between processing calls.
 #[derive(Debug)]
+#[derive(Default)]
 pub struct BurstState {
     /// Queue of buffered packets with their capture time
     pub buffer: VecDeque<(PacketData<'static>, Instant)>,
@@ -28,15 +29,6 @@ pub struct BurstState {
     pub last_keepalive: Option<Instant>,
 }
 
-impl Default for BurstState {
-    fn default() -> Self {
-        Self {
-            buffer: VecDeque::new(),
-            cycle_start: None,
-            last_keepalive: None,
-        }
-    }
-}
 
 impl PacketModule for BurstModule {
     type Options = BurstOptions;
@@ -63,8 +55,10 @@ impl PacketModule for BurstModule {
     ) -> Result<()> {
         let mut stats = ctx.write_stats(self.name())?;
 
-        // Safety: We need to transmute lifetimes here because the storage persists
-        // across processing calls. The packets are owned by the storage until released.
+        // SAFETY: The buffer outlives each processing call. Packets are moved into
+        // the buffer and only released when the burst timer expires. The transmute
+        // extends the lifetime to 'static for storage, but packets are always consumed
+        // or released before the buffer is dropped.
         let buffer: &mut VecDeque<(PacketData<'a>, Instant)> =
             unsafe { std::mem::transmute(&mut state.buffer) };
 
@@ -89,17 +83,17 @@ impl PacketModule for BurstModule {
 ///
 /// # How it works
 ///
-/// **Timed mode (buffer_ms > 0):**
+/// **Timed mode (`buffer_ms` > 0):**
 /// 1. Buffer packets for the specified duration
 /// 2. Release ALL packets at once when timer expires
 /// 3. Start new cycle
 ///
-/// **Manual mode (buffer_ms = 0):**
+/// **Manual mode (`buffer_ms` = 0):**
 /// 1. Buffer all packets indefinitely
-/// 2. Release happens when module is disabled (call flush_buffer)
+/// 2. Release happens when module is disabled (call `flush_buffer`)
 ///
-/// **Keepalive (keepalive_ms > 0):**
-/// Lets one packet through every keepalive_ms to prevent disconnection
+/// **Keepalive (`keepalive_ms` > 0):**
+/// Lets one packet through every `keepalive_ms` to prevent disconnection
 ///
 /// **Direction filtering:**
 /// - `apply_inbound`: Buffer inbound (download) packets
@@ -253,7 +247,7 @@ pub fn flush_buffer<'a>(
     // IMPORTANT: Buffered packets must be sent FIRST, before any new packets from this cycle
     // This ensures proper replay order: old actions → new actions
     // We prepend by: taking new packets out, adding buffered, then adding new back
-    let new_packets: Vec<_> = packets.drain(..).collect();
+    let new_packets: Vec<_> = std::mem::take(packets);
     packets.extend(released_packets);
     packets.extend(new_packets);
     

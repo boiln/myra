@@ -1,10 +1,3 @@
-//! Commands for NetLimiter-style bandwidth limiting
-//!
-//! These commands control the bandwidth limiter that provides
-//! true rate limiting like NetLimiter.
-//! 
-//! Uses WinDivert with precise timing for throttling.
-
 use crate::network::wfp_throttle::WfpThrottle;
 use log::{error, info};
 use std::sync::Mutex;
@@ -25,7 +18,7 @@ impl Default for TcLimiterState {
 
 /// Start the bandwidth limiter
 /// 
-/// This provides NetLimiter-style bandwidth limiting using WinDivert with precise timing.
+/// This provides bandwidth limiting using `WinDivert` with precise timing.
 /// Supports both inbound and outbound direction control.
 #[tauri::command]
 pub fn start_tc_bandwidth(

@@ -50,8 +50,8 @@ pub struct BandwidthOptions {
     #[serde(default = "default_passthrough_threshold")]
     pub passthrough_threshold: usize,
 
-    /// Use WFP (WinDivert) token bucket algorithm for precise rate limiting
-    /// When true: Uses separate WinDivert handle with proper token bucket (like NetLimiter)
+    /// Use WFP (`WinDivert`) token bucket algorithm for precise rate limiting
+    /// When true: Uses separate `WinDivert` handle with proper token bucket
     /// When false: Uses inline packet pacing through the main processor
     #[arg(skip)]
     #[serde(default)]

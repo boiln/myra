@@ -133,7 +133,7 @@ pub async fn scan_network_devices() -> Result<Vec<NetworkDevice>, String> {
     // Apply cached hostnames
     let hostname_cache_len_before = hostname_cache.len();
 
-    for device in devices.iter_mut() {
+    for device in &mut devices {
         if device.hostname.is_some() {
             continue;
         }
@@ -144,7 +144,7 @@ pub async fn scan_network_devices() -> Result<Vec<NetworkDevice>, String> {
     }
 
     // Apply cached MAC vendor names
-    for device in devices.iter_mut() {
+    for device in &mut devices {
         if device.hostname.is_some() {
             continue;
         }
@@ -191,7 +191,7 @@ pub async fn scan_network_devices() -> Result<Vec<NetworkDevice>, String> {
         );
 
         // Apply results (mDNS > SSDP > NetBIOS priority)
-        for device in devices.iter_mut() {
+        for device in &mut devices {
             if device.hostname.is_some() {
                 continue;
             }
@@ -420,14 +420,14 @@ fn extract_icon(exe_path: &str) -> Option<String> {
         bmi.bmiHeader.biCompression = BI_RGB;
 
         let mut pixels: Vec<u8> = vec![0u8; (width * height * 4) as usize];
-        let old_bmp = SelectObject(hdc, icon_info.hbmColor as *mut _);
+        let old_bmp = SelectObject(hdc, icon_info.hbmColor.cast());
 
         let result = GetDIBits(
             hdc,
             icon_info.hbmColor,
             0,
             height as u32,
-            pixels.as_mut_ptr() as *mut _,
+            pixels.as_mut_ptr().cast(),
             &mut bmi,
             DIB_RGB_COLORS,
         );
@@ -460,11 +460,11 @@ unsafe fn cleanup_icon_resources(
     use winapi::um::winuser::DestroyIcon;
 
     if !icon_info.hbmColor.is_null() {
-        DeleteObject(icon_info.hbmColor as *mut _);
+        DeleteObject(icon_info.hbmColor.cast());
     }
 
     if !icon_info.hbmMask.is_null() {
-        DeleteObject(icon_info.hbmMask as *mut _);
+        DeleteObject(icon_info.hbmMask.cast());
     }
 
     DestroyIcon(icon);
@@ -832,62 +832,40 @@ fn parse_netbios_response(data: &[u8]) -> Option<String> {
     None
 }
 
-fn extract_ssdp_server_name(server: &str) -> Option<String> {
-    let s = server.to_lowercase();
+/// Device pattern: (primary patterns, optional secondary patterns, device name)
+type DevicePattern = (&'static [&'static str], Option<&'static [&'static str]>, &'static str);
 
-    if s.contains("directv") {
-        return Some("DIRECTV".to_string());
+/// Device name lookup table. First match wins.
+const DEVICE_PATTERNS: &[DevicePattern] = &[
+    (&["directv"], None, "DIRECTV"),
+    (&["jetheadinc"], None, "Cable Box"),
+    (&["roku"], None, "Roku"),
+    (&["xbox"], None, "Xbox"),
+    (&["playstation", "ps4", "ps5"], None, "PlayStation"),
+    (&["nintendo"], None, "Nintendo Switch"),
+    (&["samsung"], None, "Samsung TV"),
+    (&["lg"], Some(&["tv", "webos"]), "LG TV"),
+    (&["ht-a", "ht-s", "ht-x"], None, "Sony Soundbar"),
+    (&["sony"], Some(&["bravia"]), "Sony TV"),
+    (&["plex"], None, "Plex Server"),
+    (&["synology"], None, "Synology NAS"),
+    (&["qnap"], None, "QNAP NAS"),
+];
+
+fn match_device_pattern(input: &str) -> Option<String> {
+    let s = input.to_lowercase();
+    for (patterns, extra_check, result) in DEVICE_PATTERNS {
+        let primary_match = patterns.iter().any(|p| s.contains(p));
+        let secondary_match = extra_check.map_or(true, |checks| checks.iter().any(|c| s.contains(c)));
+        if primary_match && secondary_match {
+            return Some((*result).to_string());
+        }
     }
-
-    if s.contains("jetheadinc") {
-        return Some("Cable Box".to_string());
-    }
-
-    if s.contains("roku") {
-        return Some("Roku".to_string());
-    }
-
-    if s.contains("xbox") {
-        return Some("Xbox".to_string());
-    }
-
-    if s.contains("playstation") || s.contains("ps4") || s.contains("ps5") {
-        return Some("PlayStation".to_string());
-    }
-
-    if s.contains("nintendo") {
-        return Some("Nintendo Switch".to_string());
-    }
-
-    if s.contains("samsung") {
-        return Some("Samsung TV".to_string());
-    }
-
-    if s.contains("lg") && (s.contains("tv") || s.contains("webos")) {
-        return Some("LG TV".to_string());
-    }
-
-    if s.contains("ht-a") || s.contains("ht-s") || s.contains("ht-x") {
-        return Some("Sony Soundbar".to_string());
-    }
-
-    if s.contains("sony") && s.contains("bravia") {
-        return Some("Sony TV".to_string());
-    }
-
-    if s.contains("plex") {
-        return Some("Plex Server".to_string());
-    }
-
-    if s.contains("synology") {
-        return Some("Synology NAS".to_string());
-    }
-
-    if s.contains("qnap") {
-        return Some("QNAP NAS".to_string());
-    }
-
     None
+}
+
+fn extract_ssdp_server_name(server: &str) -> Option<String> {
+    match_device_pattern(server)
 }
 
 fn extract_ssdp_usn_name(usn: &str) -> Option<String> {
@@ -897,11 +875,8 @@ fn extract_ssdp_usn_name(usn: &str) -> Option<String> {
         return Some("DIRECTV".to_string());
     }
 
-    if u.contains("mediarenderer") && u.contains("46_34_a7") {
-        return Some("Xfinity Cable Box".to_string());
-    }
-
-    if u.contains("manageabledevice") && u.contains("46_34_a7") {
+    // Xfinity cable box detection by MAC prefix
+    if (u.contains("mediarenderer") || u.contains("manageabledevice")) && u.contains("46_34_a7") {
         return Some("Xfinity Cable Box".to_string());
     }
 
@@ -1104,7 +1079,7 @@ fn is_broadcast_or_multicast(ip: &IpAddr) -> bool {
 }
 
 /// Gets both local ports and remote IPs for a process.
-/// Returns (local_ports, remote_ips) for building comprehensive filters.
+/// Returns (`local_ports`, `remote_ips`) for building comprehensive filters.
 fn get_process_connections(pid: u32) -> (Vec<u16>, Vec<String>) {
     let Ok(output) = Command::new("netstat").args(["-ano"]).output() else {
         return (Vec::new(), Vec::new());
@@ -1164,7 +1139,7 @@ fn get_process_connections(pid: u32) -> (Vec<u16>, Vec<String>) {
         }
     }
 
-    ports.sort();
+    ports.sort_unstable();
     ports.dedup();
     remote_ips.sort();
     remote_ips.dedup();
@@ -1265,94 +1240,53 @@ async fn lookup_macs_batch(
 // CACHE MANAGEMENT
 // ============================================================================
 
-fn get_mac_cache_path() -> std::path::PathBuf {
-    let Ok(exe_path) = std::env::current_exe() else {
-        return std::path::PathBuf::from("devices.json");
-    };
-
-    let Some(dir) = exe_path.parent() else {
-        return std::path::PathBuf::from("devices.json");
-    };
-
-    dir.join("devices.json")
+/// Generic JSON cache helper for loading/saving `HashMap<String, String>` to disk.
+struct JsonCache {
+    filename: &'static str,
+    name: &'static str,
 }
 
-fn load_mac_cache() -> HashMap<String, String> {
-    let path = get_mac_cache_path();
-
-    let Ok(contents) = std::fs::read_to_string(&path) else {
-        return HashMap::new();
-    };
-
-    let Ok(cache) = serde_json::from_str(&contents) else {
-        return HashMap::new();
-    };
-
-    log::info!("Loaded MAC cache from {:?}", path);
-    cache
-}
-
-fn save_mac_cache(cache: &HashMap<String, String>) {
-    let path = get_mac_cache_path();
-
-    let Ok(json) = serde_json::to_string_pretty(cache) else {
-        return;
-    };
-
-    if let Err(e) = std::fs::write(&path, json) {
-        log::warn!("Failed to save MAC cache: {}", e);
-        return;
+impl JsonCache {
+    const fn new(filename: &'static str, name: &'static str) -> Self {
+        Self { filename, name }
     }
 
-    log::info!("Saved MAC cache to {:?} ({} entries)", path, cache.len());
-}
-
-fn get_hostname_cache_path() -> std::path::PathBuf {
-    let Ok(exe_path) = std::env::current_exe() else {
-        return std::path::PathBuf::from("hostname_cache.json");
-    };
-
-    let Some(dir) = exe_path.parent() else {
-        return std::path::PathBuf::from("hostname_cache.json");
-    };
-
-    dir.join("hostname_cache.json")
-}
-
-fn load_hostname_cache() -> HashMap<String, String> {
-    let path = get_hostname_cache_path();
-
-    let Ok(contents) = std::fs::read_to_string(&path) else {
-        return HashMap::new();
-    };
-
-    let Ok(cache): Result<HashMap<String, String>, _> = serde_json::from_str(&contents) else {
-        return HashMap::new();
-    };
-
-    log::info!(
-        "Loaded hostname cache from {:?} ({} entries)",
-        path,
-        cache.len()
-    );
-    cache
-}
-
-fn save_hostname_cache(cache: &HashMap<String, String>) {
-    let path = get_hostname_cache_path();
-
-    let Ok(json) = serde_json::to_string_pretty(cache) else {
-        return;
-    };
-
-    if let Err(e) = std::fs::write(&path, json) {
-        log::warn!("Failed to save hostname cache: {}", e);
-        return;
+    fn path(&self) -> std::path::PathBuf {
+        std::env::current_exe()
+            .ok()
+            .and_then(|p| p.parent().map(|d| d.join(self.filename)))
+            .unwrap_or_else(|| std::path::PathBuf::from(self.filename))
     }
 
-    log::info!(
-        "Saved hostname cache to {:?} ({} entries)",
-        path,
-        cache.len()
-    );
+    fn load(&self) -> HashMap<String, String> {
+        let path = self.path();
+        let Ok(contents) = std::fs::read_to_string(&path) else {
+            return HashMap::new();
+        };
+        let Ok(cache) = serde_json::from_str(&contents) else {
+            return HashMap::new();
+        };
+        log::info!("Loaded {} cache from {:?}", self.name, path);
+        cache
+    }
+
+    fn save(&self, cache: &HashMap<String, String>) {
+        let path = self.path();
+        let Ok(json) = serde_json::to_string_pretty(cache) else {
+            return;
+        };
+        if let Err(e) = std::fs::write(&path, json) {
+            log::warn!("Failed to save {} cache: {}", self.name, e);
+            return;
+        }
+        log::info!("Saved {} cache to {:?} ({} entries)", self.name, path, cache.len());
+    }
 }
+
+const MAC_CACHE: JsonCache = JsonCache::new("devices.json", "MAC");
+const HOSTNAME_CACHE: JsonCache = JsonCache::new("hostname_cache.json", "hostname");
+
+fn load_mac_cache() -> HashMap<String, String> { MAC_CACHE.load() }
+fn save_mac_cache(cache: &HashMap<String, String>) { MAC_CACHE.save(cache); }
+fn load_hostname_cache() -> HashMap<String, String> { HOSTNAME_CACHE.load() }
+fn save_hostname_cache(cache: &HashMap<String, String>) { HOSTNAME_CACHE.save(cache); }

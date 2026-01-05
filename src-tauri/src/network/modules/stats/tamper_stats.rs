@@ -29,7 +29,7 @@ pub struct TamperStats {
 }
 
 impl TamperStats {
-    /// Creates a new TamperStats instance with the specified refresh interval
+    /// Creates a new `TamperStats` instance with the specified refresh interval
     ///
     /// # Arguments
     ///
@@ -37,7 +37,7 @@ impl TamperStats {
     ///
     /// # Returns
     ///
-    /// A new TamperStats instance
+    /// A new `TamperStats` instance
     ///
     /// # Example
     ///
@@ -45,7 +45,7 @@ impl TamperStats {
     /// let stats = TamperStats::new(Duration::from_millis(100));
     /// ```
     pub fn new(refresh_interval: Duration) -> Self {
-        TamperStats {
+        Self {
             data: vec![],
             tamper_flags: vec![],
             checksum_valid: true,
