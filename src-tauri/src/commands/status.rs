@@ -33,12 +33,11 @@ pub async fn get_status(
     let settings = state.settings.lock().map_err(|e| e.to_string())?;
     let modules = build_module_info_list(&settings);
     
-    let statistics = match running {
-        false => None,
-        true => {
-            let stats = state.statistics.read().map_err(|e| e.to_string())?;
-            Some(format!("{:?}", stats))
-        }
+    let statistics = if running {
+        let stats = state.statistics.read().map_err(|e| e.to_string())?;
+        Some(format!("{:?}", stats))
+    } else {
+        None
     };
 
     Ok(ProcessingStatus {

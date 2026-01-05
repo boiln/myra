@@ -15,7 +15,6 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::Receiver;
 use std::sync::{Arc, Mutex, RwLock};
 use std::time::{Duration, Instant};
-use std::hint;
 use windivert::layer::NetworkLayer;
 use windivert::{CloseAction, WinDivert};
 use windivert_sys::WinDivertFlags;
@@ -263,9 +262,8 @@ pub fn start_packet_processing(
     // FLUSH BURST BUFFER ON SHUTDOWN - release all buffered packets before closing
     if !state.burst.buffer.is_empty() {
         while let Some((mut packet, _)) = state.burst.buffer.pop_front() {
-            match send_with_bypass(&mut wd, &mut packet, enable_bypass) {
-                Err(e) => error!("Failed to send buffered packet on shutdown: {}", e),
-                Ok(_) => sent_packet_count += 1,
+            if let Err(e) = send_with_bypass(&mut wd, &mut packet, enable_bypass) {
+                error!("Failed to send buffered packet on shutdown: {}", e);
             }
         }
         // Give packets time to actually transmit before closing handle

@@ -4,7 +4,6 @@
 
 use log::{error, info, LevelFilter, SetLoggerError};
 use std::io::{self, Write};
-use winapi::um::securitybaseapi::FreeSid;
 
 // Use the library crate modules
 use myra::commands;
@@ -113,8 +112,7 @@ fn main() {
 ///
 /// `bool` - true if the process has administrator privileges
 fn is_admin() -> bool {
-    use winapi::um::securitybaseapi::AllocateAndInitializeSid;
-    use winapi::um::securitybaseapi::CheckTokenMembership;
+    use winapi::um::securitybaseapi::{AllocateAndInitializeSid, CheckTokenMembership, FreeSid};
     use winapi::um::winnt::{
         DOMAIN_ALIAS_RID_ADMINS, SECURITY_BUILTIN_DOMAIN_RID, SECURITY_NT_AUTHORITY,
     };

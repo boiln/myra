@@ -18,13 +18,6 @@ const MAX_BUFFER_SIZE: usize = 100 * 1024 * 1024; // 100 MB in bytes
 #[derive(Debug, Default)]
 pub struct BandwidthModule;
 
-/// A packet with its scheduled release time for pacing
-#[derive(Debug)]
-struct ScheduledPacket<'a> {
-    packet: PacketData<'a>,
-    release_time: Instant,
-}
-
 /// State maintained by the bandwidth module between processing calls.
 #[derive(Debug)]
 pub struct BandwidthState {

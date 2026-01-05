@@ -143,11 +143,12 @@ pub fn burst_packets<'a>(
     };
 
     // If keepalive is due, find a packet that matches direction and preserve it
-    let keepalive_packet = match send_keepalive && !packets.is_empty() {
-        false => None,
-        true => packets.iter().position(|p| {
+    let keepalive_packet = if send_keepalive && !packets.is_empty() {
+        packets.iter().position(|p| {
             (p.is_outbound && apply_outbound) || (!p.is_outbound && apply_inbound)
-        }).map(|idx| packets.remove(idx)),
+        }).map(|idx| packets.remove(idx))
+    } else {
+        None
     };
 
     // Buffer packets based on probability AND direction

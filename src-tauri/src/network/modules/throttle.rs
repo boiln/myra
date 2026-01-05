@@ -158,20 +158,17 @@ pub fn throttle_packets<'a>(
     
     if should_flush {
         let count = buffer.len();
-        match drop {
-            true => {
-                // Drop Throttled mode - discard all buffered packets
-                info!("THROTTLE: Dropping {} buffered packets", count);
-                buffer.clear();
-                stats.dropped_count += count;
-            }
-            false => {
-                // Release mode - send all buffered packets at once
-                info!("THROTTLE: Releasing {} buffered packets (throttle was {}ms)", 
-                      count, timeframe.as_millis());
-                while let Some(packet) = buffer.pop_front() {
-                    packets.push(packet);
-                }
+        if drop {
+            // Drop Throttled mode - discard all buffered packets
+            info!("THROTTLE: Dropping {} buffered packets", count);
+            buffer.clear();
+            stats.dropped_count += count;
+        } else {
+            // Release mode - send all buffered packets at once
+            info!("THROTTLE: Releasing {} buffered packets (throttle was {}ms)", 
+                  count, timeframe.as_millis());
+            while let Some(packet) = buffer.pop_front() {
+                packets.push(packet);
             }
         }
         *cycle_start = None;
@@ -183,9 +180,10 @@ pub fn throttle_packets<'a>(
     // If not currently throttling and not in cooldown (or just flushed), check if we should start
     // In freeze_mode: can start immediately after flush (just_flushed doesn't block)
     // In normal mode: just_flushed prevents immediate restart, cooldown prevents on next call
-    let can_start_new_cycle = match freeze_mode {
-        true => cycle_start.is_none(),
-        false => cycle_start.is_none() && !in_cooldown && !just_flushed,
+    let can_start_new_cycle = if freeze_mode {
+        cycle_start.is_none()
+    } else {
+        cycle_start.is_none() && !in_cooldown && !just_flushed
     };
     
     if can_start_new_cycle && rand::rng().random_bool(probability.value()) {

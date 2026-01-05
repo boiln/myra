@@ -9,18 +9,14 @@ pub struct BurstStats {
     pub released: usize,
     /// Current buffer size
     pub buffered_count: usize,
-    /// Exponential moving average factor
-    #[serde(skip)]
-    ema_factor: f64,
 }
 
 impl BurstStats {
-    pub fn new(ema_factor: f64) -> Self {
+    pub fn new(_ema_factor: f64) -> Self {
         Self {
             buffered: 0,
             released: 0,
             buffered_count: 0,
-            ema_factor,
         }
     }
 

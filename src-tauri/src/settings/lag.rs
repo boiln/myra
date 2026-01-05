@@ -1,10 +1,7 @@
 use crate::network::types::probability::Probability;
+use crate::settings::default_true;
 use clap::Parser;
 use serde::{Deserialize, Serialize};
-
-fn default_true() -> bool {
-    true
-}
 
 fn default_probability_100() -> Probability {
     Probability::new(1.0).unwrap()

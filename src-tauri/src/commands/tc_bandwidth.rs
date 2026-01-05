@@ -56,9 +56,11 @@ pub fn start_tc_bandwidth(
     match WfpThrottle::new(limit_kbps, "all", inbound, outbound) {
         Ok(throttle) => {
             *limiter_guard = Some(throttle);
-            let dir_str = if inbound && outbound { "both" } 
-                else if inbound { "inbound" } 
-                else { "outbound" };
+            let dir_str = match (inbound, outbound) {
+                (true, true) => "both",
+                (true, false) => "inbound",
+                _ => "outbound",
+            };
             Ok(format!("Bandwidth limiter started: {:.2} KB/s ({})", limit_kbps, dir_str))
         }
         Err(e) => {

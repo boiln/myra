@@ -35,18 +35,11 @@
 //!     .build();
 //! ```
 
-/// Commands exposed to the Tauri frontend
 pub mod commands;
-/// Centralized error handling
 pub mod error;
-/// Network packet manipulation functionality
 pub mod network;
-/// Prelude for convenient imports
 pub mod prelude;
-/// Configuration settings for packet manipulation
 pub mod settings;
-/// Shared utility functions
 pub mod utils;
 
-// Re-export commonly used types
 pub use error::{MyraError, Result};

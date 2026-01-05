@@ -185,9 +185,10 @@ impl HandleManager {
         let filter = config.build_filter();
         info!("Opening WinDivert handle with filter: {}", filter);
 
-        let flags = match config.recv_only {
-            true => WinDivertFlags::set_recv_only(WinDivertFlags::new()),
-            false => WinDivertFlags::new(),
+        let flags = if config.recv_only {
+            WinDivertFlags::set_recv_only(WinDivertFlags::new())
+        } else {
+            WinDivertFlags::new()
         };
 
         match WinDivert::<NetworkLayer>::network(&filter, config.priority, flags) {
