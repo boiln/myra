@@ -297,3 +297,155 @@ fn get_config_path(name: &str) -> Result<PathBuf, String> {
     path.push(format!("{}.toml", name));
     Ok(path)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_filter_target_mode_default() {
+        let mode: FilterTargetMode = Default::default();
+        assert!(matches!(mode, FilterTargetMode::All));
+    }
+
+    #[test]
+    fn test_filter_target_serde_defaults() {
+        // When deserializing with missing fields, serde uses the default functions
+        let json = r#"{"mode": "all"}"#;
+        let target: FilterTarget = serde_json::from_str(json).unwrap();
+        assert!(matches!(target.mode, FilterTargetMode::All));
+        assert!(target.include_inbound);
+        assert!(target.include_outbound);
+        assert!(target.process_id.is_none());
+        assert!(target.process_name.is_none());
+    }
+
+    #[test]
+    fn test_filter_target_serialization() {
+        let target = FilterTarget {
+            mode: FilterTargetMode::Process,
+            process_id: Some(1234),
+            process_name: Some("test.exe".to_string()),
+            device_ip: None,
+            device_name: None,
+            custom_filter: None,
+            include_inbound: true,
+            include_outbound: false,
+        };
+
+        let json = serde_json::to_string(&target).unwrap();
+        let parsed: FilterTarget = serde_json::from_str(&json).unwrap();
+
+        assert!(matches!(parsed.mode, FilterTargetMode::Process));
+        assert_eq!(parsed.process_id, Some(1234));
+        assert_eq!(parsed.process_name, Some("test.exe".to_string()));
+        assert!(parsed.include_inbound);
+        assert!(!parsed.include_outbound);
+    }
+
+    #[test]
+    fn test_filter_target_mode_serialization() {
+        assert_eq!(
+            serde_json::to_string(&FilterTargetMode::All).unwrap(),
+            "\"all\""
+        );
+        assert_eq!(
+            serde_json::to_string(&FilterTargetMode::Process).unwrap(),
+            "\"process\""
+        );
+        assert_eq!(
+            serde_json::to_string(&FilterTargetMode::Device).unwrap(),
+            "\"device\""
+        );
+        assert_eq!(
+            serde_json::to_string(&FilterTargetMode::Custom).unwrap(),
+            "\"custom\""
+        );
+    }
+
+    #[test]
+    fn test_filter_target_mode_deserialization() {
+        let all: FilterTargetMode = serde_json::from_str("\"all\"").unwrap();
+        let process: FilterTargetMode = serde_json::from_str("\"process\"").unwrap();
+        let device: FilterTargetMode = serde_json::from_str("\"device\"").unwrap();
+        let custom: FilterTargetMode = serde_json::from_str("\"custom\"").unwrap();
+
+        assert!(matches!(all, FilterTargetMode::All));
+        assert!(matches!(process, FilterTargetMode::Process));
+        assert!(matches!(device, FilterTargetMode::Device));
+        assert!(matches!(custom, FilterTargetMode::Custom));
+    }
+
+    #[test]
+    fn test_hotkey_binding_default() {
+        let binding: HotkeyBinding = Default::default();
+        assert!(binding.action.is_empty());
+        assert!(binding.shortcut.is_none());
+        assert!(!binding.enabled);
+    }
+
+    #[test]
+    fn test_hotkey_binding_serialization() {
+        let binding = HotkeyBinding {
+            action: "toggleFilter".to_string(),
+            shortcut: Some("F9".to_string()),
+            enabled: true,
+        };
+
+        let json = serde_json::to_string(&binding).unwrap();
+        let parsed: HotkeyBinding = serde_json::from_str(&json).unwrap();
+
+        assert_eq!(parsed.action, "toggleFilter");
+        assert_eq!(parsed.shortcut, Some("F9".to_string()));
+        assert!(parsed.enabled);
+    }
+
+    #[test]
+    fn test_tap_settings_serde_defaults() {
+        // When deserializing with missing fields, serde uses the default functions
+        let json = r#"{}"#;
+        let tap: TapSettings = serde_json::from_str(json).unwrap();
+        assert!(!tap.enabled);
+        assert_eq!(tap.interval_ms, 3000);
+        assert_eq!(tap.duration_ms, 600);
+    }
+
+    #[test]
+    fn test_tap_settings_serialization() {
+        let tap = TapSettings {
+            enabled: true,
+            interval_ms: 5000,
+            duration_ms: 1000,
+        };
+
+        let json = serde_json::to_string(&tap).unwrap();
+        let parsed: TapSettings = serde_json::from_str(&json).unwrap();
+
+        assert!(parsed.enabled);
+        assert_eq!(parsed.interval_ms, 5000);
+        assert_eq!(parsed.duration_ms, 1000);
+    }
+
+    #[test]
+    fn test_load_config_response_serialization() {
+        let response = LoadConfigResponse {
+            settings: Settings::default(),
+            filter: Some("outbound".to_string()),
+            filter_target: Some(FilterTarget::default()),
+            hotkeys: Some(vec![HotkeyBinding {
+                action: "toggleFilter".to_string(),
+                shortcut: Some("F9".to_string()),
+                enabled: true,
+            }]),
+            tap: Some(TapSettings::default()),
+        };
+
+        let json = serde_json::to_string(&response).unwrap();
+        let parsed: LoadConfigResponse = serde_json::from_str(&json).unwrap();
+
+        assert_eq!(parsed.filter, Some("outbound".to_string()));
+        assert!(parsed.filter_target.is_some());
+        assert!(parsed.hotkeys.is_some());
+        assert_eq!(parsed.hotkeys.unwrap().len(), 1);
+    }
+}
