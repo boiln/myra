@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { register, unregister, isRegistered } from "@tauri-apps/plugin-global-shortcut";
-import { useHotkeyStore, HotkeyBinding } from "../hotkey-store";
+import { useHotkeyStore } from "../hotkey-store";
 
 vi.mock("@tauri-apps/plugin-global-shortcut");
 

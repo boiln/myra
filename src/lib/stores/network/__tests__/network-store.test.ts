@@ -133,6 +133,7 @@ describe("NetworkStore", () => {
             presets: [],
             loadingPresets: false,
             currentPreset: null,
+            isInitialized: false,
         });
     });
 

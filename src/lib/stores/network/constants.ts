@@ -17,4 +17,5 @@ export const initialState: NetworkState = {
     presets: [],
     loadingPresets: false,
     currentPreset: null,
+    isInitialized: false,
 };

@@ -16,6 +16,7 @@ export interface NetworkState {
     presets: string[];
     loadingPresets: boolean;
     currentPreset: string | null;
+    isInitialized: boolean; // True after initial preset load completes
 }
 
 export interface NetworkActions {

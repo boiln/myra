@@ -144,6 +144,7 @@ export const createPresetSlice: StateCreator<
             if (configs.includes(DEFAULT_PRESET_NAME)) {
                 // Default config exists - LOAD it on startup
                 await get().loadPreset(DEFAULT_PRESET_NAME);
+                set({ isInitialized: true });
                 return;
             }
 
@@ -170,8 +171,10 @@ export const createPresetSlice: StateCreator<
             );
 
             await get().loadPresets();
+            set({ isInitialized: true });
         } catch (error) {
             console.error("Failed to initialize default preset:", error);
+            set({ isInitialized: true }); // Still mark as initialized so UI works
         }
     },
 });

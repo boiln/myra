@@ -16,7 +16,8 @@ interface FilterTargetSelectorProps {
 }
 
 export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
-    const { isActive, filter, updateFilter, filterTarget, setFilterTarget } = useNetworkStore();
+    const { isActive, filter, updateFilter, filterTarget, setFilterTarget, isInitialized } =
+        useNetworkStore();
 
     // Local filter state - syncs with store
     const [localFilter, setLocalFilter] = useState(filter || "outbound");
@@ -168,8 +169,8 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
 
     // Auto-apply filter when dependencies change
     useEffect(() => {
-        // Skip if filtering is active or if we're syncing from a preset load
-        if (isActive || skipAutoApplyRef.current) return;
+        // Skip if filtering is active, syncing from preset, or app not yet initialized
+        if (isActive || skipAutoApplyRef.current || !isInitialized) return;
 
         const applyFilter = async () => {
             const newFilter = await buildFilterString();
@@ -198,6 +199,7 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
         includeInbound,
         includeOutbound,
         isActive,
+        isInitialized,
         buildFilterString,
         validateFilter,
         updateFilter,
