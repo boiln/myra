@@ -29,7 +29,6 @@ interface ModuleRowProps {
 
 export function ModuleRow({
     module,
-    isActive,
     onModuleToggle,
     onDirectionToggle,
     onSettingChange,
@@ -41,8 +40,8 @@ export function ModuleRow({
     const handleInputChange = (
         e: ChangeEvent<HTMLInputElement>,
         setting: string,
-        min: number,
-        max: number,
+        _min: number,
+        _max: number,
         isInteger = false
     ) => {
         const input = e.target.value;

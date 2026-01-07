@@ -11,6 +11,7 @@ interface ProcessSelectorProps {
     onValueChange: (value: string) => void;
     disabled?: boolean;
     placeholder?: string;
+    className?: string;
 }
 
 export function ProcessSelector({
@@ -19,6 +20,7 @@ export function ProcessSelector({
     onValueChange,
     disabled,
     placeholder = "Select a process ..",
+    className,
 }: ProcessSelectorProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [search, setSearch] = useState("");
@@ -172,7 +174,7 @@ export function ProcessSelector({
     }, [isOpen, value, allFiltered]);
 
     return (
-        <div ref={containerRef} className="relative w-full">
+        <div ref={containerRef} className={cn("relative w-full", className)}>
             {/* Trigger Button */}
             <button
                 type="button"
