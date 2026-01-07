@@ -23,10 +23,10 @@
         "windows": [
             {
                 "title": "Myra",
-                "width": 930,
-                "height": 580,
-                "minWidth": 900,
-                "minHeight": 580,
+                "width": 945,
+                "height": 630,
+                "minWidth": 945,
+                "minHeight": 630,
                 "fullscreen": false,
                 "resizable": true
             }
