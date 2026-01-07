@@ -37,6 +37,7 @@ export function ModuleRow({
 }: ModuleRowProps) {
     const [inputValues, setInputValues] = React.useState<Record<string, string>>({});
 
+    // Handle input change - allow any valid number format during typing
     const handleInputChange = (
         e: ChangeEvent<HTMLInputElement>,
         setting: string,
@@ -46,33 +47,56 @@ export function ModuleRow({
     ) => {
         const input = e.target.value;
 
+        // Always update the display value
         setInputValues((prev) => ({ ...prev, [setting]: input }));
 
+        // Allow empty input
         if (input === "") {
-            onSettingChange(module, setting, 0);
             return;
         }
 
+        // Allow partial number input during typing (like "0.", ".", "-", etc.)
         if (!/^-?\d*\.?\d*$/.test(input)) return;
-        if (input === "." || input === "-" || input === "-.") return;
+        if (input === "." || input === "-" || input === "-." || input.endsWith(".")) return;
 
         const parsed = isInteger ? parseInt(input, 10) : parseFloat(input);
 
         if (isNaN(parsed)) return;
 
-        if (parsed < min) {
+        // Don't clamp during typing - just update with parsed value
+        // Clamping happens on blur
+        onSettingChange(module, setting, parsed);
+    };
+
+    // Handle blur - clamp value to valid range
+    const handleInputBlur = (setting: string, min: number, max: number, isInteger = false) => {
+        const input = inputValues[setting];
+
+        if (input === undefined || input === "") {
+            // Reset to min if empty
             setInputValues((prev) => ({ ...prev, [setting]: min.toString() }));
             onSettingChange(module, setting, min);
             return;
         }
 
-        if (parsed > max) {
-            setInputValues((prev) => ({ ...prev, [setting]: max.toString() }));
-            onSettingChange(module, setting, max);
+        const parsed = isInteger ? parseInt(input, 10) : parseFloat(input);
+
+        if (isNaN(parsed)) {
+            // Reset to min if invalid
+            setInputValues((prev) => ({ ...prev, [setting]: min.toString() }));
+            onSettingChange(module, setting, min);
             return;
         }
 
-        onSettingChange(module, setting, parsed);
+        // Clamp to valid range
+        let clamped = parsed;
+        if (parsed < min) clamped = min;
+        if (parsed > max) clamped = max;
+
+        if (clamped !== parsed) {
+            setInputValues((prev) => ({ ...prev, [setting]: clamped.toString() }));
+            onSettingChange(module, setting, clamped);
+        }
     };
 
     const getDisplayValue = (setting: string) => {
@@ -134,6 +158,7 @@ export function ModuleRow({
                             id={`${module.name}-time`}
                             value={getDisplayValue("duration_ms")}
                             onChange={(e) => handleInputChange(e, "duration_ms", 0, 999999)}
+                            onBlur={() => handleInputBlur("duration_ms", 0, 999999)}
                             className="h-6 w-[50px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
                             disabled={!module.enabled}
                             type="text"
@@ -156,6 +181,7 @@ export function ModuleRow({
                                 onChange={(e) =>
                                     handleInputChange(e, "throttle_ms", 1, 60000, true)
                                 }
+                                onBlur={() => handleInputBlur("throttle_ms", 1, 60000, true)}
                                 className="h-6 w-[50px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
                                 disabled={!module.enabled}
                                 type="text"
@@ -185,8 +211,9 @@ export function ModuleRow({
                         <Input
                             id={`${module.name}-count`}
                             value={getDisplayValue("count")}
-                            onChange={(e) => handleInputChange(e, "count", 1, 10, true)}
-                            className="h-6 w-[40px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
+                            onChange={(e) => handleInputChange(e, "count", 1, 9999, true)}
+                            onBlur={() => handleInputBlur("count", 1, 9999, true)}
+                            className="h-6 w-[50px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
                             disabled={!module.enabled}
                             type="text"
                             inputMode="numeric"
@@ -208,6 +235,7 @@ export function ModuleRow({
                                 onChange={(e) =>
                                     handleInputChange(e, "limit_kbps", 0.1, 100000, false)
                                 }
+                                onBlur={() => handleInputBlur("limit_kbps", 0.1, 100000, false)}
                                 className="h-6 w-[55px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
                                 disabled={!module.enabled}
                                 type="text"
@@ -242,6 +270,7 @@ export function ModuleRow({
                                 onChange={(e) =>
                                     handleInputChange(e, "throttle_ms", 1, 60000, true)
                                 }
+                                onBlur={() => handleInputBlur("throttle_ms", 1, 60000, true)}
                                 className="h-6 w-[50px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
                                 disabled={!module.enabled}
                                 type="text"
@@ -282,6 +311,7 @@ export function ModuleRow({
                                 onChange={(e) =>
                                     handleInputChange(e, "release_delay_us", 0, 50000, true)
                                 }
+                                onBlur={() => handleInputBlur("release_delay_us", 0, 50000, true)}
                                 className="h-6 w-[50px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
                                 disabled={!module.enabled}
                                 type="text"
@@ -337,6 +367,7 @@ export function ModuleRow({
                     id={`${module.name}-chance`}
                     value={getDisplayValue("chance")}
                     onChange={(e) => handleInputChange(e, "chance", 0, 100)}
+                    onBlur={() => handleInputBlur("chance", 0, 100)}
                     className="h-6 w-[40px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
                     disabled={!module.enabled}
                     type="text"

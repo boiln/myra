@@ -17,25 +17,25 @@ interface FilterTargetSelectorProps {
 
 export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
     const { isActive, filter, updateFilter, filterTarget, setFilterTarget } = useNetworkStore();
-    
+
     // Local filter state - syncs with store
     const [localFilter, setLocalFilter] = useState(filter || "outbound");
     const [filterError, setFilterError] = useState<string | null>(null);
-    
+
     // Process selection state
     const [processes, setProcesses] = useState<ProcessInfo[]>([]);
     const [loadingProcesses, setLoadingProcesses] = useState(false);
     const [selectedProcess, setSelectedProcess] = useState<string>(
         filterTarget?.processId?.toString() || ""
     );
-    
+
     // Direction toggles
     const [includeInbound, setIncludeInbound] = useState(filterTarget?.includeInbound ?? false);
     const [includeOutbound, setIncludeOutbound] = useState(filterTarget?.includeOutbound ?? true);
-    
+
     // Debounce timer for auto-apply
     const filterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    
+
     // Track previous process mode
     const prevProcessRef = useRef<string | null>(selectedProcess);
 
@@ -95,44 +95,41 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
     // Build filter string from current state
     const buildFilterString = useCallback(async (): Promise<string> => {
         let baseFilter = "";
-        
+
         // Build direction part
-        const dirFilter = includeInbound && includeOutbound 
-            ? "true" 
-            : includeInbound 
-                ? "inbound" 
-                : "outbound";
-        
+        const dirFilter =
+            includeInbound && includeOutbound ? "true" : includeInbound ? "inbound" : "outbound";
+
         // If process is selected, build process filter
         if (selectedProcess) {
             const pid = parseInt(selectedProcess);
-            
+
             // Stop flow tracking if we had a different process
             if (prevProcessRef.current && prevProcessRef.current !== selectedProcess) {
                 await invoke("stop_flow_tracking").catch(() => {});
             }
             prevProcessRef.current = selectedProcess;
-            
+
             // Start flow tracking for this process
-            await invoke("start_flow_tracking", { pid }).catch(e => 
+            await invoke("start_flow_tracking", { pid }).catch((e) =>
                 console.warn("Flow tracking start failed:", e)
             );
-            
+
             // Get process filter
             baseFilter = await invoke<string>("build_process_filter", {
                 pid,
                 includeInbound,
                 includeOutbound,
             });
-            
+
             // Try to get flow-based filter if available
             const flowFilter = await invoke<string | null>("get_flow_filter").catch(() => null);
             if (flowFilter) {
                 baseFilter = flowFilter;
             }
-            
+
             // Update filter target
-            const process = processes.find(p => p.pid === pid);
+            const process = processes.find((p) => p.pid === pid);
             setFilterTarget({
                 mode: "process",
                 processId: pid,
@@ -146,7 +143,7 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                 await invoke("stop_flow_tracking").catch(() => {});
                 prevProcessRef.current = null;
             }
-            
+
             baseFilter = dirFilter;
             setFilterTarget({
                 mode: "all",
@@ -154,37 +151,45 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                 includeOutbound,
             });
         }
-        
+
         return baseFilter;
     }, [selectedProcess, includeInbound, includeOutbound, processes, setFilterTarget]);
 
     // Auto-apply filter when dependencies change
     useEffect(() => {
         if (isActive) return;
-        
+
         const applyFilter = async () => {
             const newFilter = await buildFilterString();
             setLocalFilter(newFilter);
-            
+
             // Validate before applying
             const isValid = await validateFilter(newFilter);
             if (isValid) {
                 await updateFilter(newFilter);
             }
         };
-        
+
         // Debounce the filter application
         if (filterTimeoutRef.current) {
             clearTimeout(filterTimeoutRef.current);
         }
         filterTimeoutRef.current = setTimeout(applyFilter, 150);
-        
+
         return () => {
             if (filterTimeoutRef.current) {
                 clearTimeout(filterTimeoutRef.current);
             }
         };
-    }, [selectedProcess, includeInbound, includeOutbound, isActive, buildFilterString, validateFilter, updateFilter]);
+    }, [
+        selectedProcess,
+        includeInbound,
+        includeOutbound,
+        isActive,
+        buildFilterString,
+        validateFilter,
+        updateFilter,
+    ]);
 
     // Handle manual filter input change
     const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -196,7 +201,7 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
     // Handle filter blur - validate and apply
     const handleFilterBlur = async () => {
         if (isActive || localFilter === filter) return;
-        
+
         const isValid = await validateFilter(localFilter);
         if (isValid) {
             await updateFilter(localFilter);
@@ -321,15 +326,15 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                         onClick={loadProcesses}
                         disabled={loadingProcesses || isActive}
                     >
-                        <RefreshCw className={cn("h-3.5 w-3.5", loadingProcesses && "animate-spin")} />
+                        <RefreshCw
+                            className={cn("h-3.5 w-3.5", loadingProcesses && "animate-spin")}
+                        />
                     </Button>
                 </div>
             </div>
 
             {/* Error message */}
-            {filterError && (
-                <p className="text-xs text-red-500">{filterError}</p>
-            )}
+            {filterError && <p className="text-xs text-red-500">{filterError}</p>}
         </div>
     );
 }

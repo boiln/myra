@@ -33,7 +33,7 @@ export const createPresetSlice: StateCreator<
             const backendFilter = await ManipulationService.getFilter();
             const filter = backendFilter || get().filter || "outbound";
             const filterTarget = get().filterTarget;
-            
+
             // Get hotkey bindings
             const hotkeyBindings = useHotkeyStore.getState().bindings;
             const hotkeys = Object.values(hotkeyBindings).map((binding) => ({
@@ -41,7 +41,7 @@ export const createPresetSlice: StateCreator<
                 shortcut: binding.shortcut,
                 enabled: binding.enabled,
             }));
-            
+
             // Get tap settings
             const tapSettings = useTapStore.getState().settings;
             const tap = {
@@ -49,7 +49,7 @@ export const createPresetSlice: StateCreator<
                 interval_ms: tapSettings.intervalMs,
                 duration_ms: tapSettings.durationMs,
             };
-            
+
             await ManipulationService.updateSettings(settings, get().isActive);
             await ManipulationService.updateFilter(filter);
             await ManipulationService.saveConfig(name, filterTarget || undefined, hotkeys, tap);
@@ -82,7 +82,7 @@ export const createPresetSlice: StateCreator<
                 // If both true or both undefined, default to outbound only
                 const finalInbound = inbound && !outbound;
                 const finalOutbound = !finalInbound;
-                
+
                 set({
                     filterTarget: {
                         mode: response.filter_target.mode as
@@ -109,7 +109,7 @@ export const createPresetSlice: StateCreator<
             // Restore tap settings if present (but always default enabled to false for safety)
             if (response.tap) {
                 useTapStore.getState().updateSettings({
-                    enabled: false,  // Always start with tap disabled for safety
+                    enabled: false, // Always start with tap disabled for safety
                     intervalMs: response.tap.interval_ms,
                     durationMs: response.tap.duration_ms,
                 });
@@ -151,18 +151,23 @@ export const createPresetSlice: StateCreator<
             const settings = await ManipulationService.getSettings();
             const filter = await ManipulationService.getFilter();
             const filterTarget = get().filterTarget;
-            
+
             // Get tap settings (always save with enabled: false by default)
             const tapSettings = useTapStore.getState().settings;
             const tap = {
-                enabled: false,  // Always default to disabled
+                enabled: false, // Always default to disabled
                 interval_ms: tapSettings.intervalMs,
                 duration_ms: tapSettings.durationMs,
             };
 
             await ManipulationService.updateSettings(settings, get().isActive);
             await ManipulationService.updateFilter(filter);
-            await ManipulationService.saveConfig(DEFAULT_PRESET_NAME, filterTarget || undefined, undefined, tap);
+            await ManipulationService.saveConfig(
+                DEFAULT_PRESET_NAME,
+                filterTarget || undefined,
+                undefined,
+                tap
+            );
 
             await get().loadPresets();
         } catch (error) {
