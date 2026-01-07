@@ -29,7 +29,9 @@ export const createPresetSlice: StateCreator<
     savePreset: async (name: string) => {
         try {
             const settings = await ManipulationService.getSettings();
-            const filter = await ManipulationService.getFilter();
+            // Use store filter as fallback - backend may return null if not set
+            const backendFilter = await ManipulationService.getFilter();
+            const filter = backendFilter || get().filter || "outbound";
             const filterTarget = get().filterTarget;
             
             // Get hotkey bindings
@@ -66,8 +68,10 @@ export const createPresetSlice: StateCreator<
 
             await ManipulationService.updateSettings(response.settings, get().isActive);
 
+            // Restore filter - update both backend and store
             if (response.filter) {
                 await ManipulationService.updateFilter(response.filter);
+                set({ filter: response.filter });
             }
 
             // Restore filter target if present
