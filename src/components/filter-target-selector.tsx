@@ -39,6 +39,9 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
     // Track previous process mode
     const prevProcessRef = useRef<string | null>(selectedProcess);
 
+    // Flag to skip auto-apply when syncing from preset load
+    const skipAutoApplyRef = useRef(false);
+
     // Sync local filter with store filter
     useEffect(() => {
         if (filter && filter !== localFilter) {
@@ -49,6 +52,9 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
     // Sync state when filterTarget changes (e.g., from loading preset)
     useEffect(() => {
         if (filterTarget) {
+            // Skip auto-apply when syncing from preset - the filter was already set
+            skipAutoApplyRef.current = true;
+
             if (filterTarget.processId) {
                 setSelectedProcess(filterTarget.processId.toString());
             } else {
@@ -56,6 +62,11 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
             }
             setIncludeInbound(filterTarget.includeInbound ?? false);
             setIncludeOutbound(filterTarget.includeOutbound ?? true);
+
+            // Reset the skip flag after state updates propagate
+            setTimeout(() => {
+                skipAutoApplyRef.current = false;
+            }, 200);
         }
     }, [filterTarget]);
 
@@ -157,7 +168,8 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
 
     // Auto-apply filter when dependencies change
     useEffect(() => {
-        if (isActive) return;
+        // Skip if filtering is active or if we're syncing from a preset load
+        if (isActive || skipAutoApplyRef.current) return;
 
         const applyFilter = async () => {
             const newFilter = await buildFilterString();
