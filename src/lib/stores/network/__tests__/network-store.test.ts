@@ -249,8 +249,7 @@ describe("NetworkStore", () => {
             // Mock all the calls that updateFilter might make
             vi.mocked(invoke).mockImplementation(async (cmd: string) => {
                 if (cmd === "update_filter") return undefined;
-                if (cmd === "get_status")
-                    return { running: false, modules: createMockModules() };
+                if (cmd === "get_status") return { running: false, modules: createMockModules() };
                 return undefined;
             });
 
@@ -265,8 +264,7 @@ describe("NetworkStore", () => {
         it("should start processing when inactive", async () => {
             vi.mocked(invoke).mockImplementation(async (cmd: string) => {
                 if (cmd === "start_processing") return undefined;
-                if (cmd === "get_status")
-                    return { running: true, modules: createMockModules() };
+                if (cmd === "get_status") return { running: true, modules: createMockModules() };
                 return undefined;
             });
 
@@ -279,8 +277,7 @@ describe("NetworkStore", () => {
         it("should stop processing when active", async () => {
             vi.mocked(invoke).mockImplementation(async (cmd: string) => {
                 if (cmd === "stop_processing") return undefined;
-                if (cmd === "get_status")
-                    return { running: false, modules: createMockModules() };
+                if (cmd === "get_status") return { running: false, modules: createMockModules() };
                 return undefined;
             });
 

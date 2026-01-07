@@ -267,9 +267,9 @@ describe("HotkeyStore", () => {
 
             vi.clearAllMocks();
 
-            await useHotkeyStore.getState().restoreBindings([
-                { action: "toggleFilter", shortcut: "F1", enabled: true },
-            ]);
+            await useHotkeyStore
+                .getState()
+                .restoreBindings([{ action: "toggleFilter", shortcut: "F1", enabled: true }]);
 
             expect(unregister).toHaveBeenCalled();
         });

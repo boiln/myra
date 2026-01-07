@@ -235,7 +235,13 @@ describe("ManipulationService", () => {
     describe("startProcessing", () => {
         it("should call invoke with correct parameters", async () => {
             const settings: PacketManipulationSettings = {
-                drop: { enabled: true, inbound: true, outbound: true, probability: 1, duration_ms: 0 },
+                drop: {
+                    enabled: true,
+                    inbound: true,
+                    outbound: true,
+                    probability: 1,
+                    duration_ms: 0,
+                },
             };
             const filter = "outbound";
 
