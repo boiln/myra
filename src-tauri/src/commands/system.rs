@@ -245,6 +245,8 @@ pub async fn scan_network_devices() -> Result<Vec<NetworkDevice>, String> {
 }
 
 use crate::commands::state::PacketProcessingState;
+use windivert::{layer::NetworkLayer, CloseAction, WinDivert};
+use windivert_sys::WinDivertFlags;
 use tauri::State;
 
 #[tauri::command]
@@ -360,8 +362,14 @@ pub fn validate_filter(filter: String) -> Result<bool, String> {
     if open_parens != close_parens {
         return Err("Unbalanced parentheses".to_string());
     }
-
-    Ok(true)
+    // Try opening a WinDivert handle to validate the expression
+    match WinDivert::<NetworkLayer>::network(filter, 0, WinDivertFlags::new()) {
+        Ok(mut handle) => {
+            let _ = handle.close(CloseAction::Nothing);
+            Ok(true)
+        }
+        Err(e) => Err(format!("Invalid filter: {}", e)),
+    }
 }
 
 // ============================================================================

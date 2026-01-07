@@ -95,12 +95,28 @@ pub struct ModuleParams {
 ///
 /// Contains the current state of the packet processing engine,
 /// including whether it's running, statistics, and module configurations.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ProcessingStatisticsDto {
+    // Burst stats
+    pub burst_buffered: usize,
+    pub burst_released: usize,
+    pub burst_buffered_count: usize,
+    // Throttle stats
+    pub throttle_buffered_count: usize,
+    pub throttle_dropped_count: usize,
+    pub throttle_is_throttling: bool,
+    // Lag stats
+    pub lag_current_lagged: usize,
+    // Reorder stats (optional, useful to know queued delayed packets)
+    pub reorder_delayed_packets: usize,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ProcessingStatus {
     /// Whether packet processing is currently running
     pub running: bool,
     /// Current processing statistics, if available
-    pub statistics: Option<String>,
+    pub statistics: Option<ProcessingStatisticsDto>,
     /// Configuration of all available modules
     pub modules: Vec<ModuleInfo>,
 }

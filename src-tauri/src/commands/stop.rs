@@ -59,10 +59,9 @@ pub async fn stop_processing(state: State<'_, PacketProcessingState>) -> Result<
         *settings = original_settings;
     }
 
-    *state
-        .filter
-        .lock()
-        .map_err(|e| format!("Failed to lock filter mutex: {}", e))? = None;
+    // Preserve the current filter across stop/start cycles.
+    // We no longer clear the filter here so the frontend retains
+    // the user's selection or loaded config filter when restarting.
 
     thread::sleep(Duration::from_millis(100));
 

@@ -81,6 +81,8 @@ fn main() {
             commands::get_settings,
             commands::update_filter,
             commands::get_filter,
+            commands::get_filter_history,
+            commands::clear_filter_history,
             commands::config::save_config,
             commands::config::load_config,
             commands::config::list_configs,

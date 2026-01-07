@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { RefreshCw, Monitor } from "lucide-react";
+import { RefreshCw, Monitor, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,15 @@ import { useNetworkStore } from "@/lib/stores/network";
 import { ProcessInfo } from "@/types";
 import { ProcessSelector } from "@/components/ui/process-selector";
 import { MyraCheckbox } from "@/components/ui/myra-checkbox";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { ManipulationService } from "@/lib/services/manipulation";
 
 interface FilterTargetSelectorProps {
     disabled?: boolean;
@@ -22,6 +31,7 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
     // Local filter state - syncs with store
     const [localFilter, setLocalFilter] = useState(filter || "outbound");
     const [filterError, setFilterError] = useState<string | null>(null);
+    const [previousFilters, setPreviousFilters] = useState<string[]>([]);
 
     // Process selection state
     const [processes, setProcesses] = useState<ProcessInfo[]>([]);
@@ -87,6 +97,10 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
     // Load processes on mount
     useEffect(() => {
         loadProcesses();
+        // Load filter history
+        ManipulationService.getFilterHistory()
+            .then((list) => setPreviousFilters(list ?? []))
+            .catch(() => setPreviousFilters([]));
     }, [loadProcesses]);
 
     // Validate filter with backend
@@ -174,6 +188,13 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
 
         const applyFilter = async () => {
             const newFilter = await buildFilterString();
+
+            // If a specific filter is already set in store and differs,
+            // do not auto-override it with a generic direction filter.
+            if (filter && filter !== newFilter) {
+                return;
+            }
+
             setLocalFilter(newFilter);
 
             // Validate before applying
@@ -203,6 +224,7 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
         buildFilterString,
         validateFilter,
         updateFilter,
+        filter,
     ]);
 
     // Handle manual filter input change
@@ -219,6 +241,11 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
         const isValid = await validateFilter(localFilter);
         if (isValid) {
             await updateFilter(localFilter);
+            // Refresh history after successful update
+            try {
+                const list = await ManipulationService.getFilterHistory();
+                setPreviousFilters(list ?? []);
+            } catch {}
         }
     };
 
@@ -253,6 +280,18 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
     // Handle process change
     const handleProcessChange = (value: string) => {
         setSelectedProcess(value);
+    };
+
+    const applyPreviousFilter = async (value: string) => {
+        if (isActive) return; // Do not change while active
+        const ok = await validateFilter(value);
+        if (!ok) return;
+        setLocalFilter(value);
+        await updateFilter(value);
+        try {
+            const list = await ManipulationService.getFilterHistory();
+            setPreviousFilters(list ?? []);
+        } catch {}
     };
 
     return (
@@ -290,6 +329,51 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                         )}
                         disabled={disabled || isActive}
                     />
+                    {/* Previous filters dropdown */}
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8"
+                                disabled={disabled || isActive}
+                                title="Previous filters"
+                            >
+                                <ChevronDown className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="min-w-[240px]">
+                            <DropdownMenuLabel>Recent Filters</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            {previousFilters.length === 0 ? (
+                                <DropdownMenuItem disabled>No recent filters</DropdownMenuItem>
+                            ) : (
+                                previousFilters.map((f) => (
+                                    <DropdownMenuItem
+                                        key={f}
+                                        onClick={() => applyPreviousFilter(f)}
+                                        className="font-mono text-xs"
+                                    >
+                                        {f}
+                                    </DropdownMenuItem>
+                                ))
+                            )}
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                                onClick={async () => {
+                                    if (disabled || isActive) return;
+                                    try {
+                                        await ManipulationService.clearFilterHistory();
+                                        setPreviousFilters([]);
+                                    } catch {}
+                                }}
+                                className="text-xs text-muted-foreground"
+                                disabled={disabled || isActive || previousFilters.length === 0}
+                            >
+                                Clear history
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
 
                 {/* Direction toggles */}

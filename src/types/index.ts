@@ -157,7 +157,19 @@ export interface BurstOptions {
 
 export interface ProcessingStatus {
     running: boolean;
+    statistics?: ProcessingStatistics;
     modules: ModuleInfo[];
+}
+
+export interface ProcessingStatistics {
+    burst_buffered: number;
+    burst_released: number;
+    burst_buffered_count: number;
+    throttle_buffered_count: number;
+    throttle_dropped_count: number;
+    throttle_is_throttling: boolean;
+    lag_current_lagged: number;
+    reorder_delayed_packets: number;
 }
 
 // Filter target types for the filter selector

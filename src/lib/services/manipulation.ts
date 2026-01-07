@@ -317,6 +317,14 @@ export const ManipulationService = {
         return invoke("get_filter");
     },
 
+    async getFilterHistory(): Promise<string[]> {
+        return invoke("get_filter_history");
+    },
+
+    async clearFilterHistory(): Promise<void> {
+        return invoke("clear_filter_history");
+    },
+
     async saveConfig(
         name: string,
         filterTarget?: FilterTarget,

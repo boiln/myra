@@ -106,10 +106,10 @@ export const createPresetSlice: StateCreator<
                 await useHotkeyStore.getState().restoreBindings(response.hotkeys);
             }
 
-            // Restore tap settings if present (but always default enabled to false for safety)
+            // Restore tap settings if present (respect saved enabled state)
             if (response.tap) {
                 useTapStore.getState().updateSettings({
-                    enabled: false, // Always start with tap disabled for safety
+                    enabled: response.tap.enabled ?? false,
                     intervalMs: response.tap.interval_ms,
                     durationMs: response.tap.duration_ms,
                 });

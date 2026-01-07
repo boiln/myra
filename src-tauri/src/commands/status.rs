@@ -9,7 +9,9 @@ use log::debug;
 use tauri::State;
 
 use crate::commands::state::PacketProcessingState;
-use crate::commands::types::{ModuleConfig, ModuleInfo, ModuleParams, ProcessingStatus};
+use crate::commands::types::{ModuleConfig, ModuleInfo, ModuleParams, ProcessingStatus, ProcessingStatisticsDto};
+use crate::commands::filter_history::add_to_history;
+use crate::commands::system::validate_filter;
 use crate::settings::Settings;
 
 /// Gets the current status of the processing engine.
@@ -34,7 +36,17 @@ pub async fn get_status(
     
     let statistics = if running {
         let stats = state.statistics.read().map_err(|e| e.to_string())?;
-        Some(format!("{:?}", stats))
+        // Map internal stats into a compact DTO for the frontend
+        Some(ProcessingStatisticsDto {
+            burst_buffered: stats.burst_stats.buffered,
+            burst_released: stats.burst_stats.released,
+            burst_buffered_count: stats.burst_stats.buffered_count,
+            throttle_buffered_count: stats.throttle_stats.buffered_count(),
+            throttle_dropped_count: stats.throttle_stats.dropped_count(),
+            throttle_is_throttling: stats.throttle_stats.is_throttling(),
+            lag_current_lagged: stats.lag_stats.current_lagged(),
+            reorder_delayed_packets: stats.reorder_stats.delayed_packets,
+        })
     } else {
         None
     };
@@ -107,7 +119,13 @@ pub async fn update_filter(
     *state
         .filter
         .lock()
-        .map_err(|e| format!("Failed to lock filter mutex: {}", e))? = filter;
+        .map_err(|e| format!("Failed to lock filter mutex: {}", e))? = filter.clone();
+    // Persist in history when a real filter is set (use the provided value)
+    if let Some(ref f) = filter {
+        if validate_filter(f.clone()).unwrap_or(false) {
+            let _ = add_to_history(f);
+        }
+    }
     debug!("Updated packet filter");
     Ok(())
 }

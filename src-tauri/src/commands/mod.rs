@@ -10,6 +10,7 @@ pub mod status;
 pub mod stop;
 pub mod system;
 pub mod tc_bandwidth;
+pub mod filter_history;
 pub mod types;
 pub mod update;
 
@@ -20,6 +21,9 @@ pub use start::{__cmd__start_processing, start_processing};
 pub use status::{
     __cmd__get_filter, __cmd__get_settings, __cmd__get_status, __cmd__update_filter, get_filter,
     get_settings, get_status, update_filter,
+};
+pub use filter_history::{
+    __cmd__get_filter_history, __cmd__clear_filter_history, get_filter_history, clear_filter_history,
 };
 pub use stop::{__cmd__stop_processing, stop_processing};
 pub use system::{
