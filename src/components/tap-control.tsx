@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { useTapStore } from "@/lib/stores/tap-store";
 import { MyraCheckbox } from "@/components/ui/myra-checkbox";
 import { Label } from "@/components/ui/label";
