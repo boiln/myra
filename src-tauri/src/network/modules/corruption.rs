@@ -1,31 +1,31 @@
 use crate::error::Result;
 use crate::network::core::PacketData;
-use crate::network::modules::stats::tamper_stats::TamperStats;
+use crate::network::modules::stats::corruption_stats::CorruptionStats;
 use crate::network::modules::traits::{ModuleContext, PacketModule};
 use crate::network::types::probability::Probability;
-use crate::settings::tamper::TamperOptions;
+use crate::settings::corruption::CorruptionOptions;
 use log::error;
 use rand::{rng, Rng};
 use std::collections::HashSet;
 use windivert_sys::ChecksumFlags;
 
-/// Unit struct for the Tamper packet module.
+/// Unit struct for the Corruption packet module.
 ///
 /// This module simulates packet corruption by randomly modifying
 /// packet payload data.
 #[derive(Debug, Default)]
-pub struct TamperModule;
+pub struct CorruptionModule;
 
-impl PacketModule for TamperModule {
-    type Options = TamperOptions;
+impl PacketModule for CorruptionModule {
+    type Options = CorruptionOptions;
     type State = ();
 
     fn name(&self) -> &'static str {
-        "tamper"
+        "corruption"
     }
 
     fn display_name(&self) -> &'static str {
-        "Packet Tamper"
+        "Packet Corruption"
     }
 
     fn get_duration_ms(&self, options: &Self::Options) -> u64 {
@@ -41,58 +41,58 @@ impl PacketModule for TamperModule {
     ) -> Result<()> {
         let mut stats = ctx.write_stats(self.name())?;
 
-        tamper_packets(
+        corruption_packets(
             packets,
             options.probability,
             options.amount,
             options.recalculate_checksums.unwrap_or(true),
             options.inbound,
             options.outbound,
-            &mut stats.tamper_stats,
+            &mut stats.corruption_stats,
         );
         Ok(())
     }
 }
 
-/// Randomly tampers with packet data based on specified probabilities
+/// Randomly corruptions with packet data based on specified probabilities
 ///
 /// This function selectively modifies packet payload data to simulate corrupted network traffic.
-/// It applies various tampering techniques (bit manipulation, bit flipping, value adjustment) to
+/// It applies various corruptioning techniques (bit manipulation, bit flipping, value adjustment) to
 /// the packet payloads based on the provided probabilities.
 ///
 /// # Arguments
 ///
-/// * `packets` - Slice of packet data to potentially tamper with
-/// * `tamper_probability` - Probability of tampering with each packet
-/// * `tamper_amount` - Proportion of bytes to tamper with in each selected packet
-/// * `recalculate_checksums` - Whether to recalculate packet checksums after tampering
-/// * `stats` - Statistics collector for tampering operations
+/// * `packets` - Slice of packet data to potentially corruption with
+/// * `corruption_probability` - Probability of corruptioning with each packet
+/// * `corruption_amount` - Proportion of bytes to corruption with in each selected packet
+/// * `recalculate_checksums` - Whether to recalculate packet checksums after corruptioning
+/// * `stats` - Statistics collector for corruptioning operations
 ///
 /// # Example
 ///
 /// ```
 /// let mut packets = vec![packet1, packet2];
-/// let tamper_probability = Probability::new(0.5).unwrap(); // 50% chance to tamper with a packet
-/// let tamper_amount = Probability::new(0.1).unwrap(); // Modify approximately 10% of selected packets' bytes
+/// let corruption_probability = Probability::new(0.5).unwrap(); // 50% chance to corruption with a packet
+/// let corruption_amount = Probability::new(0.1).unwrap(); // Modify approximately 10% of selected packets' bytes
 /// let recalculate_checksums = true;
-/// let mut stats = TamperStats::new(Duration::from_millis(100));
+/// let mut stats = CorruptionStats::new(Duration::from_millis(100));
 ///
-/// tamper_packets(
+/// corruption_packets(
 ///     &mut packets,
-///     tamper_probability,
-///     tamper_amount,
+///     corruption_probability,
+///     corruption_amount,
 ///     recalculate_checksums,
 ///     &mut stats,
 /// );
 /// ```
-pub fn tamper_packets(
+pub fn corruption_packets(
     packets: &mut [PacketData],
-    tamper_probability: Probability,
-    tamper_amount: Probability,
+    corruption_probability: Probability,
+    corruption_amount: Probability,
     recalculate_checksums: bool,
     apply_inbound: bool,
     apply_outbound: bool,
-    stats: &mut TamperStats,
+    stats: &mut CorruptionStats,
 ) {
     let should_update_stats = stats.should_update();
     let mut rng = rng();
@@ -107,7 +107,7 @@ pub fn tamper_packets(
             continue;
         }
 
-        let should_skip = rng.random::<f64>() >= tamper_probability.value();
+        let should_skip = rng.random::<f64>() >= corruption_probability.value();
 
         if should_skip && !should_update_stats {
             continue;
@@ -139,19 +139,19 @@ pub fn tamper_packets(
             }
 
             stats.data = data[payload_offset..].to_owned();
-            stats.tamper_flags = vec![false; stats.data.len()];
+            stats.corruption_flags = vec![false; stats.data.len()];
             stats.checksum_valid = true;
             stats.updated();
             continue;
         }
 
         if payload_length > 0 {
-            let bytes_to_tamper = (payload_length as f64 * tamper_amount.value()) as usize;
-            let tampered_indices = apply_tampering(&mut data[payload_offset..], bytes_to_tamper);
+            let bytes_to_corruption = (payload_length as f64 * corruption_amount.value()) as usize;
+            let corruptioned_indices = apply_corruptioning(&mut data[payload_offset..], bytes_to_corruption);
 
             if should_update_stats {
-                let tampered_flags = calculate_tampered_flags(data.len(), &tampered_indices);
-                stats.tamper_flags = tampered_flags;
+                let corruptioned_flags = calculate_corruptioned_flags(data.len(), &corruptioned_indices);
+                stats.corruption_flags = corruptioned_flags;
                 stats.data = data[payload_offset..].to_owned();
                 stats.updated();
             }
@@ -177,61 +177,61 @@ pub fn tamper_packets(
     }
 }
 
-/// Applies random tampering to a slice of data
+/// Applies random corruptioning to a slice of data
 ///
-/// This function implements the actual tampering logic, selecting random bytes
+/// This function implements the actual corruptioning logic, selecting random bytes
 /// and applying different types of modifications.
 ///
 /// # Arguments
 ///
-/// * `data` - The data slice to be tampered with
-/// * `bytes_to_tamper` - The number of bytes to tamper with
+/// * `data` - The data slice to be corruptioned with
+/// * `bytes_to_corruption` - The number of bytes to corruption with
 ///
 /// # Returns
 ///
 /// A `HashSet` containing the indices of all modified bytes
-fn apply_tampering(data: &mut [u8], bytes_to_tamper: usize) -> HashSet<usize> {
-    let mut tampered_indices = HashSet::new();
-    let mut tampered_count = 0;
+fn apply_corruptioning(data: &mut [u8], bytes_to_corruption: usize) -> HashSet<usize> {
+    let mut corruptioned_indices = HashSet::new();
+    let mut corruptioned_count = 0;
     let data_len = data.len();
     let mut rng = rng();
 
-    while tampered_count < bytes_to_tamper && tampered_count < data_len {
+    while corruptioned_count < bytes_to_corruption && corruptioned_count < data_len {
         let index = rng.random_range(0..data.len());
-        if tampered_indices.insert(index) {
-            tampered_count += 1;
-            let tamper_type = rng.random_range(0..3);
-            let modified_indices = match tamper_type {
+        if corruptioned_indices.insert(index) {
+            corruptioned_count += 1;
+            let corruption_type = rng.random_range(0..3);
+            let modified_indices = match corruption_type {
                 0 => bit_manipulation(data, index, rng.random_range(0..8), true),
                 1 => bit_flipping(data, index, rng.random_range(0..8)),
                 2 => value_adjustment(data, index, rng.random_range(-64..64)),
                 _ => vec![],
             };
-            tampered_indices.extend(modified_indices);
+            corruptioned_indices.extend(modified_indices);
         }
     }
 
-    tampered_indices
+    corruptioned_indices
 }
 
-/// Creates a vector of boolean flags indicating which bytes were tampered with
+/// Creates a vector of boolean flags indicating which bytes were corruptioned with
 ///
 /// # Arguments
 ///
 /// * `data_len` - Total length of the data
-/// * `tampered_indices` - Set of indices that were tampered with
+/// * `corruptioned_indices` - Set of indices that were corruptioned with
 ///
 /// # Returns
 ///
-/// A vector of boolean flags where true indicates a tampered byte
-fn calculate_tampered_flags(data_len: usize, tampered_indices: &HashSet<usize>) -> Vec<bool> {
-    let mut tampered_flags = vec![false; data_len];
-    for &index in tampered_indices {
+/// A vector of boolean flags where true indicates a corruptioned byte
+fn calculate_corruptioned_flags(data_len: usize, corruptioned_indices: &HashSet<usize>) -> Vec<bool> {
+    let mut corruptioned_flags = vec![false; data_len];
+    for &index in corruptioned_indices {
         if index < data_len {
-            tampered_flags[index] = true;
+            corruptioned_flags[index] = true;
         }
     }
-    tampered_flags
+    corruptioned_flags
 }
 
 /// Extracts the IP version from a packet data slice

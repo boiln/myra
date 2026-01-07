@@ -226,18 +226,18 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
         },
     );
 
-    // Tamper module
-    let tamper = settings.tamper.clone().unwrap_or_default();
-    let tamper_info = module(
-        "tamper",
-        "Tamper",
-        tamper.enabled,
+    // Corruption module
+    let corruption = settings.corruption.clone().unwrap_or_default();
+    let corruption_info = module(
+        "corruption",
+        "Corruption",
+        corruption.enabled,
         ModuleConfig {
-            inbound: tamper.inbound,
-            outbound: tamper.outbound,
-            chance: tamper.probability.value() * 100.0,
-            enabled: tamper.enabled,
-            duration_ms: Some(tamper.duration_ms),
+            inbound: corruption.inbound,
+            outbound: corruption.outbound,
+            chance: corruption.probability.value() * 100.0,
+            enabled: corruption.enabled,
+            duration_ms: Some(corruption.duration_ms),
             ..Default::default()
         },
     );
@@ -286,7 +286,7 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
         throttle_info,
         duplicate_info,
         bandwidth_info,
-        tamper_info,
+        corruption_info,
         reorder_info,
         burst_info,
     ]

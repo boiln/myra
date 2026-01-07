@@ -99,8 +99,8 @@ export function QuickPresets() {
                             duration_ms: 0,
                         };
                         break;
-                    case "tamper":
-                        newSettings.tamper = {
+                    case "corruption":
+                        newSettings.corruption = {
                             enabled: false,
                             inbound: true,
                             outbound: true,
@@ -137,12 +137,12 @@ export function QuickPresets() {
             Object.assign(newSettings, preset.settings);
 
             await ManipulationService.updateSettings(newSettings, isActive);
-            
+
             // Apply filter if specified
             if (preset.filter) {
                 await ManipulationService.updateFilter(preset.filter);
             }
-            
+
             await loadStatus();
 
             toast.success(`Applied "${preset.name}"`, { dismissible: true });
@@ -154,11 +154,7 @@ export function QuickPresets() {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-7 gap-1.5 px-2"
-                >
+                <Button variant="outline" size="sm" className="h-7 gap-1.5 px-2">
                     <Zap className="h-3.5 w-3.5" />
                     Quick
                 </Button>
@@ -171,9 +167,7 @@ export function QuickPresets() {
                         className="flex flex-col items-start gap-0.5 py-2 focus:text-foreground"
                     >
                         <span className="font-medium">{preset.name}</span>
-                        <span className="text-xs opacity-70">
-                            {preset.description}
-                        </span>
+                        <span className="text-xs opacity-70">{preset.description}</span>
                     </DropdownMenuItem>
                 ))}
             </DropdownMenuContent>

@@ -24,8 +24,8 @@ export const createModuleSlice: StateCreator<
             case "lag":
                 newSettings.lag = {
                     probability,
-                    delay_ms: config.duration_ms || 100,  // UI duration_ms is the lag time
-                    duration_ms: 0,  // Effect duration (0 = infinite)
+                    delay_ms: config.duration_ms || 100, // UI duration_ms is the lag time
+                    duration_ms: 0, // Effect duration (0 = infinite)
                 };
                 break;
 
@@ -54,14 +54,14 @@ export const createModuleSlice: StateCreator<
             case "bandwidth":
                 newSettings.bandwidth = {
                     probability,
-                    limit: config.limit_kbps || 500,  // Map UI limit_kbps to Rust limit
+                    limit: config.limit_kbps || 500, // Map UI limit_kbps to Rust limit
                     duration_ms,
                     use_wfp: config.use_wfp ?? false,
                 };
                 break;
 
-            case "tamper":
-                newSettings.tamper = {
+            case "corruption":
+                newSettings.corruption = {
                     probability,
                     duration_ms,
                 };
@@ -77,7 +77,8 @@ export const createModuleSlice: StateCreator<
 
             case "burst":
                 // Use preserved release_delay_us from settings if available
-                const preservedReleaseDelay = newSettings.burst_release_delay_us ?? config.release_delay_us ?? 500;
+                const preservedReleaseDelay =
+                    newSettings.burst_release_delay_us ?? config.release_delay_us ?? 500;
                 newSettings.burst = {
                     probability,
                     buffer_ms: config.buffer_ms ?? 0,

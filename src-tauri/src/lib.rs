@@ -9,7 +9,7 @@
 //! * Packet lag - Add latency to packets
 //! * Network throttling - Slow down connections temporarily
 //! * Packet reordering - Change the order packets arrive in
-//! * Packet tampering - Corrupt packet data
+//! * Packet corruptioning - Corrupt packet data
 //! * Packet duplication - Send multiple copies of packets
 //! * Bandwidth limiting - Restrict connection speeds
 //!

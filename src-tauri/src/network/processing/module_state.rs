@@ -44,8 +44,8 @@ pub struct ModuleEffectStartTimes {
     pub throttle: Instant,
     /// Time when duplicate effect was started
     pub duplicate: Instant,
-    /// Time when tamper effect was started
-    pub tamper: Instant,
+    /// Time when corruption effect was started
+    pub corruption: Instant,
     /// Time when reorder effect was started
     pub reorder: Instant,
     /// Time when bandwidth effect was started
@@ -62,7 +62,7 @@ impl Default for ModuleEffectStartTimes {
             lag: now,
             throttle: now,
             duplicate: now,
-            tamper: now,
+            corruption: now,
             reorder: now,
             bandwidth: now,
             burst: now,

@@ -298,7 +298,7 @@ pub fn start_packet_processing(
 /// Processes packets according to the current manipulation settings.
 ///
 /// Delegates to the module registry which handles all modules in order:
-/// drop → lag → throttle → reorder → tamper → duplicate → bandwidth → burst
+/// drop → lag → throttle → reorder → corruption → duplicate → bandwidth → burst
 ///
 /// # Arguments
 ///

@@ -14,7 +14,7 @@ use crate::settings::lag::LagOptions;
 use crate::settings::drop::DropOptions;
 use crate::settings::duplicate::DuplicateOptions;
 use crate::settings::reorder::ReorderOptions;
-use crate::settings::tamper::TamperOptions;
+use crate::settings::corruption::CorruptionOptions;
 use crate::settings::throttle::ThrottleOptions;
 use crate::settings::Settings;
 
@@ -73,8 +73,8 @@ fn build_settings_from_modules(modules: Vec<ModuleInfo>) -> Result<Settings, Str
             "bandwidth" => {
                 settings.bandwidth = Some(build_bandwidth_options(module)?);
             }
-            "tamper" => {
-                settings.tamper = Some(build_tamper_options(module)?);
+            "corruption" => {
+                settings.corruption = Some(build_corruption_options(module)?);
             }
             "reorder" => {
                 settings.reorder = Some(build_reorder_options(module)?);
@@ -179,13 +179,13 @@ fn build_bandwidth_options(module: &ModuleInfo) -> Result<BandwidthOptions, Stri
     })
 }
 
-fn build_tamper_options(module: &ModuleInfo) -> Result<TamperOptions, String> {
+fn build_corruption_options(module: &ModuleInfo) -> Result<CorruptionOptions, String> {
     let probability = Probability::new(module.config.chance / 100.0)
-        .map_err(|e| format!("Invalid tamper probability: {}", e))?;
+        .map_err(|e| format!("Invalid corruption probability: {}", e))?;
 
     let amount = Probability::new(0.5).unwrap_or_default();
 
-    Ok(TamperOptions {
+    Ok(CorruptionOptions {
         enabled: module.enabled,
         inbound: module.config.inbound,
         outbound: module.config.outbound,

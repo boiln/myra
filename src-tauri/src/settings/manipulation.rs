@@ -4,7 +4,7 @@ use crate::settings::lag::LagOptions;
 use crate::settings::drop::DropOptions;
 use crate::settings::duplicate::DuplicateOptions;
 use crate::settings::reorder::ReorderOptions;
-use crate::settings::tamper::TamperOptions;
+use crate::settings::corruption::CorruptionOptions;
 use crate::settings::tc_bandwidth::TcBandwidthOptions;
 use crate::settings::throttle::ThrottleOptions;
 use serde::{Deserialize, Serialize, Serializer};
@@ -46,9 +46,9 @@ pub struct Settings {
     #[serde(serialize_with = "serialize_option")]
     pub reorder: Option<ReorderOptions>,
 
-    /// Controls packet corruption/tampering
+    /// Controls packet corruption/corruptioning
     #[serde(serialize_with = "serialize_option")]
-    pub tamper: Option<TamperOptions>,
+    pub corruption: Option<CorruptionOptions>,
 
     /// Controls packet duplication
     #[serde(serialize_with = "serialize_option")]
@@ -88,7 +88,7 @@ impl Default for Settings {
             lag: None,
             throttle: None,
             reorder: None,
-            tamper: None,
+            corruption: None,
             duplicate: None,
             bandwidth: None,
             burst: None,
@@ -126,7 +126,7 @@ impl ModuleOptions for ReorderOptions {
     }
 }
 
-impl ModuleOptions for TamperOptions {
+impl ModuleOptions for CorruptionOptions {
     fn is_enabled(&self) -> bool {
         self.enabled
     }

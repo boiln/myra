@@ -44,9 +44,12 @@ export const createCoreSlice: StateCreator<
                     config: {
                         inbound: settings.lag?.inbound ?? getExistingDirections("lag").inbound,
                         outbound: settings.lag?.outbound ?? getExistingDirections("lag").outbound,
-                        chance: settings.lag ? Math.round(settings.lag.probability * 100) : getExistingConfig("lag", "chance", 100),
+                        chance: settings.lag
+                            ? Math.round(settings.lag.probability * 100)
+                            : getExistingConfig("lag", "chance", 100),
                         enabled: settings.lag?.enabled ?? false,
-                        duration_ms: settings.lag?.delay_ms || getExistingConfig("lag", "duration_ms", 1000),
+                        duration_ms:
+                            settings.lag?.delay_ms || getExistingConfig("lag", "duration_ms", 1000),
                     },
                 },
                 {
@@ -56,7 +59,9 @@ export const createCoreSlice: StateCreator<
                     config: {
                         inbound: settings.drop?.inbound ?? getExistingDirections("drop").inbound,
                         outbound: settings.drop?.outbound ?? getExistingDirections("drop").outbound,
-                        chance: settings.drop ? Math.round(settings.drop.probability * 100) : getExistingConfig("drop", "chance", 100),
+                        chance: settings.drop
+                            ? Math.round(settings.drop.probability * 100)
+                            : getExistingConfig("drop", "chance", 100),
                         enabled: settings.drop?.enabled ?? false,
                         duration_ms: 0, // 0 = infinite effect duration
                     },
@@ -66,14 +71,21 @@ export const createCoreSlice: StateCreator<
                     display_name: "Throttle",
                     enabled: settings.throttle?.enabled ?? false,
                     config: {
-                        inbound: settings.throttle?.inbound ?? getExistingDirections("throttle").inbound,
-                        outbound: settings.throttle?.outbound ?? getExistingDirections("throttle").outbound,
+                        inbound:
+                            settings.throttle?.inbound ?? getExistingDirections("throttle").inbound,
+                        outbound:
+                            settings.throttle?.outbound ??
+                            getExistingDirections("throttle").outbound,
                         chance: settings.throttle
                             ? Math.round(settings.throttle.probability * 100)
                             : 100,
                         enabled: settings.throttle?.enabled ?? false,
-                        throttle_ms: settings.throttle?.throttle_ms || getExistingConfig("throttle", "throttle_ms", 30),
-                        freeze_mode: settings.throttle?.freeze_mode ?? getExistingConfig("throttle", "freeze_mode", false),
+                        throttle_ms:
+                            settings.throttle?.throttle_ms ||
+                            getExistingConfig("throttle", "throttle_ms", 30),
+                        freeze_mode:
+                            settings.throttle?.freeze_mode ??
+                            getExistingConfig("throttle", "freeze_mode", false),
                         duration_ms: 0, // 0 = infinite effect duration
                     },
                 },
@@ -82,13 +94,18 @@ export const createCoreSlice: StateCreator<
                     display_name: "Duplicate",
                     enabled: settings.duplicate?.enabled ?? false,
                     config: {
-                        inbound: settings.duplicate?.inbound ?? getExistingDirections("duplicate").inbound,
-                        outbound: settings.duplicate?.outbound ?? getExistingDirections("duplicate").outbound,
+                        inbound:
+                            settings.duplicate?.inbound ??
+                            getExistingDirections("duplicate").inbound,
+                        outbound:
+                            settings.duplicate?.outbound ??
+                            getExistingDirections("duplicate").outbound,
                         chance: settings.duplicate
                             ? Math.round(settings.duplicate.probability * 100)
                             : getExistingConfig("duplicate", "chance", 100),
                         enabled: settings.duplicate?.enabled ?? false,
-                        count: settings.duplicate?.count || getExistingConfig("duplicate", "count", 2),
+                        count:
+                            settings.duplicate?.count || getExistingConfig("duplicate", "count", 2),
                         duration_ms: 0, // 0 = infinite effect duration
                     },
                 },
@@ -97,28 +114,40 @@ export const createCoreSlice: StateCreator<
                     display_name: "Bandwidth",
                     enabled: settings.bandwidth?.enabled ?? false,
                     config: {
-                        inbound: settings.bandwidth?.inbound ?? getExistingDirections("bandwidth").inbound,
-                        outbound: settings.bandwidth?.outbound ?? getExistingDirections("bandwidth").outbound,
+                        inbound:
+                            settings.bandwidth?.inbound ??
+                            getExistingDirections("bandwidth").inbound,
+                        outbound:
+                            settings.bandwidth?.outbound ??
+                            getExistingDirections("bandwidth").outbound,
                         chance: settings.bandwidth
                             ? Math.round(settings.bandwidth.probability * 100)
                             : 100,
                         enabled: settings.bandwidth?.enabled ?? false,
-                        limit_kbps: settings.bandwidth?.limit || getExistingConfig("bandwidth", "limit_kbps", 500),
-                        use_wfp: settings.bandwidth?.use_wfp ?? getExistingConfig("bandwidth", "use_wfp", false),
+                        limit_kbps:
+                            settings.bandwidth?.limit ||
+                            getExistingConfig("bandwidth", "limit_kbps", 500),
+                        use_wfp:
+                            settings.bandwidth?.use_wfp ??
+                            getExistingConfig("bandwidth", "use_wfp", false),
                         duration_ms: 0, // 0 = infinite effect duration
                     },
                 },
                 {
-                    name: "tamper",
-                    display_name: "Tamper",
-                    enabled: settings.tamper?.enabled ?? false,
+                    name: "corruption",
+                    display_name: "Corruption",
+                    enabled: settings.corruption?.enabled ?? false,
                     config: {
-                        inbound: settings.tamper?.inbound ?? getExistingDirections("tamper").inbound,
-                        outbound: settings.tamper?.outbound ?? getExistingDirections("tamper").outbound,
-                        chance: settings.tamper
-                            ? Math.round(settings.tamper.probability * 100)
-                            : getExistingConfig("tamper", "chance", 100),
-                        enabled: settings.tamper?.enabled ?? false,
+                        inbound:
+                            settings.corruption?.inbound ??
+                            getExistingDirections("corruption").inbound,
+                        outbound:
+                            settings.corruption?.outbound ??
+                            getExistingDirections("corruption").outbound,
+                        chance: settings.corruption
+                            ? Math.round(settings.corruption.probability * 100)
+                            : getExistingConfig("corruption", "chance", 100),
+                        enabled: settings.corruption?.enabled ?? false,
                         duration_ms: 0, // 0 = infinite effect duration
                     },
                 },
@@ -127,13 +156,17 @@ export const createCoreSlice: StateCreator<
                     display_name: "Reorder",
                     enabled: settings.reorder?.enabled ?? false,
                     config: {
-                        inbound: settings.reorder?.inbound ?? getExistingDirections("reorder").inbound,
-                        outbound: settings.reorder?.outbound ?? getExistingDirections("reorder").outbound,
+                        inbound:
+                            settings.reorder?.inbound ?? getExistingDirections("reorder").inbound,
+                        outbound:
+                            settings.reorder?.outbound ?? getExistingDirections("reorder").outbound,
                         chance: settings.reorder
                             ? Math.round(settings.reorder.probability * 100)
                             : getExistingConfig("reorder", "chance", 100),
                         enabled: settings.reorder?.enabled ?? false,
-                        throttle_ms: settings.reorder?.max_delay || getExistingConfig("reorder", "throttle_ms", 100),
+                        throttle_ms:
+                            settings.reorder?.max_delay ||
+                            getExistingConfig("reorder", "throttle_ms", 100),
                         duration_ms: 0, // 0 = infinite effect duration
                     },
                 },
@@ -143,16 +176,22 @@ export const createCoreSlice: StateCreator<
                     enabled: settings.burst?.enabled ?? false,
                     config: {
                         inbound: settings.burst?.inbound ?? getExistingDirections("burst").inbound,
-                        outbound: settings.burst?.outbound ?? getExistingDirections("burst").outbound,
-                        chance: settings.burst
-                            ? Math.round(settings.burst.probability * 100)
-                            : 100,
+                        outbound:
+                            settings.burst?.outbound ?? getExistingDirections("burst").outbound,
+                        chance: settings.burst ? Math.round(settings.burst.probability * 100) : 100,
                         enabled: settings.burst?.enabled ?? false,
-                        buffer_ms: settings.burst?.buffer_ms ?? getExistingConfig("burst", "buffer_ms", 0),
-                        keepalive_ms: settings.burst?.keepalive_ms ?? getExistingConfig("burst", "keepalive_ms", 0),
+                        buffer_ms:
+                            settings.burst?.buffer_ms ?? getExistingConfig("burst", "buffer_ms", 0),
+                        keepalive_ms:
+                            settings.burst?.keepalive_ms ??
+                            getExistingConfig("burst", "keepalive_ms", 0),
                         // Use burst_release_delay_us from top-level settings (persists even when burst disabled)
-                        release_delay_us: settings.burst_release_delay_us ?? settings.burst?.release_delay_us ?? getExistingConfig("burst", "release_delay_us", 500),
-                        reverse: settings.burst?.reverse ?? getExistingConfig("burst", "reverse", false),
+                        release_delay_us:
+                            settings.burst_release_delay_us ??
+                            settings.burst?.release_delay_us ??
+                            getExistingConfig("burst", "release_delay_us", 500),
+                        reverse:
+                            settings.burst?.reverse ?? getExistingConfig("burst", "reverse", false),
                         duration_ms: 0, // 0 = infinite effect duration
                     },
                 },

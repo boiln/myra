@@ -29,26 +29,35 @@ export const ManipulationService = {
         return invoke("get_status");
     },
 
-    async updateSettings(settings: PacketManipulationSettings, isFilteringActive: boolean = false): Promise<void> {
+    async updateSettings(
+        settings: PacketManipulationSettings,
+        isFilteringActive: boolean = false
+    ): Promise<void> {
         // Handle WFP throttle based on bandwidth settings AND filtering state
         await this.handleWfpThrottle(settings, isFilteringActive);
-        
+
         // Create the modules array from settings
         const modules = this.createModulesFromSettings(settings);
         return invoke("update_settings", { modules });
     },
 
     // Handle WFP throttle based on bandwidth settings - only starts when filtering is active
-    async handleWfpThrottle(settings: PacketManipulationSettings, isFilteringActive: boolean): Promise<void> {
+    async handleWfpThrottle(
+        settings: PacketManipulationSettings,
+        isFilteringActive: boolean
+    ): Promise<void> {
         const bandwidth = settings.bandwidth;
         // WFP should only be active when: bandwidth enabled + use_wfp checked + filtering is running
         const shouldBeActive = bandwidth?.enabled && bandwidth?.use_wfp && isFilteringActive;
-        
+
         if (shouldBeActive && !wfpThrottleActive) {
             // Start WFP throttle
-            const direction = bandwidth.inbound && bandwidth.outbound ? "both" 
-                : bandwidth.inbound ? "inbound" 
-                : "outbound";
+            const direction =
+                bandwidth.inbound && bandwidth.outbound
+                    ? "both"
+                    : bandwidth.inbound
+                      ? "inbound"
+                      : "outbound";
             await this.startWfpThrottle(bandwidth.limit || 1, direction);
             return;
         }
@@ -61,9 +70,12 @@ export const ManipulationService = {
 
         if (shouldBeActive && wfpThrottleActive) {
             // Update: restart with new settings
-            const direction = bandwidth!.inbound && bandwidth!.outbound ? "both" 
-                : bandwidth!.inbound ? "inbound" 
-                : "outbound";
+            const direction =
+                bandwidth!.inbound && bandwidth!.outbound
+                    ? "both"
+                    : bandwidth!.inbound
+                      ? "inbound"
+                      : "outbound";
             await this.stopWfpThrottle();
             await this.startWfpThrottle(bandwidth!.limit || 1, direction);
         }
@@ -93,7 +105,14 @@ export const ManipulationService = {
         const modules = [];
 
         // Lag module - always include
-        const lag = settings.lag || { enabled: false, inbound: true, outbound: true, probability: 1, delay_ms: 1000, duration_ms: 0 };
+        const lag = settings.lag || {
+            enabled: false,
+            inbound: true,
+            outbound: true,
+            probability: 1,
+            delay_ms: 1000,
+            duration_ms: 0,
+        };
         modules.push({
             name: "lag",
             display_name: "Lag",
@@ -103,13 +122,19 @@ export const ManipulationService = {
                 outbound: lag.outbound ?? true,
                 chance: lag.probability * 100,
                 enabled: lag.enabled ?? false,
-                duration_ms: lag.delay_ms,  // Use delay_ms as the time value sent to backend
+                duration_ms: lag.delay_ms, // Use delay_ms as the time value sent to backend
             },
             params: null,
         });
 
         // Drop module - always include
-        const drop = settings.drop || { enabled: false, inbound: true, outbound: true, probability: 1, duration_ms: 0 };
+        const drop = settings.drop || {
+            enabled: false,
+            inbound: true,
+            outbound: true,
+            probability: 1,
+            duration_ms: 0,
+        };
         modules.push({
             name: "drop",
             display_name: "Drop",
@@ -125,7 +150,14 @@ export const ManipulationService = {
         });
 
         // Throttle module - always include
-        const throttle = settings.throttle || { enabled: false, inbound: true, outbound: true, probability: 1, duration_ms: 0, throttle_ms: 300 };
+        const throttle = settings.throttle || {
+            enabled: false,
+            inbound: true,
+            outbound: true,
+            probability: 1,
+            duration_ms: 0,
+            throttle_ms: 300,
+        };
         modules.push({
             name: "throttle",
             display_name: "Throttle",
@@ -142,7 +174,14 @@ export const ManipulationService = {
         });
 
         // Duplicate module - always include
-        const duplicate = settings.duplicate || { enabled: false, inbound: true, outbound: true, probability: 1, count: 2, duration_ms: 0 };
+        const duplicate = settings.duplicate || {
+            enabled: false,
+            inbound: true,
+            outbound: true,
+            probability: 1,
+            count: 2,
+            duration_ms: 0,
+        };
         modules.push({
             name: "duplicate",
             display_name: "Duplicate",
@@ -159,7 +198,15 @@ export const ManipulationService = {
         });
 
         // Bandwidth module - always include
-        const bandwidth = settings.bandwidth || { enabled: false, inbound: true, outbound: true, probability: 1, limit: 50, duration_ms: 0, use_wfp: false };
+        const bandwidth = settings.bandwidth || {
+            enabled: false,
+            inbound: true,
+            outbound: true,
+            probability: 1,
+            limit: 50,
+            duration_ms: 0,
+            use_wfp: false,
+        };
         modules.push({
             name: "bandwidth",
             display_name: "Bandwidth",
@@ -170,30 +217,43 @@ export const ManipulationService = {
                 chance: bandwidth.probability * 100,
                 enabled: bandwidth.enabled ?? false,
                 duration_ms: bandwidth.duration_ms,
-                limit_kbps: bandwidth.limit,  // Map Rust 'limit' to frontend 'limit_kbps'
+                limit_kbps: bandwidth.limit, // Map Rust 'limit' to frontend 'limit_kbps'
                 use_wfp: bandwidth.use_wfp ?? false,
             },
             params: null,
         });
 
-        // Tamper module - always include
-        const tamper = settings.tamper || { enabled: false, inbound: true, outbound: true, probability: 1, duration_ms: 0 };
+        // Corruption module - always include
+        const corruption = settings.corruption || {
+            enabled: false,
+            inbound: true,
+            outbound: true,
+            probability: 1,
+            duration_ms: 0,
+        };
         modules.push({
-            name: "tamper",
-            display_name: "Tamper",
-            enabled: tamper.enabled ?? false,
+            name: "corruption",
+            display_name: "Corruption",
+            enabled: corruption.enabled ?? false,
             config: {
-                inbound: tamper.inbound ?? true,
-                outbound: tamper.outbound ?? true,
-                chance: tamper.probability * 100,
-                enabled: tamper.enabled ?? false,
-                duration_ms: tamper.duration_ms,
+                inbound: corruption.inbound ?? true,
+                outbound: corruption.outbound ?? true,
+                chance: corruption.probability * 100,
+                enabled: corruption.enabled ?? false,
+                duration_ms: corruption.duration_ms,
             },
             params: null,
         });
 
         // Reorder module - always include
-        const reorder = settings.reorder || { enabled: false, inbound: true, outbound: true, probability: 1, duration_ms: 0, max_delay: 1000 };
+        const reorder = settings.reorder || {
+            enabled: false,
+            inbound: true,
+            outbound: true,
+            probability: 1,
+            duration_ms: 0,
+            max_delay: 1000,
+        };
         modules.push({
             name: "reorder",
             display_name: "Reorder",
@@ -210,15 +270,15 @@ export const ManipulationService = {
         });
 
         // Burst module (lag switch) - always include
-        const burst = settings.burst || { 
-            enabled: false, 
+        const burst = settings.burst || {
+            enabled: false,
             inbound: true,
             outbound: true,
-            probability: 1, 
-            buffer_ms: 0, 
-            duration_ms: 0, 
-            keepalive_ms: 0, 
-            release_delay_us: settings.burst_release_delay_us ?? 500 
+            probability: 1,
+            buffer_ms: 0,
+            duration_ms: 0,
+            keepalive_ms: 0,
+            release_delay_us: settings.burst_release_delay_us ?? 500,
         };
         modules.push({
             name: "burst",
@@ -233,7 +293,7 @@ export const ManipulationService = {
                 buffer_ms: burst.buffer_ms,
                 keepalive_ms: burst.keepalive_ms,
                 release_delay_us: burst.release_delay_us,
-                lag_bypass: settings.lag_bypass ?? false,  // MGO2 bypass mode
+                lag_bypass: settings.lag_bypass ?? false, // MGO2 bypass mode
             },
             params: null,
         });
@@ -260,17 +320,19 @@ export const ManipulationService = {
         tap?: { enabled: boolean; interval_ms: number; duration_ms: number }
     ): Promise<void> {
         // Convert camelCase to snake_case for Rust
-        const rustFilterTarget = filterTarget ? {
-            mode: filterTarget.mode,
-            process_id: filterTarget.processId,
-            process_name: filterTarget.processName,
-            device_ip: filterTarget.deviceIp,
-            device_name: filterTarget.deviceName,
-            custom_filter: filterTarget.customFilter,
-            include_inbound: filterTarget.includeInbound ?? true,
-            include_outbound: filterTarget.includeOutbound ?? true,
-        } : undefined;
-        
+        const rustFilterTarget = filterTarget
+            ? {
+                  mode: filterTarget.mode,
+                  process_id: filterTarget.processId,
+                  process_name: filterTarget.processName,
+                  device_ip: filterTarget.deviceIp,
+                  device_name: filterTarget.deviceName,
+                  custom_filter: filterTarget.customFilter,
+                  include_inbound: filterTarget.includeInbound ?? true,
+                  include_outbound: filterTarget.includeOutbound ?? true,
+              }
+            : undefined;
+
         return invoke("save_config", { name, filterTarget: rustFilterTarget, hotkeys, tap });
     },
 

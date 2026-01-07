@@ -19,8 +19,8 @@ const buildSettings = (modules: ModuleInfo[]) => {
                     inbound: module.config.inbound,
                     outbound: module.config.outbound,
                     probability: module.config.chance / 100,
-                    delay_ms: module.config.duration_ms,  // UI duration_ms is the lag time
-                    duration_ms: 0,  // Effect duration (0 = infinite)
+                    delay_ms: module.config.duration_ms, // UI duration_ms is the lag time
+                    duration_ms: 0, // Effect duration (0 = infinite)
                 };
                 break;
 
@@ -64,13 +64,13 @@ const buildSettings = (modules: ModuleInfo[]) => {
                     outbound: module.config.outbound,
                     probability: module.config.chance / 100,
                     duration_ms: module.config.duration_ms,
-                    limit: module.config.limit_kbps || 100,  // Map UI limit_kbps to Rust limit
+                    limit: module.config.limit_kbps || 100, // Map UI limit_kbps to Rust limit
                     use_wfp: module.config.use_wfp ?? false,
                 };
                 break;
 
-            case "tamper":
-                settings.tamper = {
+            case "corruption":
+                settings.corruption = {
                     enabled: module.enabled,
                     inbound: module.config.inbound,
                     outbound: module.config.outbound,

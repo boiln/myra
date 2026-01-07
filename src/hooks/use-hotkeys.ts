@@ -52,9 +52,9 @@ export function useHotkeys() {
                 console.log("Hotkey: Toggle Bandwidth");
                 toggleModule("bandwidth", "Bandwidth");
             },
-            toggleTamper: () => {
-                console.log("Hotkey: Toggle Tamper");
-                toggleModule("tamper", "Tamper");
+            toggleCorruption: () => {
+                console.log("Hotkey: Toggle Corruption");
+                toggleModule("corruption", "Corruption");
             },
             toggleReorder: () => {
                 console.log("Hotkey: Toggle Reorder");

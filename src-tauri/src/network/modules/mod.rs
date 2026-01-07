@@ -6,7 +6,7 @@ pub mod lag;
 pub mod registry;
 pub mod reorder;
 pub mod stats;
-pub mod tamper;
+pub mod corruption;
 pub mod throttle;
 pub mod traits;
 
@@ -20,6 +20,6 @@ pub use registry::{
     module_names, process_all_modules, process_module, ModuleEntry, MODULES,
 };
 pub use reorder::ReorderModule;
-pub use tamper::TamperModule;
+pub use corruption::CorruptionModule;
 pub use throttle::ThrottleModule;
 pub use traits::{ModuleContext, ModuleOptions, PacketModule};

@@ -1,24 +1,24 @@
 use std::ops::Sub;
 use std::time::{Duration, Instant};
 
-/// Statistics for network packet tampering operations
+/// Statistics for network packet corruptioning operations
 ///
-/// This struct tracks information about tampered packets, including:
-/// - The payload data of the most recently tampered packet
+/// This struct tracks information about corruptioned packets, including:
+/// - The payload data of the most recently corruptioned packet
 /// - Which bytes in the payload were modified
-/// - Whether checksums are still valid after tampering
+/// - Whether checksums are still valid after corruptioning
 ///
 /// It also includes logic to control how frequently statistics are updated
 /// to avoid excessive resource usage when monitoring high-traffic networks.
 #[derive(Debug)]
-pub struct TamperStats {
-    /// Raw payload data from the most recently tampered packet
+pub struct CorruptionStats {
+    /// Raw payload data from the most recently corruptioned packet
     pub(crate) data: Vec<u8>,
 
-    /// Boolean flags indicating which bytes in the data were tampered with (true = tampered)
-    pub(crate) tamper_flags: Vec<bool>,
+    /// Boolean flags indicating which bytes in the data were corruptioned with (true = corruptioned)
+    pub(crate) corruption_flags: Vec<bool>,
 
-    /// Indicates whether packet checksums are still valid after tampering
+    /// Indicates whether packet checksums are still valid after corruptioning
     pub(crate) checksum_valid: bool,
 
     /// When statistics were last updated
@@ -28,8 +28,8 @@ pub struct TamperStats {
     pub update_interval: Duration,
 }
 
-impl TamperStats {
-    /// Creates a new `TamperStats` instance with the specified refresh interval
+impl CorruptionStats {
+    /// Creates a new `CorruptionStats` instance with the specified refresh interval
     ///
     /// # Arguments
     ///
@@ -37,17 +37,17 @@ impl TamperStats {
     ///
     /// # Returns
     ///
-    /// A new `TamperStats` instance
+    /// A new `CorruptionStats` instance
     ///
     /// # Example
     ///
     /// ```
-    /// let stats = TamperStats::new(Duration::from_millis(100));
+    /// let stats = CorruptionStats::new(Duration::from_millis(100));
     /// ```
     pub fn new(refresh_interval: Duration) -> Self {
         Self {
             data: vec![],
-            tamper_flags: vec![],
+            corruption_flags: vec![],
             checksum_valid: true,
             last_update: Instant::now().sub(refresh_interval),
             update_interval: refresh_interval,
@@ -73,7 +73,7 @@ impl TamperStats {
         self.last_update = Instant::now();
     }
 
-    /// Returns the raw payload data from the most recently tampered packet
+    /// Returns the raw payload data from the most recently corruptioned packet
     ///
     /// # Returns
     ///
@@ -82,16 +82,16 @@ impl TamperStats {
         &self.data
     }
 
-    /// Returns the tamper flags indicating which bytes were modified
+    /// Returns the corruption flags indicating which bytes were modified
     ///
     /// # Returns
     ///
-    /// A slice of boolean flags where `true` indicates the byte was tampered with
-    pub fn tamper_flags(&self) -> &[bool] {
-        &self.tamper_flags
+    /// A slice of boolean flags where `true` indicates the byte was corruptioned with
+    pub fn corruption_flags(&self) -> &[bool] {
+        &self.corruption_flags
     }
 
-    /// Returns whether packet checksums are still valid after tampering
+    /// Returns whether packet checksums are still valid after corruptioning
     ///
     /// # Returns
     ///
@@ -102,23 +102,23 @@ impl TamperStats {
 
     /// Resets all statistics
     ///
-    /// Clears the data and tamper flags and resets the checksum status.
+    /// Clears the data and corruption flags and resets the checksum status.
     pub fn reset(&mut self) {
         self.data.clear();
-        self.tamper_flags.clear();
+        self.corruption_flags.clear();
         self.checksum_valid = true;
         self.last_update = Instant::now();
     }
 
-    /// Returns the number of tampered bytes in the most recent packet
+    /// Returns the number of corruptioned bytes in the most recent packet
     ///
     /// # Returns
     ///
-    /// The count of bytes that were tampered with
-    pub fn tampered_byte_count(&self) -> usize {
-        self.tamper_flags
+    /// The count of bytes that were corruptioned with
+    pub fn corruptioned_byte_count(&self) -> usize {
+        self.corruption_flags
             .iter()
-            .filter(|&&tampered| tampered)
+            .filter(|&&corruptioned| corruptioned)
             .count()
     }
 }
@@ -129,16 +129,16 @@ mod tests {
 
     #[test]
     fn test_new() {
-        let stats = TamperStats::new(Duration::from_millis(100));
+        let stats = CorruptionStats::new(Duration::from_millis(100));
         assert!(stats.data.is_empty());
-        assert!(stats.tamper_flags.is_empty());
+        assert!(stats.corruption_flags.is_empty());
         assert!(stats.checksum_valid);
     }
 
     #[test]
     fn test_should_update() {
         // Create with a refresh interval that's already elapsed
-        let mut stats = TamperStats::new(Duration::from_millis(0));
+        let mut stats = CorruptionStats::new(Duration::from_millis(0));
         assert!(stats.should_update());
 
         // Update and check again immediately
@@ -148,12 +148,12 @@ mod tests {
     }
 
     #[test]
-    fn test_tampered_byte_count() {
-        let mut stats = TamperStats::new(Duration::from_millis(100));
-        stats.tamper_flags = vec![true, false, true, false, true];
-        assert_eq!(stats.tampered_byte_count(), 3);
+    fn test_corruptioned_byte_count() {
+        let mut stats = CorruptionStats::new(Duration::from_millis(100));
+        stats.corruption_flags = vec![true, false, true, false, true];
+        assert_eq!(stats.corruptioned_byte_count(), 3);
 
-        stats.tamper_flags = vec![false, false, false];
-        assert_eq!(stats.tampered_byte_count(), 0);
+        stats.corruption_flags = vec![false, false, false];
+        assert_eq!(stats.corruptioned_byte_count(), 0);
     }
 }

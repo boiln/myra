@@ -60,19 +60,19 @@ export interface PacketManipulationSettings {
     lag?: LagOptions;
     throttle?: ThrottleOptions;
     reorder?: ReorderOptions;
-    tamper?: TamperOptions;
+    corruption?: CorruptionOptions;
     duplicate?: DuplicateOptions;
     bandwidth?: BandwidthOptions;
     burst?: BurstOptions;
     burst_release_delay_us?: number;
-    lag_bypass?: boolean;  // swap IPs on send failure
-    tap?: TapOptions;      // Tap feature settings
+    lag_bypass?: boolean; // swap IPs on send failure
+    tap?: TapOptions; // Tap feature settings
 }
 
 export interface TapOptions {
     enabled: boolean;
-    interval_ms: number;   // How often to tap (every X ms)
-    duration_ms: number;   // How long to keep modules off (X ms)
+    interval_ms: number; // How often to tap (every X ms)
+    duration_ms: number; // How long to keep modules off (X ms)
 }
 
 export interface DropOptions {
@@ -88,8 +88,8 @@ export interface LagOptions {
     inbound?: boolean;
     outbound?: boolean;
     probability: number;
-    delay_ms: number;      // The actual lag time in ms
-    duration_ms: number;   // Effect duration (0 = infinite)
+    delay_ms: number; // The actual lag time in ms
+    duration_ms: number; // Effect duration (0 = infinite)
 }
 
 export interface ThrottleOptions {
@@ -99,8 +99,8 @@ export interface ThrottleOptions {
     probability: number;
     duration_ms: number;
     throttle_ms?: number;
-    drop?: boolean;        // If true, drop buffered packets; if false, release them
-    max_buffer?: number;   // Max packets to buffer (default 2000)
+    drop?: boolean; // If true, drop buffered packets; if false, release them
+    max_buffer?: number; // Max packets to buffer (default 2000)
     freeze_mode?: boolean; // If true, disable cooldown for death loop effect (may DC faster)
 }
 
@@ -113,7 +113,7 @@ export interface ReorderOptions {
     max_delay?: number;
 }
 
-export interface TamperOptions {
+export interface CorruptionOptions {
     enabled?: boolean;
     inbound?: boolean;
     outbound?: boolean;

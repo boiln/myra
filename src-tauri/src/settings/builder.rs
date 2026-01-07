@@ -23,7 +23,7 @@ use crate::settings::drop::DropOptions;
 use crate::settings::duplicate::DuplicateOptions;
 use crate::settings::manipulation::Settings;
 use crate::settings::reorder::ReorderOptions;
-use crate::settings::tamper::TamperOptions;
+use crate::settings::corruption::CorruptionOptions;
 use crate::settings::throttle::ThrottleOptions;
 
 /// Builder for constructing `Settings`.
@@ -183,13 +183,13 @@ impl SettingsBuilder {
         self
     }
 
-    /// Enables packet tampering/corruption.
+    /// Enables packet corruptioning/corruption.
     ///
     /// # Arguments
     ///
     /// * `chance` - Probability as percentage (0.0 to 100.0)
-    pub fn tamper(mut self, chance: f64) -> Self {
-        self.settings.tamper = Some(TamperOptions {
+    pub fn corruption(mut self, chance: f64) -> Self {
+        self.settings.corruption = Some(CorruptionOptions {
             enabled: true,
             inbound: true,
             outbound: true,
@@ -201,26 +201,26 @@ impl SettingsBuilder {
         self
     }
 
-    /// Sets the corruption amount for tampering.
+    /// Sets the corruption amount for corruptioning.
     ///
     /// # Arguments
     ///
     /// * `amount` - Amount of corruption as percentage (0.0 to 100.0)
-    pub fn with_tamper_amount(mut self, amount: f64) -> Self {
-        if let Some(ref mut tamper) = self.settings.tamper {
-            tamper.amount = Probability::new(amount / 100.0).unwrap_or_default();
+    pub fn with_corruption_amount(mut self, amount: f64) -> Self {
+        if let Some(ref mut corruption) = self.settings.corruption {
+            corruption.amount = Probability::new(amount / 100.0).unwrap_or_default();
         }
         self
     }
 
-    /// Sets whether to recalculate checksums after tampering.
+    /// Sets whether to recalculate checksums after corruptioning.
     ///
     /// # Arguments
     ///
     /// * `recalculate` - Whether to recalculate checksums
-    pub fn with_tamper_checksums(mut self, recalculate: bool) -> Self {
-        if let Some(ref mut tamper) = self.settings.tamper {
-            tamper.recalculate_checksums = Some(recalculate);
+    pub fn with_corruption_checksums(mut self, recalculate: bool) -> Self {
+        if let Some(ref mut corruption) = self.settings.corruption {
+            corruption.recalculate_checksums = Some(recalculate);
         }
         self
     }
@@ -310,7 +310,7 @@ impl Settings {
             || self.lag.is_some()
             || self.throttle.is_some()
             || self.reorder.is_some()
-            || self.tamper.is_some()
+            || self.corruption.is_some()
             || self.duplicate.is_some()
             || self.bandwidth.is_some()
     }
@@ -330,8 +330,8 @@ impl Settings {
         if self.reorder.is_some() {
             names.push("reorder");
         }
-        if self.tamper.is_some() {
-            names.push("tamper");
+        if self.corruption.is_some() {
+            names.push("corruption");
         }
         if self.duplicate.is_some() {
             names.push("duplicate");

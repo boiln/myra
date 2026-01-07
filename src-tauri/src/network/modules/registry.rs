@@ -32,7 +32,7 @@ use crate::network::modules::stats::PacketProcessingStatistics;
 use crate::network::modules::traits::{ModuleContext, ModuleOptions, PacketModule};
 use crate::network::modules::{
     BandwidthModule, BurstModule, DropModule, DuplicateModule, LagModule, ReorderModule,
-    TamperModule, ThrottleModule,
+    CorruptionModule, ThrottleModule,
 };
 use crate::network::processing::module_state::ModuleProcessingState;
 use crate::settings::Settings;
@@ -81,8 +81,8 @@ pub const MODULES: &[ModuleEntry] = &[
         needs_special_handling: false,
     },
     ModuleEntry {
-        name: "tamper",
-        display_name: "Packet Tamper",
+        name: "corruption",
+        display_name: "Packet Corruption",
         order: 50,
         needs_special_handling: false,
     },
@@ -128,7 +128,7 @@ pub fn is_module_enabled(settings: &Settings, name: &str) -> bool {
         "lag" => settings.lag.as_ref().is_some_and(|o| o.enabled),
         "throttle" => settings.throttle.as_ref().is_some_and(|o| o.enabled),
         "reorder" => settings.reorder.as_ref().is_some_and(|o| o.enabled),
-        "tamper" => settings.tamper.as_ref().is_some_and(|o| o.enabled),
+        "corruption" => settings.corruption.as_ref().is_some_and(|o| o.enabled),
         "duplicate" => settings.duplicate.as_ref().is_some_and(|o| o.enabled),
         "bandwidth" => settings.bandwidth.as_ref().is_some_and(|o| o.enabled),
         "burst" => settings.burst.as_ref().is_some_and(|o| o.enabled),
@@ -256,11 +256,11 @@ pub fn process_all_modules(
     )?;
 
     process_module(
-        &TamperModule,
-        settings.tamper.as_ref(),
+        &CorruptionModule,
+        settings.corruption.as_ref(),
         packets,
         &mut (),
-        &mut state.effect_start_times.tamper,
+        &mut state.effect_start_times.corruption,
         statistics,
         has_packets,
     )?;

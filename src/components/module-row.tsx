@@ -13,7 +13,7 @@ const MODULE_HOTKEY_ACTIONS: Record<string, string> = {
     throttle: "toggleThrottle",
     duplicate: "toggleDuplicate",
     bandwidth: "toggleBandwidth",
-    tamper: "toggleTamper",
+    corruption: "toggleCorruption",
     reorder: "toggleReorder",
     burst: "toggleBurst",
 };
@@ -153,7 +153,9 @@ export function ModuleRow({
                             <Input
                                 id={`${module.name}-throttle-time`}
                                 value={getDisplayValue("throttle_ms")}
-                                onChange={(e) => handleInputChange(e, "throttle_ms", 1, 60000, true)}
+                                onChange={(e) =>
+                                    handleInputChange(e, "throttle_ms", 1, 60000, true)
+                                }
                                 className="h-6 w-[50px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
                                 disabled={!module.enabled}
                                 type="text"
@@ -163,7 +165,7 @@ export function ModuleRow({
                         <MyraCheckbox
                             id={`${module.name}-freeze-mode`}
                             checked={module.config.freeze_mode ?? false}
-                            onCheckedChange={(checked) => 
+                            onCheckedChange={(checked) =>
                                 onBooleanSettingChange?.(module, "freeze_mode", checked === true)
                             }
                             disabled={!module.enabled}
@@ -203,7 +205,9 @@ export function ModuleRow({
                             <Input
                                 id={`${module.name}-limit`}
                                 value={getDisplayValue("limit_kbps")}
-                                onChange={(e) => handleInputChange(e, "limit_kbps", 0.1, 100000, false)}
+                                onChange={(e) =>
+                                    handleInputChange(e, "limit_kbps", 0.1, 100000, false)
+                                }
                                 className="h-6 w-[55px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
                                 disabled={!module.enabled}
                                 type="text"
@@ -214,7 +218,7 @@ export function ModuleRow({
                         <MyraCheckbox
                             id={`${module.name}-use-wfp`}
                             checked={module.config.use_wfp ?? false}
-                            onCheckedChange={(checked) => 
+                            onCheckedChange={(checked) =>
                                 onBooleanSettingChange?.(module, "use_wfp", checked === true)
                             }
                             disabled={!module.enabled}
@@ -235,7 +239,9 @@ export function ModuleRow({
                             <Input
                                 id={`${module.name}-max-delay`}
                                 value={getDisplayValue("throttle_ms")}
-                                onChange={(e) => handleInputChange(e, "throttle_ms", 1, 60000, true)}
+                                onChange={(e) =>
+                                    handleInputChange(e, "throttle_ms", 1, 60000, true)
+                                }
                                 className="h-6 w-[50px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
                                 disabled={!module.enabled}
                                 type="text"
@@ -273,7 +279,9 @@ export function ModuleRow({
                             <Input
                                 id={`${module.name}-release-delay`}
                                 value={getDisplayValue("release_delay_us")}
-                                onChange={(e) => handleInputChange(e, "release_delay_us", 0, 50000, true)}
+                                onChange={(e) =>
+                                    handleInputChange(e, "release_delay_us", 0, 50000, true)
+                                }
                                 className="h-6 w-[50px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
                                 disabled={!module.enabled}
                                 type="text"
@@ -283,7 +291,9 @@ export function ModuleRow({
                         <MyraCheckbox
                             id={`${module.name}-reverse`}
                             checked={module.config.reverse ?? false}
-                            onCheckedChange={() => onBooleanSettingChange?.(module, "reverse", !module.config.reverse)}
+                            onCheckedChange={() =>
+                                onBooleanSettingChange?.(module, "reverse", !module.config.reverse)
+                            }
                             disabled={!module.enabled}
                             label="Reverse"
                             labelClassName={`text-xs text-foreground ${!module.enabled ? "opacity-50" : ""}`}

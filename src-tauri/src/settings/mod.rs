@@ -6,7 +6,7 @@ pub mod drop;
 pub mod duplicate;
 pub mod manipulation;
 pub mod reorder;
-pub mod tamper;
+pub mod corruption;
 pub mod tc_bandwidth;
 pub mod throttle;
 

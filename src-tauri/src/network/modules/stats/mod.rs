@@ -4,7 +4,7 @@ use crate::network::modules::stats::lag_stats::LagStats;
 use crate::network::modules::stats::drop_stats::DropStats;
 use crate::network::modules::stats::duplicate_stats::DuplicateStats;
 use crate::network::modules::stats::reorder_stats::ReorderStats;
-use crate::network::modules::stats::tamper_stats::TamperStats;
+use crate::network::modules::stats::corruption_stats::CorruptionStats;
 use crate::network::modules::stats::throttle_stats::ThrottleStats;
 use std::time::Duration;
 
@@ -14,7 +14,7 @@ pub mod lag_stats;
 pub mod drop_stats;
 pub mod duplicate_stats;
 pub mod reorder_stats;
-pub mod tamper_stats;
+pub mod corruption_stats;
 pub mod throttle_stats;
 pub mod util;
 
@@ -32,8 +32,8 @@ pub struct PacketProcessingStatistics {
     pub throttle_stats: ThrottleStats,
     /// Statistics for packet reordering
     pub reorder_stats: ReorderStats,
-    /// Statistics for packet tampering
-    pub tamper_stats: TamperStats,
+    /// Statistics for packet corruptioning
+    pub corruption_stats: CorruptionStats,
     /// Statistics for packet duplication
     pub duplicate_stats: DuplicateStats,
     /// Statistics for bandwidth usage
@@ -49,7 +49,7 @@ impl Default for PacketProcessingStatistics {
             lag_stats: LagStats::new(),
             throttle_stats: ThrottleStats::new(),
             reorder_stats: ReorderStats::new(0.005),
-            tamper_stats: TamperStats::new(Duration::from_millis(500)),
+            corruption_stats: CorruptionStats::new(Duration::from_millis(500)),
             duplicate_stats: DuplicateStats::new(0.005),
             bandwidth_stats: BandwidthStats::new(0.005),
             burst_stats: BurstStats::new(0.005),
