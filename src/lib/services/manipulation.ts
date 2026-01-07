@@ -157,6 +157,7 @@ export const ManipulationService = {
             probability: 1,
             duration_ms: 0,
             throttle_ms: 300,
+            freeze_mode: false,
         };
         modules.push({
             name: "throttle",
@@ -169,6 +170,7 @@ export const ManipulationService = {
                 enabled: throttle.enabled ?? false,
                 duration_ms: throttle.duration_ms,
                 throttle_ms: throttle.throttle_ms,
+                freeze_mode: throttle.freeze_mode ?? false,
             },
             params: null,
         });
@@ -279,6 +281,7 @@ export const ManipulationService = {
             duration_ms: 0,
             keepalive_ms: 0,
             release_delay_us: settings.burst_release_delay_us ?? 500,
+            reverse: false,
         };
         modules.push({
             name: "burst",
@@ -294,6 +297,7 @@ export const ManipulationService = {
                 keepalive_ms: burst.keepalive_ms,
                 release_delay_us: burst.release_delay_us,
                 lag_bypass: settings.lag_bypass ?? false, // MGO2 bypass mode
+                reverse: burst.reverse ?? false,
             },
             params: null,
         });

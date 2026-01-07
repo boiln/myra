@@ -122,14 +122,6 @@ export function ModuleRow({
 
     return (
         <div key={module.name} className="flex items-center gap-x-3 py-2 first:pt-0.5 last:pb-0.5">
-            {/* Active Indicator */}
-            <span
-                className={`h-2 w-2 shrink-0 rounded-full ${
-                    module.enabled && isActive ? "animate-pulse bg-green-500" : "bg-transparent"
-                }`}
-                title={module.enabled && isActive ? "This module is active" : ""}
-            ></span>
-
             {/* Module Enable Checkbox */}
             <div className="flex shrink-0 items-center gap-1.5">
                 <MyraCheckbox
