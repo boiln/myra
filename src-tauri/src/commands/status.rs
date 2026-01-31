@@ -36,7 +36,6 @@ pub async fn get_status(
     
     let statistics = if running {
         let stats = state.statistics.read().map_err(|e| e.to_string())?;
-        // Map internal stats into a compact DTO for the frontend
         Some(ProcessingStatisticsDto {
             burst_buffered: stats.burst_stats.buffered,
             burst_released: stats.burst_stats.released,
@@ -120,7 +119,6 @@ pub async fn update_filter(
         .filter
         .lock()
         .map_err(|e| format!("Failed to lock filter mutex: {}", e))? = filter.clone();
-    // Persist in history when a real filter is set (use the provided value)
     if let Some(ref f) = filter {
         if validate_filter(f.clone()).unwrap_or(false) {
             let _ = add_to_history(f);
@@ -135,7 +133,6 @@ pub async fn update_filter(
 fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
     use crate::settings::lag::LagOptions;
 
-    // Helper to create ModuleInfo with common defaults
     let module = |name: &str, display_name: &str, enabled: bool, config: ModuleConfig| ModuleInfo {
         name: name.to_string(),
         display_name: display_name.to_string(),
@@ -144,7 +141,6 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
         params: None,
     };
 
-    // Lag module
     let lag = settings.lag.clone().unwrap_or_else(|| LagOptions {
         enabled: false,
         inbound: true,
@@ -172,7 +168,6 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
         )
     };
 
-    // Drop module
     let drop = settings.drop.clone().unwrap_or_default();
     let drop_info = module(
         "drop",
@@ -188,7 +183,6 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
         },
     );
 
-    // Throttle module
     let throttle = settings.throttle.clone().unwrap_or_default();
     let throttle_info = module(
         "throttle",
@@ -208,7 +202,6 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
         },
     );
 
-    // Duplicate module
     let duplicate = settings.duplicate.clone().unwrap_or_default();
     let duplicate_info = module(
         "duplicate",
@@ -225,7 +218,6 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
         },
     );
 
-    // Bandwidth module
     let bandwidth = settings.bandwidth.clone().unwrap_or_default();
     let bandwidth_info = module(
         "bandwidth",
@@ -244,7 +236,6 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
         },
     );
 
-    // Corruption module
     let corruption = settings.corruption.clone().unwrap_or_default();
     let corruption_info = module(
         "corruption",
@@ -260,7 +251,6 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
         },
     );
 
-    // Reorder module
     let reorder = settings.reorder.clone().unwrap_or_default();
     let reorder_info = module(
         "reorder",
@@ -277,7 +267,6 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
         },
     );
 
-    // Burst module
     let burst = settings.burst.clone().unwrap_or_default();
     let burst_info = module(
         "burst",

@@ -1,14 +1,11 @@
-// Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 #![warn(clippy::all)]
 
 use log::{error, info, LevelFilter, SetLoggerError};
 use std::io::{self, Write};
 
-// Use the library crate modules
 use myra::commands;
 
-// Simple console logger implementation
 struct SimpleLogger;
 
 impl log::Log for SimpleLogger {

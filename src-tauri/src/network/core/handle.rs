@@ -122,7 +122,6 @@ impl HandleConfig {
             return self.filter.clone();
         }
 
-        // Use localPort/remotePort which work for both TCP and UDP
         let exclusion = format!("localPort != {0} and remotePort != {0}", TAURI_PORT);
 
         if self.filter.is_empty() || self.filter == "true" {
@@ -169,12 +168,10 @@ impl HandleManager {
     /// * `Ok(())` - If the handle was created successfully
     /// * `Err(WinDivertError)` - If handle creation failed
     pub fn open(&mut self, config: HandleConfig) -> Result<(), WinDivertError> {
-        // Close existing handle if present
         if self.handle.is_some() {
             self.close()?;
         }
 
-        // Flush WFP cache before creating new handle
         flush_wfp_cache();
 
         let filter = config.build_filter();
@@ -190,8 +187,6 @@ impl HandleManager {
             Ok(handle) => {
                 debug!("WinDivert handle opened successfully");
                 
-                // Set higher queue params for better packet handling
-                // Queue length = 2048 packets, Queue time = 1024ms
                 use windivert_sys::WinDivertParam;
                 match handle.set_param(WinDivertParam::QueueLength, 2048) {
                     Err(e) => warn!("Failed to set WinDivert queue length: {}", e),
@@ -208,7 +203,6 @@ impl HandleManager {
             }
             Err(e) => {
                 error!("Failed to open WinDivert handle: {}", e);
-                // Try one more cache flush on failure
                 flush_wfp_cache();
                 Err(e)
             }
@@ -273,7 +267,6 @@ impl Drop for HandleManager {
 /// This is a workaround for `WinDivert` caching issues. It opens and
 /// immediately closes a handle with a no-match filter to clear stale state.
 pub fn flush_wfp_cache() {
-    // Try multiple priorities to ensure thorough cache flush
     for priority in [0, 1000, -1000] {
         if let Ok(mut handle) =
             WinDivert::<NetworkLayer>::network("false", priority, WinDivertFlags::new())
@@ -299,13 +292,10 @@ pub fn flush_wfp_cache() {
 pub fn construct_filter_with_exclusions(user_filter: &Option<String>) -> Option<String> {
     user_filter.as_ref()?;
 
-    // Use localPort/remotePort which work for both TCP and UDP
     let tauri_exclusion = format!("localPort != {0} and remotePort != {0}", TAURI_PORT);
 
     Some(match user_filter {
         Some(filter) if !filter.is_empty() => {
-            // Fix common mistakes: "outbound and inbound" is impossible (packet can't be both)
-            // But "(outbound and X) or (inbound and Y)" is valid
             let filter_lower = filter.to_lowercase();
             let has_invalid_direction = filter_lower.contains("outbound and inbound")
                 || filter_lower.contains("inbound and outbound");

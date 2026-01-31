@@ -53,10 +53,8 @@ pub async fn start_processing(
 
     let (packet_sender, packet_receiver) = mpsc::channel();
 
-    // Set running flag BEFORE spawning threads so they don't exit immediately
     state.running.store(true, Ordering::SeqCst);
 
-    // Set high-precision timer to bypass lag detection
     set_high_precision_timer();
 
     let running_recv = state.running.clone();

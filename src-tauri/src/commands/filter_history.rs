@@ -11,7 +11,6 @@ struct FilterHistory {
 }
 
 fn get_history_dir() -> Result<PathBuf, String> {
-    // Prefer roaming AppData on Windows
     if let Ok(appdata) = std::env::var("APPDATA") {
         let dir = PathBuf::from(appdata).join("Myra");
         if !dir.exists() {
@@ -19,7 +18,6 @@ fn get_history_dir() -> Result<PathBuf, String> {
         }
         return Ok(dir);
     }
-    // Fallback: alongside executable
     let exe_dir = std::env::current_exe()
         .map_err(|e| format!("Could not determine executable path: {}", e))?
         .parent()
@@ -63,14 +61,11 @@ fn save_history(history: &FilterHistory) -> Result<(), String> {
 pub fn add_to_history(filter: &str) -> Result<(), String> {
     if filter.trim().is_empty() { return Ok(()); }
     let mut history = load_history()?;
-    // If same as most recent, do nothing
     if history.entries.first().map(|f| f == filter).unwrap_or(false) {
         return Ok(());
     }
-    // Move existing to front, else insert at front
     history.entries.retain(|f| f != filter);
     history.entries.insert(0, filter.to_string());
-    // Cap size
     if history.entries.len() > MAX_HISTORY {
         history.entries.truncate(MAX_HISTORY);
     }

@@ -25,10 +25,6 @@ pub struct NetworkDevice {
     pub device_type: Option<String>,
 }
 
-// ============================================================================
-// TAURI COMMANDS
-// ============================================================================
-
 #[tauri::command]
 pub async fn list_processes() -> Result<Vec<ProcessInfo>, String> {
     use sysinfo::{ProcessRefreshKind, RefreshKind, System};
@@ -88,7 +84,6 @@ pub async fn scan_network_devices() -> Result<Vec<NetworkDevice>, String> {
     let arp_output = String::from_utf8_lossy(&output.stdout);
     let mut devices = Vec::new();
 
-    // Add this PC
     if let Some(local_ip) = get_local_ip() {
         devices.push(NetworkDevice {
             ip: local_ip,
@@ -98,7 +93,6 @@ pub async fn scan_network_devices() -> Result<Vec<NetworkDevice>, String> {
         });
     }
 
-    // Parse ARP table
     for line in arp_output.lines() {
         let parts: Vec<&str> = line.split_whitespace().collect();
 
@@ -130,7 +124,6 @@ pub async fn scan_network_devices() -> Result<Vec<NetworkDevice>, String> {
         });
     }
 
-    // Apply cached hostnames
     let hostname_cache_len_before = hostname_cache.len();
 
     for device in &mut devices {
@@ -143,7 +136,6 @@ pub async fn scan_network_devices() -> Result<Vec<NetworkDevice>, String> {
         }
     }
 
-    // Apply cached MAC vendor names
     for device in &mut devices {
         if device.hostname.is_some() {
             continue;
@@ -158,7 +150,6 @@ pub async fn scan_network_devices() -> Result<Vec<NetworkDevice>, String> {
         }
     }
 
-    // Run parallel discovery
     let ips_needing_resolution: Vec<String> = devices
         .iter()
         .filter(|d| d.hostname.is_none())
@@ -190,7 +181,6 @@ pub async fn scan_network_devices() -> Result<Vec<NetworkDevice>, String> {
             netbios_results.len()
         );
 
-        // Apply results (mDNS > SSDP > NetBIOS priority)
         for device in &mut devices {
             if device.hostname.is_some() {
                 continue;
@@ -214,7 +204,6 @@ pub async fn scan_network_devices() -> Result<Vec<NetworkDevice>, String> {
         save_hostname_cache(&hostname_cache);
     }
 
-    // Fallback: MAC vendor lookup
     let macs_to_lookup: Vec<String> = devices
         .iter()
         .filter(|d| d.hostname.is_none() && d.mac.is_some())
@@ -226,7 +215,6 @@ pub async fn scan_network_devices() -> Result<Vec<NetworkDevice>, String> {
         lookup_and_update_devices(&mut devices, &mut mac_cache, &macs_to_lookup).await;
     }
 
-    // Sort: named first, then by IP numerically
     devices.sort_by(|a, b| {
         let a_named = a.hostname.is_some();
         let b_named = b.hostname.is_some();
@@ -372,10 +360,6 @@ pub fn validate_filter(filter: String) -> Result<bool, String> {
     }
 }
 
-// ============================================================================
-// ICON EXTRACTION
-// ============================================================================
-
 fn extract_icon(exe_path: &str) -> Option<String> {
     use std::ffi::OsStr;
     use std::os::windows::ffi::OsStrExt;
@@ -477,10 +461,6 @@ unsafe fn cleanup_icon_resources(
 
     DestroyIcon(icon);
 }
-
-// ============================================================================
-// DISCOVERY FUNCTIONS
-// ============================================================================
 
 fn discover_mdns_names(ips_to_resolve: &[String]) -> HashMap<String, String> {
     use mdns_sd::{ServiceDaemon, ServiceEvent};
@@ -777,10 +757,6 @@ fn discover_netbios_names(ips_to_resolve: &[String]) -> HashMap<String, String> 
     discovered
 }
 
-// ============================================================================
-// PROTOCOL PARSERS
-// ============================================================================
-
 fn parse_netbios_response(data: &[u8]) -> Option<String> {
     if data.len() < 57 {
         return None;
@@ -933,10 +909,6 @@ fn fetch_upnp_friendly_name(url: &str) -> Option<String> {
 
     Some(name.to_string())
 }
-
-// ============================================================================
-// NETWORK HELPERS
-// ============================================================================
 
 fn parse_mac_from_arp(mac_str: Option<&str>) -> Option<String> {
     let mac_str = mac_str?;
@@ -1162,10 +1134,6 @@ fn get_process_connections(pid: u32) -> (Vec<u16>, Vec<String>) {
     (ports, remote_ips)
 }
 
-// ============================================================================
-// MAC VENDOR LOOKUP
-// ============================================================================
-
 async fn lookup_and_update_devices(
     devices: &mut Vec<NetworkDevice>,
     mac_cache: &mut HashMap<String, String>,
@@ -1243,10 +1211,6 @@ async fn lookup_macs_batch(
     log::info!("Batch lookup returned {} results", map.len());
     Some(map)
 }
-
-// ============================================================================
-// CACHE MANAGEMENT
-// ============================================================================
 
 /// Generic JSON cache helper for loading/saving `HashMap<String, String>` to disk.
 struct JsonCache {

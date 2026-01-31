@@ -28,24 +28,20 @@ pub fn start_tc_bandwidth(
 ) -> Result<String, String> {
     let mut limiter_guard = state.throttle.lock().map_err(|e| e.to_string())?;
     
-    // Stop existing limiter if any
     if let Some(mut existing) = limiter_guard.take() {
         existing.stop();
     }
     
-    // Parse direction
     let (inbound, outbound) = match direction.to_lowercase().as_str() {
         "inbound" | "download" | "in" => (true, false),
         "outbound" | "upload" | "out" => (false, true),
         "both" | "all" => (true, true),
-        _ => (true, false), // Default to inbound for freeze effect
+        _ => (true, false),
     };
     
     info!("Starting bandwidth limiter: {:.2} KB/s, direction: {} (in={}, out={})", 
           limit_kbps, direction, inbound, outbound);
     
-    // Use empty process name to match all traffic
-    // The WfpThrottle uses a simple "ip" filter
     match WfpThrottle::new(limit_kbps, "all", inbound, outbound) {
         Ok(throttle) => {
             *limiter_guard = Some(throttle);

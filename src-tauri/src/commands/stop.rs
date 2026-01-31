@@ -32,9 +32,6 @@ pub async fn stop_processing(state: State<'_, PacketProcessingState>) -> Result<
         return Err("Packet processing not running".to_string());
     }
 
-    // Temporarily disable modules to trigger proper buffer flushes (like burst)
-    // This ensures packets are released through the normal path before shutdown
-    // We preserve the original settings and restore them after flushing
     let original_settings: Settings;
     {
         let mut settings = state
@@ -43,14 +40,11 @@ pub async fn stop_processing(state: State<'_, PacketProcessingState>) -> Result<
             .map_err(|e| format!("Failed to lock settings mutex: {}", e))?;
         original_settings = settings.clone();
         
-        // Reset to default (all modules disabled) for flushing
         *settings = Settings::default();
     }
     
-    // Give time for the processing loop to flush buffers
     thread::sleep(Duration::from_millis(300));
     
-    // Restore the original settings (so frontend sees them correctly)
     {
         let mut settings = state
             .settings
@@ -58,10 +52,6 @@ pub async fn stop_processing(state: State<'_, PacketProcessingState>) -> Result<
             .map_err(|e| format!("Failed to lock settings mutex: {}", e))?;
         *settings = original_settings;
     }
-
-    // Preserve the current filter across stop/start cycles.
-    // We no longer clear the filter here so the frontend retains
-    // the user's selection or loaded config filter when restarting.
 
     thread::sleep(Duration::from_millis(100));
 
@@ -71,7 +61,6 @@ pub async fn stop_processing(state: State<'_, PacketProcessingState>) -> Result<
 
     flush_wfp_cache();
 
-    // Restore timer resolution
     restore_timer_resolution();
 
     info!("Stopped packet processing and cleaned up resources");

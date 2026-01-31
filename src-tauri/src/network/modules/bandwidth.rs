@@ -150,9 +150,7 @@ pub fn bandwidth_limiter<'a>(
     );
 }
 
-/// Packet-pacing bandwidth limiter
 /// Releases packets one at a time at smooth intervals based on rate limit
-/// This keeps the connection alive and provides continuous data flow
 fn bandwidth_limiter_paced<'a>(
     packets: &mut Vec<PacketData<'a>>,
     buffer: &mut VecDeque<PacketData<'a>>,
@@ -164,8 +162,6 @@ fn bandwidth_limiter_paced<'a>(
     passthrough_threshold: usize,
     stats: &mut BandwidthStats,
 ) {
-    // Separate packets by direction and size
-    // Small packets (ACKs, keepalives) pass through to keep connection alive
     let mut passthrough = Vec::new();
     let mut to_buffer = Vec::new();
     
@@ -175,7 +171,6 @@ fn bandwidth_limiter_paced<'a>(
             || (!packet.is_outbound && apply_inbound);
         let is_small = passthrough_threshold > 0 && packet_size <= passthrough_threshold;
         
-        // Packets not matching direction OR small keepalive packets pass through
         if !matches_direction || is_small {
             passthrough.push(packet);
             continue;
@@ -192,21 +187,14 @@ fn bandwidth_limiter_paced<'a>(
     let mut to_send = Vec::new();
     let mut bytes_sent = 0;
     
-    // Packet pacing: release packets when their "transmission time" has passed
-    // At 1 KB/s, a 500 byte packet takes 500ms to "transmit"
-    
-    // Only release if we've reached the next release time
     if now >= *next_release_time {
         if let Some(packet) = remove_packet_from_buffer(buffer, total_buffer_size, stats) {
             let packet_size = packet.packet.data.len();
             bytes_sent = packet_size;
             
-            // Calculate how long this packet "takes" to transmit at our rate
-            // At 1 KB/s (1024 bytes/sec), 500 bytes takes 500/1024 = 0.488 seconds
             let bytes_per_sec = (bandwidth_limit_kbps as f64) * 1024.0;
             let transmission_time_secs = if bytes_per_sec > 0.0 { packet_size as f64 / bytes_per_sec } else { 1.0 };
             
-            // Schedule next release after this packet's "transmission time"
             let transmission_duration = std::time::Duration::from_secs_f64(transmission_time_secs);
             *next_release_time = now + transmission_duration;
             
@@ -214,7 +202,6 @@ fn bandwidth_limiter_paced<'a>(
         }
     }
 
-    // Add passthrough packets first, then rate-limited packets
     packets.extend(passthrough);
     packets.extend(to_send);
 

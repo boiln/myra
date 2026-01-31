@@ -177,18 +177,15 @@ where
         return Ok(());
     }
 
-    // Check duration-based disable
     let duration = module.get_duration_ms(opts);
     if duration > 0 && !is_effect_active(duration, *effect_start) {
         return Ok(());
     }
 
-    // Check module-specific skip conditions
     if module.should_skip(opts) {
         return Ok(());
     }
 
-    // Reset effect start time if this is the first packet
     if has_packets && *effect_start == Instant::now() {
         *effect_start = Instant::now();
     }
@@ -214,7 +211,6 @@ pub fn process_all_modules(
 ) -> Result<()> {
     let has_packets = !packets.is_empty();
 
-    // Process each module in order
     process_module(
         &DropModule,
         settings.drop.as_ref(),
@@ -285,7 +281,6 @@ pub fn process_all_modules(
         has_packets,
     )?;
 
-    // Special handling for burst module - flush buffer when disabled
     let burst_enabled = settings.burst.as_ref().is_some_and(|b| b.enabled);
     if state.burst_was_enabled && !burst_enabled {
         let buffer_size = state.burst.buffer.len();
@@ -296,9 +291,6 @@ pub fn process_all_modules(
             buffer_size, reverse
         );
 
-        // SAFETY: We need to transmute the lifetime because the buffer holds
-        // PacketData with a different lifetime than the current packets vec.
-        // This is safe because we immediately drain and process all packets.
         let buffer: &mut VecDeque<(PacketData<'_>, Instant)> =
             unsafe { std::mem::transmute(&mut state.burst.buffer) };
         flush_buffer(packets, buffer, &mut state.burst.cycle_start, reverse);
