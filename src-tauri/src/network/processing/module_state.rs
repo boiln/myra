@@ -11,6 +11,7 @@ use std::time::Instant;
 /// between processing iterations, such as queued packets and timing info.
 #[derive(Debug)]
 pub struct ModuleProcessingState {
+
     /// State for the lag module
     pub lag: LagState,
     /// State for the reorder module
@@ -28,6 +29,7 @@ pub struct ModuleProcessingState {
 
     /// Time when each module's effect was started
     pub effect_start_times: ModuleEffectStartTimes,
+
 }
 
 /// Tracks when each module's effect was started.
@@ -36,9 +38,10 @@ pub struct ModuleProcessingState {
 /// disable after a certain time period.
 #[derive(Debug)]
 pub struct ModuleEffectStartTimes {
+
     /// Time when drop effect was started
     pub drop: Instant,
-    /// Time when lag effect was started  
+    /// Time when lag effect was started
     pub lag: Instant,
     /// Time when throttle effect was started
     pub throttle: Instant,
@@ -52,12 +55,15 @@ pub struct ModuleEffectStartTimes {
     pub bandwidth: Instant,
     /// Time when burst effect was started
     pub burst: Instant,
+
 }
 
 impl Default for ModuleEffectStartTimes {
     fn default() -> Self {
+
         let now = Instant::now();
         Self {
+
             drop: now,
             lag: now,
             throttle: now,
@@ -66,13 +72,17 @@ impl Default for ModuleEffectStartTimes {
             reorder: now,
             bandwidth: now,
             burst: now,
+
         }
+
     }
 }
 
 impl ModuleProcessingState {
     pub fn new() -> Self {
+
         Self {
+
             lag: LagState::default(),
             reorder: ReorderState::default(),
             bandwidth: BandwidthState::default(),
@@ -81,12 +91,16 @@ impl ModuleProcessingState {
             burst_was_enabled: false,
             burst_release_delay_us: 500, // Default 0.5ms
             effect_start_times: ModuleEffectStartTimes::default(),
+
         }
+
     }
 }
 
 impl Default for ModuleProcessingState {
     fn default() -> Self {
+
         Self::new()
+
     }
 }

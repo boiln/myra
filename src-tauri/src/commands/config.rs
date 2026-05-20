@@ -12,16 +12,19 @@ use crate::settings::Settings;
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum FilterTargetMode {
+
     #[default]
     All,
     Process,
     Device,
     Custom,
+
 }
 
 /// Filter target configuration for saving/loading
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct FilterTarget {
+
     pub mode: FilterTargetMode,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub process_id: Option<u32>,
@@ -39,10 +42,13 @@ pub struct FilterTarget {
     /// Include outbound traffic (default: true)
     #[serde(default = "default_true")]
     pub include_outbound: bool,
+
 }
 
 fn default_true() -> bool {
+
     true
+
 }
 
 /// Hotkey binding configuration
@@ -56,6 +62,7 @@ pub struct HotkeyBinding {
 /// Tap feature settings (frontend-only, stored in config for persistence)
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct TapSettings {
+
     /// Whether tap is enabled (should always default to false)
     #[serde(default)]
     pub enabled: bool,
@@ -65,14 +72,19 @@ pub struct TapSettings {
     /// How long to keep modules off in milliseconds
     #[serde(default = "default_tap_duration")]
     pub duration_ms: u64,
+
 }
 
 fn default_tap_interval() -> u64 {
+
     3000
+
 }
 
 fn default_tap_duration() -> u64 {
+
     600
+
 }
 
 /// Configuration file structure for storing application settings
@@ -81,6 +93,7 @@ fn default_tap_duration() -> u64 {
 /// Used for serialization/deserialization when saving and loading configurations.
 #[derive(Serialize, Deserialize)]
 struct ConfigFile {
+
     /// Packet manipulation settings
     settings: Settings,
     /// `WinDivert` filter string
@@ -94,6 +107,13 @@ struct ConfigFile {
     /// Tap feature settings
     #[serde(default)]
     tap: Option<TapSettings>,
+    /// Classic mode settings
+    #[serde(default)]
+    classic: Option<crate::settings::classic::ClassicSettings>,
+    /// Which mode was active (standard or classic)
+    #[serde(default)]
+    mode: Option<String>,
+
 }
 
 /// Saves the current configuration to a named file
@@ -111,11 +131,15 @@ struct ConfigFile {
 #[tauri::command]
 pub async fn save_config(
     state: State<'_, PacketProcessingState>,
+    classic_state: State<'_, crate::commands::classic_state::ClassicProcessingState>,
     name: String,
     filter_target: Option<FilterTarget>,
     hotkeys: Option<Vec<HotkeyBinding>>,
     tap: Option<TapSettings>,
+    classic: Option<crate::settings::classic::ClassicSettings>,
+    mode: Option<String>,
 ) -> Result<(), String> {
+
     let settings = state
         .settings
         .lock()
@@ -128,14 +152,37 @@ pub async fn save_config(
         .map_err(|e| format!("Failed to lock filter mutex: {}", e))?
         .clone();
 
+    // Get classic settings from state if not provided
+    let classic_settings = match classic {
+        Some(c) => Some(c),
+        None => {
+
+            let cs = classic_state
+                .settings
+                .lock()
+                .map_err(|e| format!("Failed to lock classic settings: {}", e))?
+                .clone();
+            if cs.has_any_enabled() {
+                Some(cs)
+            } else {
+                None
+            }
+        }
+
+    };
+
     let config_path = get_config_path(&name)?;
 
     let config = ConfigFile {
+
         settings,
         filter,
         filter_target,
         hotkeys,
         tap,
+        classic: classic_settings,
+        mode,
+
     };
 
     let content = toml::to_string_pretty(&config)
@@ -155,11 +202,15 @@ pub async fn save_config(
 /// Response structure for `load_config` that includes filter target
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LoadConfigResponse {
+
     pub settings: Settings,
     pub filter: Option<String>,
     pub filter_target: Option<FilterTarget>,
     pub hotkeys: Option<Vec<HotkeyBinding>>,
     pub tap: Option<TapSettings>,
+    pub classic: Option<crate::settings::classic::ClassicSettings>,
+    pub mode: Option<String>,
+
 }
 
 /// Loads a named configuration file and updates application state
@@ -176,8 +227,10 @@ pub struct LoadConfigResponse {
 #[tauri::command]
 pub async fn load_config(
     state: State<'_, PacketProcessingState>,
+    classic_state: State<'_, crate::commands::classic_state::ClassicProcessingState>,
     name: String,
 ) -> Result<LoadConfigResponse, String> {
+
     let config_path = get_config_path(&name)?;
 
     let content = fs::read_to_string(&config_path)
@@ -196,15 +249,28 @@ pub async fn load_config(
         .lock()
         .map_err(|e| format!("Failed to lock filter mutex: {}", e))? = config.filter.clone();
 
+    // Also load classic settings if present
+    if let Some(ref classic) = config.classic {
+        *classic_state
+            .settings
+            .lock()
+            .map_err(|e| format!("Failed to lock classic settings: {}", e))? = classic.clone();
+    }
+
     info!("Loaded configuration from {}", name);
 
     Ok(LoadConfigResponse {
+
         settings: config.settings,
         filter: config.filter,
         filter_target: config.filter_target,
         hotkeys: config.hotkeys,
         tap: config.tap,
+        classic: config.classic,
+        mode: config.mode,
+
     })
+
 }
 
 /// Lists all available configuration files
@@ -215,6 +281,7 @@ pub async fn load_config(
 /// * `Err(String)` - If there was an error reading the configs directory
 #[tauri::command]
 pub async fn list_configs() -> Result<Vec<String>, String> {
+
     let config_dir = get_config_dir()?;
 
     let mut configs = Vec::new();
@@ -231,6 +298,7 @@ pub async fn list_configs() -> Result<Vec<String>, String> {
     }
 
     Ok(configs)
+
 }
 
 /// Deletes a named configuration file
@@ -245,6 +313,7 @@ pub async fn list_configs() -> Result<Vec<String>, String> {
 /// * `Err(String)` - If there was an error deleting the configuration
 #[tauri::command]
 pub async fn delete_config(name: String) -> Result<(), String> {
+
     let config_path = get_config_path(&name)?;
 
     if !config_path.exists() {
@@ -256,6 +325,7 @@ pub async fn delete_config(name: String) -> Result<(), String> {
     info!("Deleted configuration {}", name);
 
     Ok(())
+
 }
 
 /// Gets the path to the configs directory
@@ -267,6 +337,7 @@ pub async fn delete_config(name: String) -> Result<(), String> {
 /// * `Ok(PathBuf)` - Path to the configs directory
 /// * `Err(String)` - If there was an error determining or creating the directory
 fn get_config_dir() -> Result<PathBuf, String> {
+
     let exe_dir = std::env::current_exe()
         .map_err(|e| format!("Could not determine executable path: {}", e))?
         .parent()
@@ -280,6 +351,7 @@ fn get_config_dir() -> Result<PathBuf, String> {
     }
 
     Ok(config_dir)
+
 }
 
 /// Gets the full path to a named configuration file
@@ -293,23 +365,29 @@ fn get_config_dir() -> Result<PathBuf, String> {
 /// * `Ok(PathBuf)` - Path to the configuration file
 /// * `Err(String)` - If there was an error determining the path
 fn get_config_path(name: &str) -> Result<PathBuf, String> {
+
     let mut path = get_config_dir()?;
     path.push(format!("{}.toml", name));
     Ok(path)
+
 }
 
 #[cfg(test)]
 mod tests {
+
     use super::*;
 
     #[test]
     fn test_filter_target_mode_default() {
+
         let mode: FilterTargetMode = Default::default();
         assert!(matches!(mode, FilterTargetMode::All));
+
     }
 
     #[test]
     fn test_filter_target_serde_defaults() {
+
         // When deserializing with missing fields, serde uses the default functions
         let json = r#"{"mode": "all"}"#;
         let target: FilterTarget = serde_json::from_str(json).unwrap();
@@ -318,11 +396,14 @@ mod tests {
         assert!(target.include_outbound);
         assert!(target.process_id.is_none());
         assert!(target.process_name.is_none());
+
     }
 
     #[test]
     fn test_filter_target_serialization() {
+
         let target = FilterTarget {
+
             mode: FilterTargetMode::Process,
             process_id: Some(1234),
             process_name: Some("test.exe".to_string()),
@@ -331,6 +412,7 @@ mod tests {
             custom_filter: None,
             include_inbound: true,
             include_outbound: false,
+
         };
 
         let json = serde_json::to_string(&target).unwrap();
@@ -341,10 +423,12 @@ mod tests {
         assert_eq!(parsed.process_name, Some("test.exe".to_string()));
         assert!(parsed.include_inbound);
         assert!(!parsed.include_outbound);
+
     }
 
     #[test]
     fn test_filter_target_mode_serialization() {
+
         assert_eq!(
             serde_json::to_string(&FilterTargetMode::All).unwrap(),
             "\"all\""
@@ -361,10 +445,12 @@ mod tests {
             serde_json::to_string(&FilterTargetMode::Custom).unwrap(),
             "\"custom\""
         );
+
     }
 
     #[test]
     fn test_filter_target_mode_deserialization() {
+
         let all: FilterTargetMode = serde_json::from_str("\"all\"").unwrap();
         let process: FilterTargetMode = serde_json::from_str("\"process\"").unwrap();
         let device: FilterTargetMode = serde_json::from_str("\"device\"").unwrap();
@@ -374,18 +460,22 @@ mod tests {
         assert!(matches!(process, FilterTargetMode::Process));
         assert!(matches!(device, FilterTargetMode::Device));
         assert!(matches!(custom, FilterTargetMode::Custom));
+
     }
 
     #[test]
     fn test_hotkey_binding_default() {
+
         let binding: HotkeyBinding = Default::default();
         assert!(binding.action.is_empty());
         assert!(binding.shortcut.is_none());
         assert!(!binding.enabled);
+
     }
 
     #[test]
     fn test_hotkey_binding_serialization() {
+
         let binding = HotkeyBinding {
             action: "toggleFilter".to_string(),
             shortcut: Some("F9".to_string()),
@@ -398,20 +488,24 @@ mod tests {
         assert_eq!(parsed.action, "toggleFilter");
         assert_eq!(parsed.shortcut, Some("F9".to_string()));
         assert!(parsed.enabled);
+
     }
 
     #[test]
     fn test_tap_settings_serde_defaults() {
+
         // When deserializing with missing fields, serde uses the default functions
         let json = r#"{}"#;
         let tap: TapSettings = serde_json::from_str(json).unwrap();
         assert!(!tap.enabled);
         assert_eq!(tap.interval_ms, 3000);
         assert_eq!(tap.duration_ms, 600);
+
     }
 
     #[test]
     fn test_tap_settings_serialization() {
+
         let tap = TapSettings {
             enabled: true,
             interval_ms: 5000,
@@ -424,11 +518,14 @@ mod tests {
         assert!(parsed.enabled);
         assert_eq!(parsed.interval_ms, 5000);
         assert_eq!(parsed.duration_ms, 1000);
+
     }
 
     #[test]
     fn test_load_config_response_serialization() {
+
         let response = LoadConfigResponse {
+
             settings: Settings::default(),
             filter: Some("outbound".to_string()),
             filter_target: Some(FilterTarget::default()),
@@ -438,6 +535,7 @@ mod tests {
                 enabled: true,
             }]),
             tap: Some(TapSettings::default()),
+
         };
 
         let json = serde_json::to_string(&response).unwrap();
@@ -447,5 +545,7 @@ mod tests {
         assert!(parsed.filter_target.is_some());
         assert!(parsed.hotkeys.is_some());
         assert_eq!(parsed.hotkeys.unwrap().len(), 1);
+
     }
+
 }

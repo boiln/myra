@@ -11,11 +11,13 @@ interface ProcessIconProps {
  * Renders a process icon from base64 data or falls back to a default icon
  */
 export function ProcessIcon({ icon, name, className = "h-4 w-4" }: ProcessIconProps) {
+
     const [imageError, setImageError] = useState(false);
     const [imageUrl, setImageUrl] = useState<string | null>(null);
 
     // Parse the raw RGBA data and create an image URL
     useEffect(() => {
+
         if (!icon || imageError) {
             setImageUrl(null);
             return;
@@ -67,6 +69,7 @@ export function ProcessIcon({ icon, name, className = "h-4 w-4" }: ProcessIconPr
             console.error("Failed to process icon:", e);
             setImageUrl(null);
         }
+
     }, [icon, imageError]);
 
     if (!imageUrl || imageError) {

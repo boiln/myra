@@ -4,6 +4,7 @@ use windivert::WinDivert;
 use windivert_sys::WinDivertFlags;
 
 fn main() {
+
     // Test various filter combinations
     let filters = [
         "true",
@@ -22,14 +23,20 @@ fn main() {
             0, // Priority 0
             WinDivertFlags::new(),
         ) {
+
             Ok(handle) => {
+
                 println!("Handle opened successfully!");
                 handle
+
             }
             Err(e) => {
+
                 eprintln!("FAILED to open: {:?}", e);
                 continue;
+
             }
+
         };
 
         let mut buffer = vec![0u8; 65535];
@@ -39,14 +46,20 @@ fn main() {
 
         while start.elapsed() < timeout && count < 3 {
             match wd.recv(Some(&mut buffer)) {
+
                 Ok(packet) => {
+
                     count += 1;
                     println!("Got packet: {} bytes", packet.data.len());
+
                 }
                 Err(e) => {
+
                     eprintln!("recv error: {:?}", e);
                     break;
+
                 }
+
             }
         }
 
@@ -60,4 +73,5 @@ fn main() {
         drop(wd); // Close handle before opening next
         std::thread::sleep(Duration::from_millis(100));
     }
+
 }

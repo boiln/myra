@@ -2,7 +2,6 @@
 //!
 //! This module handles receiving network packets using `WinDivert`
 //! and forwarding them to the processing thread.
-
 use crate::network::core::{
     construct_filter_with_exclusions, flush_wfp_cache, HandleConfig, HandleManager, PacketData,
 };
@@ -35,10 +34,13 @@ pub fn receive_packets(
     _settings: Arc<Mutex<Settings>>,
     filter: Arc<Mutex<Option<String>>>,
 ) -> Result<(), WinDivertError> {
+
+    info!("Receiver thread started, running={}", running.load(Ordering::SeqCst));
     let mut buffer = vec![0u8; 65535]; // Max packet size
     let mut last_filter: Option<String> = None;
     let mut handle_manager = HandleManager::new();
     let mut logged_missing_handle = false;
+    let mut recv_count: u64 = 0;
 
     while running.load(Ordering::SeqCst) {
         // Check for filter updates
@@ -58,6 +60,7 @@ pub fn receive_packets(
 
             match &current_filter {
                 Some(filter_str) => {
+
                     let config = HandleConfig::with_filter(filter_str)
                         .priority(0)
                         .recv_only(false)
@@ -66,11 +69,14 @@ pub fn receive_packets(
                     if let Err(e) = handle_manager.open(config) {
                         error!("Failed to open WinDivert handle: {}", e);
                     }
+
                 }
                 None => {
+
                     if let Err(e) = handle_manager.close() {
                         error!("Failed to close WinDivert handle: {}", e);
                     }
+
                 }
             }
 
@@ -88,11 +94,27 @@ pub fn receive_packets(
 
         if logged_missing_handle {
             logged_missing_handle = false;
+            info!("WinDivert handle now active, waiting for packets ..");
         }
+
+        // Log once that we're about to start receiving
+        if recv_count == 0 && !logged_missing_handle {
+            static LOGGED_WAITING: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+            if !LOGGED_WAITING.swap(true, Ordering::SeqCst) {
+                info!("Receiver: Calling recv() - this will block until a packet arrives");
+            }
+        }
+
         match wd_handle.recv(Some(&mut buffer)) {
+
             Ok(packet) => {
+
+                recv_count += 1;
                 // Capture direction before taking ownership
                 let is_outbound = packet.address.outbound();
+                if recv_count % 100 == 1 {
+                    info!("Receiver: {} packets captured so far", recv_count);
+                }
                 let packet_data = PacketData::new(packet.into_owned(), is_outbound);
                 if packet_sender.send(packet_data).is_err() {
                     if should_shutdown(&running) {
@@ -100,13 +122,17 @@ pub fn receive_packets(
                     }
                     error!("Failed to send packet data to main thread");
                 }
+
             }
             Err(e) => {
+
                 error!("Failed to receive packet: {}", e);
                 if should_shutdown(&running) {
                     break;
                 }
+
             }
+
         }
     }
 
@@ -121,13 +147,16 @@ pub fn receive_packets(
     flush_wfp_cache();
     debug!("Shutting down packet receiving thread");
     Ok(())
+
 }
 
 /// Checks if the thread should shut down.
 fn should_shutdown(running: &Arc<AtomicBool>) -> bool {
+
     if !running.load(Ordering::SeqCst) {
         debug!("Packet receiving thread exiting due to shutdown signal.");
         return true;
     }
     false
+
 }

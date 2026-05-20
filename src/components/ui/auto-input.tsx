@@ -5,15 +5,18 @@ import { useEffect, useState, forwardRef } from "react";
 import { motion } from "framer-motion";
 
 export interface AutoInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+
     onValueChange?: (value: string) => void;
     isLoading?: boolean;
     debounceMs?: number;
     containerClassName?: string;
+
 }
 
 export const AutoInput = forwardRef<HTMLInputElement, AutoInputProps>(
     (
         {
+
             onValueChange,
             isLoading = false,
             className,
@@ -22,31 +25,41 @@ export const AutoInput = forwardRef<HTMLInputElement, AutoInputProps>(
             onChange,
             debounceMs = 150,
             ...props
+
         },
         ref
     ) => {
+
         const [value, setValue] = useState(propValue || "");
         const [isFocused, setIsFocused] = useState(false);
 
         useEffect(() => {
+
             if (propValue === undefined || propValue === value) return;
 
             setValue(propValue);
+
         }, [propValue]);
 
         useEffect(() => {
+
             if (value === propValue) return;
 
             const timer = setTimeout(() => {
+
                 onValueChange?.(value as string);
+
             }, debounceMs);
 
             return () => clearTimeout(timer);
+
         }, [value, debounceMs, onValueChange, propValue]);
 
         const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+
             setValue(e.target.value);
             onChange?.(e);
+
         };
 
         return (
@@ -75,6 +88,7 @@ export const AutoInput = forwardRef<HTMLInputElement, AutoInputProps>(
                 )}
             </div>
         );
+
     }
 );
 

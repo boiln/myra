@@ -7,34 +7,42 @@ import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
 
 export function ModulePanel() {
+
     const {
+
         isActive,
         manipulationStatus,
         updateModuleSettings,
         toggleDirection,
         applyModuleSettings,
         loadStatus,
+
     } = useNetworkStore();
 
     const modules = manipulationStatus.modules;
 
     useEffect(() => {
+
         loadStatus();
+
     }, [loadStatus]);
 
     const debouncedSettingChange = useDebounce(
         async (module: ModuleInfo, setting: string, value: number) => {
+
             try {
                 const newConfig = { ...module.config, [setting]: value };
                 await updateModuleSettings(module.name || "", newConfig);
             } catch (error) {
                 console.error("Error updating setting:", error);
             }
+
         },
         300
     );
 
     const handleModuleToggle = async (module: ModuleInfo) => {
+
         try {
             await applyModuleSettings(module.name || "", !module.enabled);
         } catch (error) {
@@ -43,6 +51,7 @@ export function ModulePanel() {
     };
 
     const handleSettingChange = async (module: ModuleInfo, setting: string, value: number) => {
+
         // For burst release_delay_us, update immediately (no debounce) since it affects flush behavior
         if (module.name === "burst" && setting === "release_delay_us") {
             try {
@@ -58,6 +67,7 @@ export function ModulePanel() {
     };
 
     const handleDirectionToggle = async (module: ModuleInfo, direction: "inbound" | "outbound") => {
+
         try {
             await toggleDirection(module.name || "", direction);
         } catch (error) {
@@ -66,6 +76,7 @@ export function ModulePanel() {
     };
 
     const handleBooleanSettingChange = async (module: ModuleInfo, setting: string, value: boolean) => {
+
         try {
             const newConfig = { ...module.config, [setting]: value };
             await updateModuleSettings(module.name || "", newConfig);

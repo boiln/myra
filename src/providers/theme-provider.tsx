@@ -15,13 +15,17 @@ const ThemeContext = createContext<ThemeContextType>({
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
+
     const [theme, setTheme] = useState<ThemeId>(() => {
+
         // Check if theme exists in localStorage
         const savedTheme = localStorage.getItem("theme") as ThemeId | null;
         return savedTheme && themes.some((t) => t.id === savedTheme) ? savedTheme : defaultTheme;
+
     });
 
     useEffect(() => {
+
         document.documentElement.classList.remove(...themes.map((t) => t.id));
         document.body.classList.remove(...themes.map((t) => t.id));
 
@@ -34,15 +38,19 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         document.body.style.display = "";
 
         localStorage.setItem("theme", theme);
+
     }, [theme]);
 
     return <ThemeContext.Provider value={{ theme, setTheme }}>{children}</ThemeContext.Provider>;
+
 }
 
 export const useTheme = () => {
+
     const context = useContext(ThemeContext);
     if (!context) {
         throw new Error("useTheme must be used within a ThemeProvider");
     }
     return context;
+
 };

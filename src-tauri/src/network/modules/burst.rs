@@ -21,29 +21,38 @@ pub struct BurstModule;
 #[derive(Debug)]
 #[derive(Default)]
 pub struct BurstState {
+
     /// Queue of buffered packets with their capture time
     pub buffer: VecDeque<(PacketData<'static>, Instant)>,
     /// When the current burst cycle started
     pub cycle_start: Option<Instant>,
     /// When the last keepalive packet was sent
     pub last_keepalive: Option<Instant>,
+
 }
 
 
 impl PacketModule for BurstModule {
+
     type Options = BurstOptions;
     type State = BurstState;
 
     fn name(&self) -> &'static str {
+
         "burst"
+
     }
 
     fn display_name(&self) -> &'static str {
+
         "Packet Burst"
+
     }
 
     fn get_duration_ms(&self, options: &Self::Options) -> u64 {
+
         options.duration_ms
+
     }
 
     fn process<'a>(
@@ -53,6 +62,7 @@ impl PacketModule for BurstModule {
         state: &mut Self::State,
         ctx: &mut ModuleContext,
     ) -> Result<()> {
+
         let mut stats = ctx.write_stats(self.name())?;
 
         // SAFETY: The buffer outlives each processing call. Packets are moved into
@@ -76,7 +86,9 @@ impl PacketModule for BurstModule {
             &mut stats.burst_stats,
         );
         Ok(())
+
     }
+
 }
 
 /// Implements packet bursting by buffering packets then releasing all at once.
@@ -115,6 +127,7 @@ pub fn burst_packets<'a>(
     reverse: bool,
     stats: &mut BurstStats,
 ) {
+
     let now = Instant::now();
     let mut rng = rng();
 
@@ -126,21 +139,27 @@ pub fn burst_packets<'a>(
     // Check if we need to send a keepalive (let one packet through)
     let send_keepalive = keepalive_duration.as_millis() > 0 && match last_keepalive {
         None => {
+
             *last_keepalive = Some(now);
             false
+
         }
         Some(last) if now.duration_since(*last) >= keepalive_duration => {
+
             *last_keepalive = Some(now);
             true
+
         }
         Some(_) => false,
     };
 
     // If keepalive is due, find a packet that matches direction and preserve it
     let keepalive_packet = if send_keepalive && !packets.is_empty() {
+
         packets.iter().position(|p| {
             (p.is_outbound && apply_outbound) || (!p.is_outbound && apply_inbound)
         }).map(|idx| packets.remove(idx))
+
     } else {
         None
     };
@@ -149,24 +168,24 @@ pub fn burst_packets<'a>(
     let mut i = 0;
     while i < packets.len() {
         let packet = &packets[i];
-        
+
         // Check if this packet's direction should be buffered
-        let should_buffer_direction = 
-            (packet.is_outbound && apply_outbound) || 
+        let should_buffer_direction =
+            (packet.is_outbound && apply_outbound) ||
             (!packet.is_outbound && apply_inbound);
-        
+
         if !should_buffer_direction {
             // Direction doesn't match - let packet through
             i += 1;
             continue;
         }
-        
+
         if rng.random::<f64>() >= probability.value() {
             // Probability says don't buffer
             i += 1;
             continue;
         }
-        
+
         let packet = packets.remove(i);
         let static_packet: PacketData<'static> = unsafe { std::mem::transmute(packet) };
         buffer.push_back((static_packet, now));
@@ -186,23 +205,23 @@ pub fn burst_packets<'a>(
 
         if elapsed >= buffer_duration && !buffer.is_empty() {
             let released_count = buffer.len();
-            
+
             debug!(
                 "BURST: Releasing {} packets after {}ms buffer (reverse={})",
                 released_count,
                 elapsed.as_millis(),
                 reverse
             );
-            
+
             // Collect packets to release
             let mut released_packets: Vec<_> = buffer.drain(..).map(|(p, _)| p).collect();
-            
+
             // In reverse mode, reverse the order of released packets
             if reverse {
                 released_packets.reverse();
                 debug!("BURST: Reversed {} packets for rewind effect", released_packets.len());
             }
-            
+
             packets.extend(released_packets);
 
             stats.record_release(released_count);
@@ -215,7 +234,7 @@ pub fn burst_packets<'a>(
 
 /// Flushes all buffered packets - called when module is disabled
 /// Returns the packets to be sent with pacing
-/// 
+///
 /// # Arguments
 /// * `packets` - Output vector to add flushed packets to (new packets from this cycle)
 /// * `buffer` - The buffer containing packets to flush
@@ -227,6 +246,7 @@ pub fn flush_buffer<'a>(
     cycle_start: &mut Option<Instant>,
     reverse: bool,
 ) {
+
     if buffer.is_empty() {
         debug!("BURST FLUSH: Buffer is empty, nothing to flush");
         return;
@@ -234,23 +254,23 @@ pub fn flush_buffer<'a>(
 
     let buffer_count = buffer.len();
     let new_packet_count = packets.len();
-    
+
     // Collect all packets from buffer (oldest first)
     let mut released_packets: Vec<_> = buffer.drain(..).map(|(p, _)| p).collect();
-    
+
     // Apply reverse if requested (for rewind effect)
     if reverse {
         released_packets.reverse();
         debug!("BURST FLUSH: Reversed {} packets for rewind effect", buffer_count);
     }
-    
+
     // IMPORTANT: Buffered packets must be sent FIRST, before any new packets from this cycle
     // This ensures proper replay order: old actions → new actions
     // We prepend by: taking new packets out, adding buffered, then adding new back
     let new_packets: Vec<_> = std::mem::take(packets);
     packets.extend(released_packets);
     packets.extend(new_packets);
-    
+
     debug!(
         "BURST FLUSH: Released {} buffered packets, {} new packets queued after (reverse={})",
         buffer_count,
@@ -259,17 +279,21 @@ pub fn flush_buffer<'a>(
     );
 
     *cycle_start = None;
+
 }
 
 #[cfg(test)]
 mod tests {
+
     use super::*;
     use windivert::layer::NetworkLayer;
     use windivert::packet::WinDivertPacket;
 
     #[test]
     fn test_packet_buffering() {
+
         unsafe {
+
             // Create outbound packets for testing
             let mut packets = vec![
                 PacketData::new(WinDivertPacket::<NetworkLayer>::new(vec![1, 2, 3]), true),
@@ -298,6 +322,9 @@ mod tests {
             // All packets should be buffered
             assert_eq!(packets.len(), 0);
             assert_eq!(buffer.len(), 2);
+
         }
+
     }
+
 }

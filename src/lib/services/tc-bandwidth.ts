@@ -10,7 +10,7 @@ export interface TcBandwidthStatus {
 
 /**
  * Start the bandwidth limiter
- * 
+ *
  * @param limitKbps - Bandwidth limit in KB/s
  * @param direction - Direction to limit: "inbound", "outbound", or "both"
  * @returns Promise resolving to success message
@@ -27,19 +27,22 @@ export async function startTcBandwidth(
 
 /**
  * Stop the Traffic Control bandwidth limiter
- * 
+ *
  * @returns Promise resolving to success message
  */
 export async function stopTcBandwidth(): Promise<string> {
+
     return await invoke<string>("stop_tc_bandwidth");
+
 }
 
 /**
  * Get the current status of the TC bandwidth limiter
- * 
+ *
  * @returns Promise resolving to current status
  */
 export async function getTcBandwidthStatus(): Promise<TcBandwidthStatus> {
-    return await invoke<TcBandwidthStatus>("get_tc_bandwidth_status");
-}
 
+    return await invoke<TcBandwidthStatus>("get_tc_bandwidth_status");
+
+}

@@ -10,10 +10,13 @@ struct SimpleLogger;
 
 impl log::Log for SimpleLogger {
     fn enabled(&self, metadata: &log::Metadata) -> bool {
+
         metadata.level() <= log::max_level()
+
     }
 
     fn log(&self, record: &log::Record) {
+
         if self.enabled(record.metadata()) {
             let mut stdout = io::stdout();
             let timestamp = chrono::Local::now().format("%H:%M:%S%.3f");
@@ -30,12 +33,15 @@ impl log::Log for SimpleLogger {
                 .flush()
                 .unwrap_or_else(|e| error!("Failed to flush stdout: {}", e));
         }
+
     }
 
     fn flush(&self) {
+
         io::stdout()
             .flush()
             .unwrap_or_else(|e| error!("Failed to flush stdout: {}", e));
+
     }
 }
 
@@ -45,11 +51,14 @@ static LOGGER: SimpleLogger = SimpleLogger;
 ///
 /// Sets up the SimpleLogger with Info level filtering
 fn init_logger() -> Result<(), SetLoggerError> {
+
     log::set_logger(&LOGGER).map(|()| log::set_max_level(LevelFilter::Info))
+
 }
 
 /// Main entry point for the Myra application
 fn main() {
+
     if let Err(e) = init_logger() {
         eprintln!("Failed to initialize logger: {}", e);
         return;
@@ -96,9 +105,15 @@ fn main() {
             commands::start_tc_bandwidth,
             commands::stop_tc_bandwidth,
             commands::get_tc_bandwidth_status,
+            // Classic mode commands
+            commands::start_classic_processing,
+            commands::stop_classic_processing,
+            commands::update_classic_settings,
+            commands::get_classic_status,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+
 }
 
 /// Check if the current process is running with administrator privileges.
@@ -110,12 +125,14 @@ fn main() {
 ///
 /// `bool` - true if the process has administrator privileges
 fn is_admin() -> bool {
+
     use winapi::um::securitybaseapi::{AllocateAndInitializeSid, CheckTokenMembership, FreeSid};
     use winapi::um::winnt::{
         DOMAIN_ALIAS_RID_ADMINS, SECURITY_BUILTIN_DOMAIN_RID, SECURITY_NT_AUTHORITY,
     };
 
     unsafe {
+
         let mut sid = std::ptr::null_mut();
         let sub_authorities = [SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS];
 
@@ -142,5 +159,7 @@ fn is_admin() -> bool {
 
         FreeSid(sid);
         is_admin
+
     }
+
 }

@@ -1,11 +1,14 @@
 import {
+
     FilterTarget,
     ManipulationStatus,
     ModuleConfig,
     PacketManipulationSettings,
+
 } from "@/types";
 
 export interface NetworkState {
+
     // Status
     isActive: boolean;
     filter: string;
@@ -17,9 +20,11 @@ export interface NetworkState {
     loadingPresets: boolean;
     currentPreset: string | null;
     isInitialized: boolean; // True after initial preset load completes
+
 }
 
 export interface NetworkActions {
+
     // Core actions
     toggleActive: () => Promise<void>;
     updateFilter: (newFilter: string) => Promise<void>;
@@ -34,13 +39,14 @@ export interface NetworkActions {
 
     // Preset actions
     loadPresets: () => Promise<void>;
-    savePreset: (name: string) => Promise<void>;
-    loadPreset: (name: string) => Promise<void>;
+    savePreset: (name: string, mode?: "standard" | "classic") => Promise<void>;
+    loadPreset: (name: string) => Promise<{ mode: "standard" | "classic" } | undefined>;
     deletePreset: (name: string) => Promise<void>;
     initializeDefaultPreset: () => Promise<void>;
 
     // Utils
     buildSettings: () => PacketManipulationSettings;
+
 }
 
 export type NetworkStore = NetworkState & NetworkActions;

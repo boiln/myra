@@ -1,7 +1,6 @@
 //! Start processing command.
 //!
 //! Handles the initialization and starting of the packet processing engine.
-
 use std::sync::atomic::Ordering;
 use std::sync::mpsc;
 use std::thread;
@@ -35,6 +34,7 @@ pub async fn start_processing(
     settings: Settings,
     filter: Option<String>,
 ) -> Result<(), String> {
+
     let running = state.running.load(Ordering::SeqCst);
 
     if running {
@@ -75,11 +75,14 @@ pub async fn start_processing(
         if let Err(e) =
             start_packet_processing(settings_proc, packet_receiver, running_proc, statistics)
         {
+
             error!("Packet processing error: {}", e);
+
         }
     });
 
     info!("Started packet processing");
 
     Ok(())
+
 }

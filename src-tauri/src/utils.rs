@@ -1,7 +1,6 @@
 //! Utility functions for packet processing.
 //!
 //! This module contains shared utility functions used throughout the application.
-
 use log::info;
 
 /// Logs packet statistics including received count, sent count, and drop percentage.
@@ -14,6 +13,7 @@ use log::info;
 /// * `received` - Number of packets received
 /// * `sent` - Number of packets sent
 pub fn log_statistics(received: usize, sent: usize) {
+
     let dropped = received.saturating_sub(sent);
     let dropped_percentage = if received == 0 {
         0.0
@@ -41,10 +41,12 @@ pub fn log_statistics(received: usize, sent: usize) {
 ///
 /// `true` if the effect is still active, `false` otherwise
 pub fn is_effect_active(duration_ms: u64, start_time: std::time::Instant) -> bool {
+
     if duration_ms == 0 {
         return true;
     }
 
     let elapsed = start_time.elapsed().as_millis() as u64;
     elapsed < duration_ms
+
 }

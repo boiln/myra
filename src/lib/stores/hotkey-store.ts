@@ -14,6 +14,7 @@ export interface HotkeyState {
 }
 
 export interface HotkeyActions {
+
     setBinding: (action: string, shortcut: string | null) => Promise<void>;
     toggleBinding: (action: string) => Promise<void>;
     startRecording: (action: string) => void;
@@ -23,6 +24,7 @@ export interface HotkeyActions {
     restoreBindings: (
         bindings: { action: string; shortcut: string | null; enabled: boolean }[]
     ) => Promise<void>;
+
 }
 
 const DEFAULT_BINDINGS: Record<string, HotkeyBinding> = {
@@ -86,6 +88,7 @@ export const useHotkeyStore = create<HotkeyState & HotkeyActions>()(
             isRecording: null,
 
             setBinding: async (action: string, shortcut: string | null) => {
+
                 const { bindings } = get();
                 const oldBinding = bindings[action];
 
@@ -126,6 +129,7 @@ export const useHotkeyStore = create<HotkeyState & HotkeyActions>()(
             },
 
             toggleBinding: async (action: string) => {
+
                 const { bindings } = get();
                 const binding = bindings[action];
                 if (!binding || !binding.shortcut) return;
@@ -163,18 +167,24 @@ export const useHotkeyStore = create<HotkeyState & HotkeyActions>()(
             },
 
             startRecording: (action: string) => {
+
                 set({ isRecording: action });
+
             },
 
             stopRecording: () => {
+
                 set({ isRecording: null });
+
             },
 
             registerAllHotkeys: async (handlers: Record<string, () => void>) => {
+
                 // Wrap handlers with debounce and recording check
                 const wrappedHandlers: Record<string, () => void> = {};
                 for (const [action, handler] of Object.entries(handlers)) {
                     wrappedHandlers[action] = () => {
+
                         // Don't fire hotkeys while recording
                         if (get().isRecording) {
                             console.log(`Hotkey ${action} blocked - recording mode`);
@@ -187,12 +197,15 @@ export const useHotkeyStore = create<HotkeyState & HotkeyActions>()(
                             lastTriggerTime[action] &&
                             now - lastTriggerTime[action] < DEBOUNCE_MS
                         ) {
+
                             console.log(`Hotkey ${action} debounced`);
                             return;
+
                         }
                         lastTriggerTime[action] = now;
 
                         handler();
+
                     };
                 }
 
@@ -216,6 +229,7 @@ export const useHotkeyStore = create<HotkeyState & HotkeyActions>()(
             },
 
             unregisterAllHotkeys: async () => {
+
                 for (const shortcut of registeredShortcuts) {
                     try {
                         await unregister(shortcut);
@@ -229,6 +243,7 @@ export const useHotkeyStore = create<HotkeyState & HotkeyActions>()(
             restoreBindings: async (
                 bindings: { action: string; shortcut: string | null; enabled: boolean }[]
             ) => {
+
                 // Unregister all current hotkeys first
                 for (const shortcut of registeredShortcuts) {
                     try {

@@ -3,6 +3,8 @@ import { NetworkStore } from "@/lib/stores/network/types";
 import { ManipulationService } from "@/lib/services/manipulation";
 import { DEFAULT_FILTER } from "@/lib/stores/network/constants";
 import { FilterTarget, ModuleInfo } from "@/types";
+import { useModeStore } from "@/lib/stores/mode-store";
+import { useClassicStore } from "@/lib/stores/classic-store";
 
 export const createCoreSlice: StateCreator<
     NetworkStore,
@@ -11,6 +13,7 @@ export const createCoreSlice: StateCreator<
     Pick<NetworkStore, "toggleActive" | "updateFilter" | "setFilterTarget" | "loadStatus">
 > = (set, get) => ({
     loadStatus: async () => {
+
         try {
             const status = await ManipulationService.getStatus();
             const currentFilter = await ManipulationService.getFilter();
@@ -22,22 +25,27 @@ export const createCoreSlice: StateCreator<
 
             // Helper to get existing direction settings for a module
             const getExistingDirections = (moduleName: string) => {
+
                 const existing = existingModules.find((m) => m.name === moduleName);
                 return {
                     inbound: existing?.config.inbound ?? true,
                     outbound: existing?.config.outbound ?? true,
                 };
+
             };
 
             // Helper to get existing config value - preserves UI state when backend returns undefined
             const getExistingConfig = <T>(moduleName: string, key: string, defaultValue: T): T => {
+
                 const existing = existingModules.find((m) => m.name === moduleName);
                 return (existing?.config[key as keyof typeof existing.config] as T) ?? defaultValue;
+
             };
 
             // Create modules array from settings, preserving direction settings
             const modules: ModuleInfo[] = [
                 {
+
                     name: "lag",
                     display_name: "Lag",
                     enabled: settings.lag?.enabled ?? false,
@@ -51,8 +59,10 @@ export const createCoreSlice: StateCreator<
                         duration_ms:
                             settings.lag?.delay_ms || getExistingConfig("lag", "duration_ms", 1000),
                     },
+
                 },
                 {
+
                     name: "drop",
                     display_name: "Drop",
                     enabled: settings.drop?.enabled ?? false,
@@ -65,8 +75,10 @@ export const createCoreSlice: StateCreator<
                         enabled: settings.drop?.enabled ?? false,
                         duration_ms: 0, // 0 = infinite effect duration
                     },
+
                 },
                 {
+
                     name: "throttle",
                     display_name: "Throttle",
                     enabled: settings.throttle?.enabled ?? false,
@@ -88,8 +100,10 @@ export const createCoreSlice: StateCreator<
                             getExistingConfig("throttle", "freeze_mode", false),
                         duration_ms: 0, // 0 = infinite effect duration
                     },
+
                 },
                 {
+
                     name: "duplicate",
                     display_name: "Duplicate",
                     enabled: settings.duplicate?.enabled ?? false,
@@ -108,8 +122,10 @@ export const createCoreSlice: StateCreator<
                             settings.duplicate?.count || getExistingConfig("duplicate", "count", 2),
                         duration_ms: 0, // 0 = infinite effect duration
                     },
+
                 },
                 {
+
                     name: "bandwidth",
                     display_name: "Bandwidth",
                     enabled: settings.bandwidth?.enabled ?? false,
@@ -132,8 +148,10 @@ export const createCoreSlice: StateCreator<
                             getExistingConfig("bandwidth", "use_wfp", false),
                         duration_ms: 0, // 0 = infinite effect duration
                     },
+
                 },
                 {
+
                     name: "corruption",
                     display_name: "Corruption",
                     enabled: settings.corruption?.enabled ?? false,
@@ -150,8 +168,10 @@ export const createCoreSlice: StateCreator<
                         enabled: settings.corruption?.enabled ?? false,
                         duration_ms: 0, // 0 = infinite effect duration
                     },
+
                 },
                 {
+
                     name: "reorder",
                     display_name: "Reorder",
                     enabled: settings.reorder?.enabled ?? false,
@@ -169,8 +189,10 @@ export const createCoreSlice: StateCreator<
                             getExistingConfig("reorder", "throttle_ms", 100),
                         duration_ms: 0, // 0 = infinite effect duration
                     },
+
                 },
                 {
+
                     name: "burst",
                     display_name: "Burst",
                     enabled: settings.burst?.enabled ?? false,
@@ -194,6 +216,7 @@ export const createCoreSlice: StateCreator<
                             settings.burst?.reverse ?? getExistingConfig("burst", "reverse", false),
                         duration_ms: 0, // 0 = infinite effect duration
                     },
+
                 },
             ];
 
@@ -201,11 +224,16 @@ export const createCoreSlice: StateCreator<
             const { filter: existingFilter } = get();
             const newFilter = currentFilter || existingFilter || DEFAULT_FILTER;
 
+            // Check if Classic mode is running - if so, use that status instead
+            const mode = useModeStore.getState().mode;
+            const classicStore = useClassicStore.getState();
+            const isRunning = mode === "classic" ? classicStore.isProcessing : status.running;
+
             set({
-                isActive: status.running,
+                isActive: isRunning,
                 filter: newFilter,
                 manipulationStatus: {
-                    active: status.running,
+                    active: isRunning,
                     filter: newFilter,
                     modules: modules,
                 },
@@ -216,21 +244,34 @@ export const createCoreSlice: StateCreator<
     },
 
     toggleActive: async () => {
+
         const { isActive, filter, buildSettings } = get();
+        const mode = useModeStore.getState().mode;
+        const classicStore = useClassicStore.getState();
 
         try {
             set({ isTogglingActive: true });
             set({ isActive: !isActive });
 
             if (isActive) {
-                await ManipulationService.stopProcessing();
+                // Stopping - stop whichever mode might be running
+                if (mode === "classic") {
+                    await classicStore.stopProcessing().catch(() => {});
+                }
+                await ManipulationService.stopProcessing().catch(() => {});
             }
 
             if (!isActive) {
-                // Use buildSettings() to get current UI state instead of backend state
-                // This preserves boolean settings like freeze_mode, use_wfp, reverse
-                const settings = buildSettings();
-                await ManipulationService.startProcessing(settings, filter);
+                if (mode === "classic") {
+                    // Start Classic mode processing with the same filter
+                    await classicStore.startProcessing(filter);
+                } else {
+                    // Start Standard mode processing
+                    const settings = buildSettings();
+                    await ManipulationService.startProcessing(settings, filter);
+                }
+            } else {
+                classicStore.setActive(false);
             }
 
             await get().loadStatus();
@@ -243,6 +284,7 @@ export const createCoreSlice: StateCreator<
     },
 
     updateFilter: async (newFilter: string) => {
+
         const { isActive } = get();
 
         try {
@@ -269,6 +311,8 @@ export const createCoreSlice: StateCreator<
     },
 
     setFilterTarget: (target: FilterTarget) => {
+
         set({ filterTarget: target });
+
     },
 });

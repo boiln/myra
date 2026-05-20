@@ -2,7 +2,6 @@
 //!
 //! Handles retrieving the current state of the packet processing engine,
 //! including running status, statistics, settings, and filter.
-
 use std::sync::atomic::Ordering;
 
 use log::debug;
@@ -30,13 +29,15 @@ use crate::settings::Settings;
 pub async fn get_status(
     state: State<'_, PacketProcessingState>,
 ) -> Result<ProcessingStatus, String> {
+
     let running = state.running.load(Ordering::SeqCst);
     let settings = state.settings.lock().map_err(|e| e.to_string())?;
     let modules = build_module_info_list(&settings);
-    
+
     let statistics = if running {
         let stats = state.statistics.read().map_err(|e| e.to_string())?;
         Some(ProcessingStatisticsDto {
+
             burst_buffered: stats.burst_stats.buffered,
             burst_released: stats.burst_stats.released,
             burst_buffered_count: stats.burst_stats.buffered_count,
@@ -45,6 +46,7 @@ pub async fn get_status(
             throttle_is_throttling: stats.throttle_stats.is_throttling(),
             lag_current_lagged: stats.lag_stats.current_lagged(),
             reorder_delayed_packets: stats.reorder_stats.delayed_packets,
+
         })
     } else {
         None
@@ -71,11 +73,13 @@ pub async fn get_status(
 pub async fn get_settings(
     state: State<'_, PacketProcessingState>,
 ) -> Result<Settings, String> {
+
     Ok(state
         .settings
         .lock()
         .map_err(|e| format!("Failed to lock settings mutex: {}", e))?
         .clone())
+
 }
 
 /// Gets the current `WinDivert` filter expression.
@@ -90,11 +94,13 @@ pub async fn get_settings(
 /// * `Err(String)` - If there was an error retrieving the filter
 #[tauri::command]
 pub async fn get_filter(state: State<'_, PacketProcessingState>) -> Result<Option<String>, String> {
+
     Ok(state
         .filter
         .lock()
         .map_err(|e| format!("Failed to lock filter mutex: {}", e))?
         .clone())
+
 }
 
 /// Updates the `WinDivert` filter expression.
@@ -115,6 +121,7 @@ pub async fn update_filter(
     state: State<'_, PacketProcessingState>,
     filter: Option<String>,
 ) -> Result<(), String> {
+
     *state
         .filter
         .lock()
@@ -126,29 +133,36 @@ pub async fn update_filter(
     }
     debug!("Updated packet filter");
     Ok(())
+
 }
 
 /// Builds a list of `ModuleInfo` from the current settings.
 /// Always returns all modules with their settings, using enabled field to track active state.
 fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
+
     use crate::settings::lag::LagOptions;
 
     let module = |name: &str, display_name: &str, enabled: bool, config: ModuleConfig| ModuleInfo {
+
         name: name.to_string(),
         display_name: display_name.to_string(),
         enabled,
         config,
         params: None,
+
     };
 
     let lag = settings.lag.clone().unwrap_or_else(|| LagOptions {
+
         enabled: false,
         inbound: true,
         outbound: true,
         delay_ms: 1000,
         ..Default::default()
+
     });
     let lag_info = ModuleInfo {
+
         params: Some(ModuleParams {
             lag_time: Some(lag.delay_ms),
         }),
@@ -157,6 +171,7 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
             "Lag",
             lag.enabled,
             ModuleConfig {
+
                 inbound: lag.inbound,
                 outbound: lag.outbound,
                 chance: lag.probability.value() * 100.0,
@@ -164,8 +179,10 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
                 duration_ms: Some(lag.delay_ms),
                 throttle_ms: Some(lag.delay_ms),
                 ..Default::default()
+
             },
         )
+
     };
 
     let drop = settings.drop.clone().unwrap_or_default();
@@ -174,12 +191,14 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
         "Drop",
         drop.enabled,
         ModuleConfig {
+
             inbound: drop.inbound,
             outbound: drop.outbound,
             chance: drop.probability.value() * 100.0,
             enabled: drop.enabled,
             duration_ms: Some(drop.duration_ms),
             ..Default::default()
+
         },
     );
 
@@ -189,6 +208,7 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
         "Throttle",
         throttle.enabled,
         ModuleConfig {
+
             inbound: throttle.inbound,
             outbound: throttle.outbound,
             chance: throttle.probability.value() * 100.0,
@@ -199,6 +219,7 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
             max_buffer: Some(throttle.max_buffer),
             freeze_mode: Some(throttle.freeze_mode),
             ..Default::default()
+
         },
     );
 
@@ -208,6 +229,7 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
         "Duplicate",
         duplicate.enabled,
         ModuleConfig {
+
             inbound: duplicate.inbound,
             outbound: duplicate.outbound,
             chance: duplicate.probability.value() * 100.0,
@@ -215,6 +237,7 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
             duration_ms: Some(duplicate.duration_ms),
             count: Some(duplicate.count),
             ..Default::default()
+
         },
     );
 
@@ -224,6 +247,7 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
         "Bandwidth",
         bandwidth.enabled,
         ModuleConfig {
+
             inbound: bandwidth.inbound,
             outbound: bandwidth.outbound,
             chance: bandwidth.probability.value() * 100.0,
@@ -233,6 +257,7 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
             passthrough_threshold: Some(bandwidth.passthrough_threshold),
             use_wfp: Some(bandwidth.use_wfp),
             ..Default::default()
+
         },
     );
 
@@ -242,12 +267,14 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
         "Corruption",
         corruption.enabled,
         ModuleConfig {
+
             inbound: corruption.inbound,
             outbound: corruption.outbound,
             chance: corruption.probability.value() * 100.0,
             enabled: corruption.enabled,
             duration_ms: Some(corruption.duration_ms),
             ..Default::default()
+
         },
     );
 
@@ -257,6 +284,7 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
         "Reorder",
         reorder.enabled,
         ModuleConfig {
+
             inbound: reorder.inbound,
             outbound: reorder.outbound,
             chance: reorder.probability.value() * 100.0,
@@ -264,6 +292,7 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
             duration_ms: Some(reorder.duration_ms),
             throttle_ms: Some(reorder.max_delay),
             ..Default::default()
+
         },
     );
 
@@ -273,6 +302,7 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
         "Burst",
         burst.enabled,
         ModuleConfig {
+
             inbound: burst.inbound,
             outbound: burst.outbound,
             chance: burst.probability.value() * 100.0,
@@ -284,6 +314,7 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
             lag_bypass: Some(settings.lag_bypass),
             reverse: Some(burst.reverse),
             ..Default::default()
+
         },
     );
 
@@ -297,4 +328,5 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
         reorder_info,
         burst_info,
     ]
+
 }

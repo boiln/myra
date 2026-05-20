@@ -4,16 +4,19 @@ use clap::Parser;
 use serde::{Deserialize, Serialize};
 
 fn default_probability_100() -> Probability {
+
     Probability::new(1.0).unwrap()
+
 }
 
 /// Options for the Lag module.
-/// 
+///
 /// This module lags packets (matching direction criteria) by a fixed time,
 /// creating a true network latency effect. By default, probability is 100%
 /// so all matching traffic is lagged.
 #[derive(Parser, Debug, Serialize, Deserialize, Clone)]
 pub struct LagOptions {
+
     /// Whether this module is enabled
     #[arg(skip)]
     #[serde(default)]
@@ -43,17 +46,22 @@ pub struct LagOptions {
     #[arg(long = "lag-duration", id = "lag-duration", default_value_t = 0)]
     #[serde(default)]
     pub duration_ms: u64,
+
 }
 
 impl Default for LagOptions {
     fn default() -> Self {
+
         Self {
+
             enabled: false,
             inbound: true,
             outbound: true,
             delay_ms: 0,
             probability: default_probability_100(),
             duration_ms: 0,
+
         }
+
     }
 }

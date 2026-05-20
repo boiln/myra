@@ -2,7 +2,8 @@
 //!
 //! This module contains all Tauri commands exposed to the frontend,
 //! organized into submodules by functionality.
-
+pub mod classic;
+pub mod classic_state;
 pub mod config;
 pub mod start;
 pub mod state;
@@ -14,9 +15,16 @@ pub mod filter_history;
 pub mod types;
 pub mod update;
 
+pub use classic_state::ClassicProcessingState;
 pub use state::PacketProcessingState;
 pub use tc_bandwidth::TcLimiterState;
 
+pub use classic::{
+    __cmd__start_classic_processing, __cmd__stop_classic_processing,
+    __cmd__update_classic_settings, __cmd__get_classic_status,
+    start_classic_processing, stop_classic_processing,
+    update_classic_settings, get_classic_status,
+};
 pub use start::{__cmd__start_processing, start_processing};
 pub use status::{
     __cmd__get_filter, __cmd__get_settings, __cmd__get_status, __cmd__update_filter, get_filter,
@@ -42,5 +50,7 @@ pub use update::{__cmd__update_settings, update_settings};
 use tauri::App;
 
 pub fn register_commands(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
+
     state::register_state(app)
+
 }

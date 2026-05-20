@@ -3,13 +3,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNetworkStore } from "@/lib/stores/network";
+import { useModeStore } from "@/lib/stores/mode-store";
 import {
+
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
+
 } from "@/components/ui/dropdown-menu";
 import {
+
     Dialog,
     DialogContent,
     DialogDescription,
@@ -17,6 +21,7 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
+
 } from "@/components/ui/dialog";
 import { useEffect } from "react";
 import { toast } from "sonner";
@@ -24,6 +29,7 @@ import { create } from "zustand";
 import { QuickPresets } from "./quick-presets";
 
 interface PresetUIState {
+
     presetName: string;
     saveDialogOpen: boolean;
     isLoading: boolean;
@@ -33,6 +39,7 @@ interface PresetUIState {
     setIsLoading: (loading: boolean) => void;
     setShowPresetInfo: (show: boolean) => void;
     resetState: () => void;
+
 }
 
 const usePresetUIStore = create<PresetUIState>((set) => ({
@@ -54,9 +61,12 @@ const usePresetUIStore = create<PresetUIState>((set) => ({
 }));
 
 export function PresetManager() {
+
     const { loadPresets, presets, currentPreset, loadPreset, deletePreset, savePreset } =
         useNetworkStore();
+    const { mode, setMode } = useModeStore();
     const {
+
         presetName,
         saveDialogOpen,
         setPresetName,
@@ -64,24 +74,32 @@ export function PresetManager() {
         setIsLoading,
         setShowPresetInfo,
         setSaveDialogOpen,
+
     } = usePresetUIStore();
 
     useEffect(() => {
+
         loadPresets();
+
     }, [loadPresets]);
 
     const handleOpenSaveDialog = () => {
+
         setPresetName(currentPreset || "default");
+
     };
 
     const handleKeyDown = async (e: React.KeyboardEvent) => {
+
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
             await handleSavePreset();
         }
+
     };
 
     const handleSavePreset = async () => {
+
         if (!presetName.trim()) {
             toast.error("Please enter a preset name", { dismissible: true });
             return;
@@ -90,7 +108,7 @@ export function PresetManager() {
         setIsLoading(true);
 
         try {
-            await savePreset(presetName);
+            await savePreset(presetName, mode);
             toast.success(`Preset "${presetName}" saved`, { dismissible: true });
 
             await loadPresets();
@@ -107,10 +125,15 @@ export function PresetManager() {
     };
 
     const handleLoadPreset = async (name: string) => {
+
         setIsLoading(true);
 
         try {
-            await loadPreset(name);
+            const result = await loadPreset(name);
+            // Restore the mode if it was saved with the preset
+            if (result?.mode) {
+                setMode(result.mode);
+            }
             toast.success(`Preset "${name}" loaded`, { dismissible: true });
         } catch (error) {
             toast.error(`Failed to load preset: ${error}`, { dismissible: true });
@@ -120,6 +143,7 @@ export function PresetManager() {
     };
 
     const handleDeletePreset = async (name: string) => {
+
         if (!name) return;
         if (!confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`))
             return;

@@ -6,6 +6,7 @@
 /// - Current number of buffered packets
 #[derive(Debug)]
 pub struct ThrottleStats {
+
     /// Flag indicating whether throttling is currently active
     pub(crate) is_throttling: bool,
 
@@ -14,15 +15,19 @@ pub struct ThrottleStats {
 
     /// Current number of packets in the buffer
     pub(crate) buffered_count: usize,
+
 }
 
 impl Default for ThrottleStats {
     fn default() -> Self {
+
         Self::new()
+
     }
 }
 
 impl ThrottleStats {
+
     /// Creates a new `ThrottleStats` instance with default values
     ///
     /// # Returns
@@ -35,11 +40,13 @@ impl ThrottleStats {
     /// let stats = ThrottleStats::new();
     /// ```
     pub fn new() -> Self {
+
         Self {
             is_throttling: false,
             dropped_count: 0,
             buffered_count: 0,
         }
+
     }
 
     /// Returns whether throttling is currently active
@@ -48,7 +55,9 @@ impl ThrottleStats {
     ///
     /// `true` if throttling is currently active, `false` otherwise
     pub fn is_throttling(&self) -> bool {
+
         self.is_throttling
+
     }
 
     /// Returns the total number of packets dropped due to throttling
@@ -57,30 +66,39 @@ impl ThrottleStats {
     ///
     /// The total number of packets that have been dropped
     pub fn dropped_count(&self) -> usize {
+
         self.dropped_count
+
     }
 
     /// Resets all statistics to their default values
     ///
     /// This resets the throttling status to inactive and the dropped count to zero
     pub fn reset(&mut self) {
+
         self.is_throttling = false;
         self.dropped_count = 0;
         self.buffered_count = 0;
+
     }
 
     /// Returns the current number of buffered packets
     pub fn buffered_count(&self) -> usize {
+
         self.buffered_count
+
     }
+
 }
 
 #[cfg(test)]
 mod tests {
+
     use super::*;
 
     #[test]
     fn test_new() {
+
         let stats = ThrottleStats::new();
         assert!(!stats.is_throttling(), "New stats should not be throttling");
         assert_eq!(
@@ -88,10 +106,12 @@ mod tests {
             0,
             "New stats should have 0 dropped packets"
         );
+
     }
 
     #[test]
     fn test_reset() {
+
         let mut stats = ThrottleStats {
             is_throttling: true,
             dropped_count: 10,
@@ -109,5 +129,7 @@ mod tests {
             0,
             "Stats should have 0 dropped packets after reset"
         );
+
     }
+
 }

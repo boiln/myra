@@ -3,6 +3,7 @@ import { startTcBandwidth, stopTcBandwidth, getTcBandwidthStatus, TcDirection, T
 import { MyraCheckbox } from "./ui/myra-checkbox";
 
 export function TcBandwidthControl() {
+
     const [enabled, setEnabled] = useState(false);
     const [limitKbps, setLimitKbps] = useState(1.0);
     const [direction, setDirection] = useState<TcDirection>("inbound");
@@ -11,7 +12,9 @@ export function TcBandwidthControl() {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
+
         const fetchStatus = async () => {
+
             try {
                 const s = await getTcBandwidthStatus();
                 setStatus(s);
@@ -19,17 +22,20 @@ export function TcBandwidthControl() {
             } catch (e) {
                 console.error("Failed to get TC status:", e);
             }
+
         };
-        
+
         fetchStatus();
         const interval = setInterval(fetchStatus, 2000);
         return () => clearInterval(interval);
+
     }, []);
 
     const handleToggle = async (checked: boolean) => {
+
         setLoading(true);
         setError(null);
-        
+
         try {
             if (!checked) {
                 await stopTcBandwidth();
@@ -47,11 +53,12 @@ export function TcBandwidthControl() {
     };
 
     const handleApply = async () => {
+
         if (!enabled) return;
-        
+
         setLoading(true);
         setError(null);
-        
+
         try {
             // Stop and restart with new settings
             await stopTcBandwidth();
@@ -79,11 +86,11 @@ export function TcBandwidthControl() {
                     label={enabled ? "Active" : "Inactive"}
                 />
             </div>
-            
+
             <p className="text-xs text-zinc-500 mb-3">
                 Bandwidth limiting with packet pacing. Small packets (ACKs/keepalives) pass through to maintain connection.
             </p>
-            
+
             <div className="flex gap-3 items-center mb-3">
                 <div className="w-24">
                     <label className="text-xs text-zinc-400 block mb-1">Limit (KB/s)</label>
@@ -97,7 +104,7 @@ export function TcBandwidthControl() {
                         className="w-full bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-sm text-zinc-200"
                     />
                 </div>
-                
+
                 <div className="flex-1">
                     <label className="text-xs text-zinc-400 block mb-1">Direction</label>
                     <select
@@ -110,7 +117,7 @@ export function TcBandwidthControl() {
                         <option value="both">Both</option>
                     </select>
                 </div>
-                
+
                 {enabled && (
                     <button
                         onClick={handleApply}
@@ -121,13 +128,13 @@ export function TcBandwidthControl() {
                     </button>
                 )}
             </div>
-            
+
             {status && status.active && (
                 <div className="text-xs text-green-400">
                     ✓ Active: {status.limit_kbps} KB/s ({status.direction})
                 </div>
             )}
-            
+
             {error && (
                 <div className="text-xs text-red-400 mt-2">
                     Error: {error}
@@ -136,4 +143,3 @@ export function TcBandwidthControl() {
         </div>
     );
 }
-

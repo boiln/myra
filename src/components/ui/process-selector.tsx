@@ -6,12 +6,14 @@ import { ProcessIcon } from "@/components/ui/process-icon";
 import { Input } from "@/components/ui/input";
 
 interface ProcessSelectorProps {
+
     processes: ProcessInfo[];
     value: string;
     onValueChange: (value: string) => void;
     disabled?: boolean;
     placeholder?: string;
     className?: string;
+
 }
 
 export function ProcessSelector({
@@ -30,16 +32,20 @@ export function ProcessSelector({
     const inputRef = useRef<HTMLInputElement>(null);
 
     const filteredProcesses = useMemo(() => {
+
         const searchLower = search.toLowerCase();
         return processes.filter(
             (p) =>
                 p.name.toLowerCase().includes(searchLower) ||
                 p.path?.toLowerCase().includes(searchLower)
         );
+
     }, [processes, search]);
 
     const { gameProcesses, otherProcesses, allFiltered } = useMemo(() => {
+
         const games = filteredProcesses.filter((p) => {
+
             const name = p.name.toLowerCase();
             const path = p.path?.toLowerCase() || "";
             return (
@@ -56,6 +62,7 @@ export function ProcessSelector({
                 name.endsWith("-win64-shipping.exe") ||
                 name.endsWith("-win32-shipping.exe")
             );
+
         });
 
         const others = filteredProcesses.filter((p) => !games.includes(p));
@@ -63,12 +70,14 @@ export function ProcessSelector({
         const all = [...games, ...others];
 
         return { gameProcesses: games, otherProcesses: others, allFiltered: all };
+
     }, [filteredProcesses]);
 
     const selectedProcess = processes.find((p) => p.pid.toString() === value);
 
     const handleKeyDown = useCallback(
         (e: React.KeyboardEvent) => {
+
             if (!isOpen) {
                 if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
                     e.preventDefault();
@@ -132,45 +141,56 @@ export function ProcessSelector({
                     }
                     break;
             }
+
         },
         [isOpen, highlightedIndex, allFiltered, onValueChange]
     );
 
     // Scroll highlighted item into view
     useEffect(() => {
+
         if (isOpen && listRef.current) {
             const highlightedEl = listRef.current.querySelector(
                 `[data-index="${highlightedIndex}"]`
             );
             highlightedEl?.scrollIntoView({ block: "nearest" });
         }
+
     }, [highlightedIndex, isOpen]);
 
     // Close on outside click
     useEffect(() => {
+
         const handleClickOutside = (e: MouseEvent) => {
+
             if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
                 setIsOpen(false);
                 setSearch("");
             }
+
         };
 
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
+
     }, []);
 
     // Reset highlight when search changes
     useEffect(() => {
+
         setHighlightedIndex(0);
+
     }, [search]);
 
     // Reset highlight when opening
     useEffect(() => {
+
         if (isOpen) {
             // Try to highlight the currently selected item
             const selectedIndex = allFiltered.findIndex((p) => p.pid.toString() === value);
             setHighlightedIndex(selectedIndex >= 0 ? selectedIndex : 0);
         }
+
     }, [isOpen, value, allFiltered]);
 
     return (
@@ -179,12 +199,14 @@ export function ProcessSelector({
             <button
                 type="button"
                 onClick={() => {
+
                     if (!disabled) {
                         setIsOpen(!isOpen);
                         if (!isOpen) {
                             setTimeout(() => inputRef.current?.focus(), 0);
                         }
                     }
+
                 }}
                 onKeyDown={handleKeyDown}
                 disabled={disabled}
@@ -259,6 +281,7 @@ export function ProcessSelector({
                                             Games & Launchers
                                         </div>
                                         {gameProcesses.map((p) => {
+
                                             const index = allFiltered.indexOf(p);
                                             return (
                                                 <ProcessItem
@@ -268,13 +291,16 @@ export function ProcessSelector({
                                                     isHighlighted={index === highlightedIndex}
                                                     dataIndex={index}
                                                     onClick={() => {
+
                                                         onValueChange(p.pid.toString());
                                                         setIsOpen(false);
                                                         setSearch("");
+
                                                     }}
                                                     onMouseEnter={() => setHighlightedIndex(index)}
                                                 />
                                             );
+
                                         })}
                                     </>
                                 )}
@@ -287,6 +313,7 @@ export function ProcessSelector({
                                             All Processes
                                         </div>
                                         {otherProcesses.map((p) => {
+
                                             const index = allFiltered.indexOf(p);
                                             return (
                                                 <ProcessItem
@@ -296,13 +323,16 @@ export function ProcessSelector({
                                                     isHighlighted={index === highlightedIndex}
                                                     dataIndex={index}
                                                     onClick={() => {
+
                                                         onValueChange(p.pid.toString());
                                                         setIsOpen(false);
                                                         setSearch("");
+
                                                     }}
                                                     onMouseEnter={() => setHighlightedIndex(index)}
                                                 />
                                             );
+
                                         })}
                                     </>
                                 )}
@@ -316,12 +346,14 @@ export function ProcessSelector({
 }
 
 interface ProcessItemProps {
+
     process: ProcessInfo;
     isSelected: boolean;
     isHighlighted: boolean;
     dataIndex: number;
     onClick: () => void;
     onMouseEnter: () => void;
+
 }
 
 function ProcessItem({

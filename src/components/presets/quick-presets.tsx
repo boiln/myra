@@ -1,9 +1,11 @@
 import { Button } from "@/components/ui/button";
 import {
+
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
+
 } from "@/components/ui/dropdown-menu";
 import { useNetworkStore } from "@/lib/stores/network";
 import { PacketManipulationSettings } from "@/types";
@@ -11,14 +13,17 @@ import { Zap } from "lucide-react";
 import { toast } from "sonner";
 
 interface QuickPreset {
+
     name: string;
     description: string;
     settings: PacketManipulationSettings;
     filter?: string;
+
 }
 
 const QUICK_PRESETS: QuickPreset[] = [
     {
+
         name: "Network Throttle",
         description: "300ms inbound throttle with freeze mode",
         settings: {
@@ -34,13 +39,16 @@ const QUICK_PRESETS: QuickPreset[] = [
             },
         },
         filter: "inbound",
+
     },
 ];
 
 export function QuickPresets() {
+
     const { manipulationStatus, loadStatus, isActive } = useNetworkStore();
 
     const applyQuickPreset = async (preset: QuickPreset) => {
+
         try {
             const { ManipulationService } = await import("@/lib/services/manipulation");
 
@@ -49,6 +57,7 @@ export function QuickPresets() {
 
             // Disable all modules by default
             currentModules.forEach((module) => {
+
                 switch (module.name) {
                     case "lag":
                         newSettings.lag = {
@@ -131,6 +140,7 @@ export function QuickPresets() {
                         };
                         break;
                 }
+
             });
 
             // Apply preset settings on top
@@ -149,6 +159,7 @@ export function QuickPresets() {
         } catch (error) {
             toast.error(`Failed to apply preset: ${error}`, { dismissible: true });
         }
+
     };
 
     return (

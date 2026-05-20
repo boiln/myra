@@ -24,7 +24,6 @@
 //!     },
 //! });
 //! ```
-
 use crate::error::Result;
 use crate::network::core::PacketData;
 use crate::network::modules::burst::flush_buffer;
@@ -44,6 +43,7 @@ use std::time::Instant;
 
 /// Entry for a registered module in the registry.
 pub struct ModuleEntry {
+
     /// Unique identifier for this module
     pub name: &'static str,
     /// Human-readable display name
@@ -52,78 +52,103 @@ pub struct ModuleEntry {
     pub order: u32,
     /// Whether this module needs special handling (like burst flush)
     pub needs_special_handling: bool,
+
 }
 
 /// Information about all registered modules.
 pub const MODULES: &[ModuleEntry] = &[
     ModuleEntry {
+
         name: "drop",
         display_name: "Packet Drop",
         order: 10,
         needs_special_handling: false,
+
     },
     ModuleEntry {
+
         name: "lag",
         display_name: "Packet Lag",
         order: 20,
         needs_special_handling: false,
+
     },
     ModuleEntry {
+
         name: "throttle",
         display_name: "Throttle",
         order: 30,
         needs_special_handling: false,
+
     },
     ModuleEntry {
+
         name: "reorder",
         display_name: "Packet Reorder",
         order: 40,
         needs_special_handling: false,
+
     },
     ModuleEntry {
+
         name: "corruption",
         display_name: "Packet Corruption",
         order: 50,
         needs_special_handling: false,
+
     },
     ModuleEntry {
+
         name: "duplicate",
         display_name: "Packet Duplicate",
         order: 60,
         needs_special_handling: false,
+
     },
     ModuleEntry {
+
         name: "bandwidth",
         display_name: "Bandwidth Limit",
         order: 70,
         needs_special_handling: false,
+
     },
     ModuleEntry {
+
         name: "burst",
         display_name: "Burst (Lag Switch)",
         order: 80,
         needs_special_handling: true, // Needs buffer flush on disable
+
     },
 ];
 
 /// Get all module names as a slice.
 pub fn module_names() -> impl Iterator<Item = &'static str> {
+
     MODULES.iter().map(|m| m.name)
+
 }
 
 /// Get the total number of registered modules.
 pub const fn module_count() -> usize {
+
     MODULES.len()
+
 }
 
 /// Find a module by name.
 pub fn find_module(name: &str) -> Option<&'static ModuleEntry> {
+
     MODULES.iter().find(|m| m.name == name)
+
 }
 
 /// Checks if a specific module is enabled in settings.
 pub fn is_module_enabled(settings: &Settings, name: &str) -> bool {
+
     match name {
+
         "drop" => settings.drop.as_ref().is_some_and(|o| o.enabled),
         "lag" => settings.lag.as_ref().is_some_and(|o| o.enabled),
         "throttle" => settings.throttle.as_ref().is_some_and(|o| o.enabled),
@@ -133,21 +158,27 @@ pub fn is_module_enabled(settings: &Settings, name: &str) -> bool {
         "bandwidth" => settings.bandwidth.as_ref().is_some_and(|o| o.enabled),
         "burst" => settings.burst.as_ref().is_some_and(|o| o.enabled),
         _ => false,
+
     }
+
 }
 
 /// Returns true if any module is currently enabled.
 pub fn has_any_enabled(settings: &Settings) -> bool {
+
     MODULES.iter().any(|m| is_module_enabled(settings, m.name))
+
 }
 
 /// Returns a list of currently enabled module names.
 pub fn get_enabled_modules(settings: &Settings) -> Vec<&'static str> {
+
     MODULES
         .iter()
         .filter(|m| is_module_enabled(settings, m.name))
         .map(|m| m.name)
         .collect()
+
 }
 
 /// Generic module processor that handles common logic.
@@ -169,6 +200,7 @@ pub fn process_module<M>(
 where
     M: PacketModule,
 {
+
     let Some(opts) = options else {
         return Ok(());
     };
@@ -197,6 +229,7 @@ where
     };
 
     module.process(packets, opts, state, &mut ctx)
+
 }
 
 /// Process all registered modules in order.
@@ -209,6 +242,7 @@ pub fn process_all_modules(
     state: &mut ModuleProcessingState,
     statistics: &Arc<RwLock<PacketProcessingStatistics>>,
 ) -> Result<()> {
+
     let has_packets = !packets.is_empty();
 
     process_module(
@@ -308,32 +342,41 @@ pub fn process_all_modules(
     )?;
 
     Ok(())
+
 }
 
 #[cfg(test)]
 mod tests {
+
     use super::*;
 
     #[test]
     fn test_module_count() {
+
         assert_eq!(module_count(), 8);
+
     }
 
     #[test]
     fn test_find_module() {
+
         let drop = find_module("drop");
         assert!(drop.is_some());
         assert_eq!(drop.unwrap().display_name, "Packet Drop");
 
         let invalid = find_module("nonexistent");
         assert!(invalid.is_none());
+
     }
 
     #[test]
     fn test_module_names() {
+
         let names: Vec<_> = module_names().collect();
         assert!(names.contains(&"drop"));
         assert!(names.contains(&"lag"));
         assert!(names.contains(&"burst"));
+
     }
+
 }

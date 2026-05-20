@@ -14,19 +14,26 @@ use rand::{rng, Rng};
 pub struct DropModule;
 
 impl PacketModule for DropModule {
+
     type Options = DropOptions;
     type State = ();
 
     fn name(&self) -> &'static str {
+
         "drop"
+
     }
 
     fn display_name(&self) -> &'static str {
+
         "Packet Drop"
+
     }
 
     fn get_duration_ms(&self, options: &Self::Options) -> u64 {
+
         options.duration_ms
+
     }
 
     fn process(
@@ -36,6 +43,7 @@ impl PacketModule for DropModule {
         _state: &mut Self::State,
         ctx: &mut ModuleContext,
     ) -> Result<()> {
+
         let mut stats = ctx.write_stats(self.name())?;
         drop_packets(
             packets,
@@ -45,7 +53,9 @@ impl PacketModule for DropModule {
             &mut stats.drop_stats,
         );
         Ok(())
+
     }
+
 }
 
 /// Simulates packet dropping based on a specified probability.
@@ -75,9 +85,11 @@ pub fn drop_packets(
     apply_outbound: bool,
     stats: &mut DropStats,
 ) {
+
     let mut rng = rng();
 
     packets.retain(|packet| {
+
         // Check if this packet's direction should be affected
         let matches_direction = (packet.is_outbound && apply_outbound)
             || (!packet.is_outbound && apply_inbound);
@@ -96,18 +108,23 @@ pub fn drop_packets(
 
         stats.record(false);
         true
+
     });
+
 }
 
 #[cfg(test)]
 mod tests {
+
     use super::*;
     use windivert::layer::NetworkLayer;
     use windivert::packet::WinDivertPacket;
 
     #[test]
     fn test_drop_all_packets() {
+
         unsafe {
+
             // Create a test packet
             let mut packets = vec![PacketData::from(WinDivertPacket::<NetworkLayer>::new(
                 vec![1, 2, 3],
@@ -130,12 +147,16 @@ mod tests {
             assert_eq!(drop_stats.total_packets, 1);
             assert_eq!(drop_stats.total_dropped, 1);
             assert_eq!(drop_stats.total_drop_rate(), 1.0);
+
         }
+
     }
 
     #[test]
     fn test_drop_no_packets() {
+
         unsafe {
+
             // Create multiple test packets
             let mut packets = vec![
                 PacketData::from(WinDivertPacket::<NetworkLayer>::new(vec![1, 2, 3])),
@@ -160,6 +181,9 @@ mod tests {
             assert_eq!(drop_stats.total_packets, 2);
             assert_eq!(drop_stats.total_dropped, 0);
             assert_eq!(drop_stats.total_drop_rate(), 0.0);
+
         }
+
     }
+
 }

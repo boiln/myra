@@ -11,9 +11,11 @@ const StatusIndicator = ({ isActive }: { isActive: boolean }) => (
 );
 
 const TargetIndicator = ({ target }: { target: FilterTarget | null }) => {
+
     if (!target) return null;
 
     const getTargetIcon = () => {
+
         switch (target.mode) {
             case "all":
                 return <Globe className="h-3 w-3 text-muted-foreground" />;
@@ -24,9 +26,11 @@ const TargetIndicator = ({ target }: { target: FilterTarget | null }) => {
             case "custom":
                 return <Code className="h-3 w-3 text-muted-foreground" />;
         }
+
     };
 
     const getTargetLabel = () => {
+
         switch (target.mode) {
             case "all":
                 return "All";
@@ -39,6 +43,7 @@ const TargetIndicator = ({ target }: { target: FilterTarget | null }) => {
             case "custom":
                 return "Custom";
         }
+
     };
 
     return (
@@ -48,9 +53,11 @@ const TargetIndicator = ({ target }: { target: FilterTarget | null }) => {
             <span className="text-foreground/70">{getTargetLabel()}</span>
         </div>
     );
+
 };
 
 const PresetIndicator = ({ preset }: { preset: string | null }) => {
+
     if (!preset) return null;
 
     return (
@@ -60,9 +67,11 @@ const PresetIndicator = ({ preset }: { preset: string | null }) => {
             <span className="text-foreground/70">{preset}</span>
         </div>
     );
+
 };
 
 const ModulesIndicator = ({ activeModules }: { activeModules: { display_name: string }[] }) => {
+
     if (activeModules.length === 0) return null;
 
     return (
@@ -74,9 +83,11 @@ const ModulesIndicator = ({ activeModules }: { activeModules: { display_name: st
             </span>
         </div>
     );
+
 };
 
 export function StatusBar() {
+
     const { isActive, manipulationStatus, currentPreset, filterTarget } = useNetworkStore();
     const modules = manipulationStatus.modules;
     const activeModules = modules.filter((m) => m.enabled);
@@ -91,4 +102,5 @@ export function StatusBar() {
             </div>
         </div>
     );
+
 }

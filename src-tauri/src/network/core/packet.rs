@@ -9,6 +9,7 @@ use windivert::packet::WinDivertPacket;
 /// network condition simulations like delays and bandwidth limits.
 #[derive(Debug, Clone)]
 pub struct PacketData<'a> {
+
     /// The actual network packet from `WinDivert`
     pub packet: WinDivertPacket<'a, NetworkLayer>,
 
@@ -17,43 +18,56 @@ pub struct PacketData<'a> {
 
     /// Whether this packet is outbound (upload) or inbound (download)
     pub is_outbound: bool,
+
 }
 
 impl<'a> PacketData<'a> {
     /// Creates a `PacketData` instance from a `WinDivertPacket` with direction info.
     pub fn new(packet: WinDivertPacket<'a, NetworkLayer>, is_outbound: bool) -> Self {
+
         PacketData {
             packet,
             arrival_time: Instant::now(),
             is_outbound,
         }
+
     }
 }
 
 impl<'a> From<WinDivertPacket<'a, NetworkLayer>> for PacketData<'a> {
+
     /// Creates a `PacketData` instance from a `WinDivertPacket`,
     /// automatically recording the current time as arrival time.
     /// Defaults to outbound=false (inbound) when direction is unknown.
     fn from(packet: WinDivertPacket<'a, NetworkLayer>) -> Self {
+
         PacketData {
             packet,
             arrival_time: Instant::now(),
             is_outbound: false, // Default when direction unknown
         }
+
     }
+
 }
 
 /// Methods for working with packet data
 impl PacketData<'_> {
+
     /// Returns the size of the packet in bytes
     pub fn size(&self) -> usize {
+
         self.packet.data.len()
+
     }
 
     /// Returns the time elapsed since the packet was captured
     pub fn age(&self) -> std::time::Duration {
+
         self.arrival_time.elapsed()
+
     }
+
 }
 
 #[cfg(test)]
@@ -62,7 +76,9 @@ mod tests {
 
     #[test]
     fn test_packet_data_creation() {
+
         unsafe {
+
             let dummy_packet = WinDivertPacket::<NetworkLayer>::new(vec![1, 2, 3, 4]);
             let packet_data = PacketData::from(dummy_packet);
 
@@ -75,6 +91,8 @@ mod tests {
 
             // Verify that the arrival time is recent
             assert!(packet_data.age().as_secs() < 1);
+
         }
+
     }
 }

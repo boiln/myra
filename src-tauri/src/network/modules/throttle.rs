@@ -22,6 +22,7 @@ pub struct ThrottleModule;
 #[derive(Debug)]
 #[derive(Default)]
 pub struct ThrottleState {
+
     /// Queue of buffered packets
     pub buffer: VecDeque<PacketData<'static>>,
     /// When the current throttle cycle started (None = not throttling)
@@ -30,23 +31,31 @@ pub struct ThrottleState {
     pub last_flush: Option<Instant>,
     /// When we last let a packet through as keepalive (during throttle)
     pub last_leak: Option<Instant>,
+
 }
 
 
 impl PacketModule for ThrottleModule {
+
     type Options = ThrottleOptions;
     type State = ThrottleState;
 
     fn name(&self) -> &'static str {
+
         "throttle"
+
     }
 
     fn display_name(&self) -> &'static str {
+
         "Network Throttle"
+
     }
 
     fn get_duration_ms(&self, options: &Self::Options) -> u64 {
+
         options.duration_ms
+
     }
 
     fn process<'a>(
@@ -56,6 +65,7 @@ impl PacketModule for ThrottleModule {
         state: &mut Self::State,
         ctx: &mut ModuleContext,
     ) -> Result<()> {
+
         let mut stats = ctx.write_stats(self.name())?;
 
         let buffer: &mut VecDeque<PacketData<'a>> =
@@ -77,7 +87,9 @@ impl PacketModule for ThrottleModule {
             &mut stats.throttle_stats,
         );
         Ok(())
+
     }
+
 }
 
 /// Network throttle implementation.
@@ -123,10 +135,11 @@ pub fn throttle_packets<'a>(
     freeze_mode: bool,
     stats: &mut ThrottleStats,
 ) {
+
     let now = Instant::now();
     let cooldown = Duration::from_millis(40);
     let _ = last_leak; // Reserved for future use
-    
+
     // Cooldown period after flush
     // In freeze_mode: No cooldown - continuous buffering creates freeze effect
     // In normal mode: 40ms cooldown - allows packets to flow, prevents disconnects
@@ -143,6 +156,7 @@ pub fn throttle_packets<'a>(
 
     // Track if we just flushed to prevent immediate re-buffering
     let just_flushed = if should_flush {
+
         let count = buffer.len();
         if drop {
             // Drop Throttled mode - discard all buffered packets
@@ -151,7 +165,7 @@ pub fn throttle_packets<'a>(
             stats.dropped_count += count;
         } else {
             // Release mode - send all buffered packets at once
-            info!("THROTTLE: Releasing {} buffered packets (throttle was {}ms)", 
+            info!("THROTTLE: Releasing {} buffered packets (throttle was {}ms)",
                   count, timeframe.as_millis());
             while let Some(packet) = buffer.pop_front() {
                 packets.push(packet);
@@ -161,6 +175,7 @@ pub fn throttle_packets<'a>(
         *last_flush = Some(now); // Start cooldown
         stats.is_throttling = false;
         true // Mark that we just flushed
+
     } else {
         false
     };
@@ -173,12 +188,12 @@ pub fn throttle_packets<'a>(
     } else {
         cycle_start.is_none() && !in_cooldown && !just_flushed
     };
-    
+
     if can_start_new_cycle && rand::rng().random_bool(probability.value()) {
         *cycle_start = Some(now);
         info!("THROTTLE: Starting new {}ms throttle cycle", timeframe.as_millis());
     }
-    
+
     if !can_start_new_cycle && in_cooldown {
         // During cooldown, packets pass through freely
         // This is logged only occasionally to avoid spam
@@ -191,7 +206,7 @@ pub fn throttle_packets<'a>(
     // If throttling, buffer matching packets
     // But let very small packets through (ACKs, keepalives) to maintain connection
     const KEEPALIVE_THRESHOLD: usize = 80; // Packets <= this size pass through (ACKs, keepalives)
-    
+
     if cycle_start.is_some() {
         let mut buffered_this_cycle = 0;
         let mut passthrough_count = 0;
@@ -229,7 +244,7 @@ pub fn throttle_packets<'a>(
         }
 
         if buffered_this_cycle > 0 || passthrough_count > 0 {
-            debug!("THROTTLE: Buffered {} packets, {} small packets passed through (total buffered: {})", 
+            debug!("THROTTLE: Buffered {} packets, {} small packets passed through (total buffered: {})",
                   buffered_this_cycle, passthrough_count, buffer.len());
         }
 
@@ -240,6 +255,7 @@ pub fn throttle_packets<'a>(
 
 #[cfg(test)]
 mod tests {
+
     use super::*;
     use std::time::Duration;
     use windivert::layer::NetworkLayer;
@@ -247,7 +263,9 @@ mod tests {
 
     #[test]
     fn test_throttle_buffering() {
+
         unsafe {
+
             let mut packets = vec![
                 PacketData::new(WinDivertPacket::<NetworkLayer>::new(vec![1, 2, 3]), true),
                 PacketData::new(WinDivertPacket::<NetworkLayer>::new(vec![4, 5, 6]), true),
@@ -279,12 +297,16 @@ mod tests {
             assert_eq!(packets.len(), 0);
             assert_eq!(buffer.len(), 3);
             assert!(stats.is_throttling);
+
         }
+
     }
 
     #[test]
     fn test_throttle_release_on_timeframe_end() {
+
         unsafe {
+
             let mut packets = Vec::new();
             let mut buffer = VecDeque::new();
             buffer.push_back(PacketData::new(
@@ -323,12 +345,16 @@ mod tests {
             assert_eq!(buffer.len(), 0);
             // last_flush should be set after release
             assert!(last_flush.is_some());
+
         }
+
     }
 
     #[test]
     fn test_throttle_drop_mode() {
+
         unsafe {
+
             let mut packets = Vec::new();
             let mut buffer = VecDeque::new();
             buffer.push_back(PacketData::new(
@@ -361,6 +387,9 @@ mod tests {
             assert_eq!(packets.len(), 0);
             assert_eq!(buffer.len(), 0);
             assert_eq!(stats.dropped_count, 1);
+
         }
+
     }
+
 }

@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Parser, Debug, Serialize, Deserialize, Clone)]
 pub struct CorruptionOptions {
+
     /// Whether this module is enabled
     #[arg(skip)]
     #[serde(default)]
@@ -42,11 +43,14 @@ pub struct CorruptionOptions {
     )]
     #[serde(default)]
     pub recalculate_checksums: Option<bool>,
+
 }
 
 impl Default for CorruptionOptions {
     fn default() -> Self {
+
         Self {
+
             enabled: false,
             inbound: true,
             outbound: true,
@@ -54,6 +58,8 @@ impl Default for CorruptionOptions {
             amount: Probability::new(0.1).unwrap(),
             duration_ms: 0,
             recalculate_checksums: Some(true),
+
         }
+
     }
 }

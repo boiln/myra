@@ -15,23 +15,32 @@ use std::vec::Vec;
 pub struct DuplicateModule;
 
 impl PacketModule for DuplicateModule {
+
     type Options = DuplicateOptions;
     type State = ();
 
     fn name(&self) -> &'static str {
+
         "duplicate"
+
     }
 
     fn display_name(&self) -> &'static str {
+
         "Packet Duplicate"
+
     }
 
     fn get_duration_ms(&self, options: &Self::Options) -> u64 {
+
         options.duration_ms
+
     }
 
     fn should_skip(&self, options: &Self::Options) -> bool {
+
         options.count == 0 || options.probability.value() <= 0.0
+
     }
 
     fn process(
@@ -41,6 +50,7 @@ impl PacketModule for DuplicateModule {
         _state: &mut Self::State,
         ctx: &mut ModuleContext,
     ) -> Result<()> {
+
         let mut stats = ctx.write_stats(self.name())?;
 
         duplicate_packets(
@@ -52,7 +62,9 @@ impl PacketModule for DuplicateModule {
             &mut stats.duplicate_stats,
         );
         Ok(())
+
     }
+
 }
 
 /// Duplicates packets according to a probability
@@ -74,6 +86,7 @@ pub fn duplicate_packets(
     apply_outbound: bool,
     stats: &mut DuplicateStats,
 ) {
+
     let mut rng = rand::rng();
     let mut duplicate_packets_vec = Vec::with_capacity(packets.len() * count);
 
@@ -101,10 +114,12 @@ pub fn duplicate_packets(
     }
 
     packets.extend(duplicate_packets_vec);
+
 }
 
 #[cfg(test)]
 mod tests {
+
     use crate::network::core::packet::PacketData;
     use crate::network::modules::duplicate::duplicate_packets;
     use crate::network::modules::stats::duplicate_stats::DuplicateStats;
@@ -114,7 +129,9 @@ mod tests {
 
     #[test]
     fn test_packet_duplication() {
+
         unsafe {
+
             let original_packets = vec![PacketData::from(WinDivertPacket::<NetworkLayer>::new(
                 vec![1, 2, 3],
             ))];
@@ -140,6 +157,9 @@ mod tests {
                     assert_eq!(packet_data.packet.data[..], [1, 2, 3]);
                 }
             }
+
         }
+
     }
+
 }

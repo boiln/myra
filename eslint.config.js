@@ -27,6 +27,7 @@ export default [
             "import/order": [
                 "warn",
                 {
+
                     groups: [
                         "builtin",
                         "external",
@@ -65,6 +66,7 @@ export default [
                         order: "asc",
                         caseInsensitive: true,
                     },
+
                 },
             ],
             "import/no-unresolved": "off",

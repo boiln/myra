@@ -8,9 +8,11 @@ import { ModuleInfo, PacketManipulationSettings } from "@/types";
 
 // Build settings from modules - always includes all modules with enabled flag
 const buildSettings = (modules: ModuleInfo[]) => {
+
     const settings: PacketManipulationSettings = {};
 
     modules.forEach((module) => {
+
         // Always include settings, with enabled flag to track active state
         switch (module.name) {
             case "lag":
@@ -104,6 +106,7 @@ const buildSettings = (modules: ModuleInfo[]) => {
                 };
                 break;
         }
+
     });
 
     // Always include burst_release_delay_us
@@ -113,6 +116,7 @@ const buildSettings = (modules: ModuleInfo[]) => {
     }
 
     return settings;
+
 };
 
 interface NetworkStoreWithUtils extends NetworkStore {

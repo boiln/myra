@@ -20,19 +20,26 @@ pub struct LagModule;
 pub type LagState = VecDeque<PacketData<'static>>;
 
 impl PacketModule for LagModule {
+
     type Options = LagOptions;
     type State = LagState;
 
     fn name(&self) -> &'static str {
+
         "lag"
+
     }
 
     fn display_name(&self) -> &'static str {
+
         "Lag"
+
     }
 
     fn get_duration_ms(&self, options: &Self::Options) -> u64 {
+
         options.duration_ms
+
     }
 
     fn process<'a>(
@@ -42,6 +49,7 @@ impl PacketModule for LagModule {
         state: &mut Self::State,
         ctx: &mut ModuleContext,
     ) -> Result<()> {
+
         let mut stats = ctx.write_stats(self.name())?;
 
         // SAFETY: The storage outlives each processing call. Packets are moved into
@@ -60,7 +68,9 @@ impl PacketModule for LagModule {
             &mut stats.lag_stats,
         );
         Ok(())
+
     }
+
 }
 
 /// Simulates network lag by holding packets for a specified duration.
@@ -104,6 +114,7 @@ pub fn lag_packets<'a>(
     apply_outbound: bool,
     stats: &mut LagStats,
 ) {
+
     let mut rng = rng();
     let mut passthrough_packets = Vec::new();
     let prob_value = probability.value();
@@ -136,7 +147,7 @@ pub fn lag_packets<'a>(
             // none of the following ones will be either
             break;
         }
-        
+
         let Some(packet) = storage.pop_front() else { break };
         passthrough_packets.push(packet);
     }
@@ -144,10 +155,12 @@ pub fn lag_packets<'a>(
     // Put all packets (passthrough + released) back into the output
     packets.extend(passthrough_packets);
     stats.lagged_package_count(storage.len());
+
 }
 
 #[cfg(test)]
 mod tests {
+
     use super::*;
     use crate::network::modules::stats::lag_stats::LagStats;
     use std::time::{Duration, Instant};
@@ -156,7 +169,9 @@ mod tests {
 
     #[test]
     fn test_lag_packets_immediate_release_after_lag() {
+
         unsafe {
+
             // Create test packet with an arrival time in the past
             let mut old_packet =
                 PacketData::from(WinDivertPacket::<NetworkLayer>::new(vec![1, 2, 3]));
@@ -185,12 +200,16 @@ mod tests {
             assert_eq!(packets.len(), 1);
             assert_eq!(storage.len(), 0);
             assert_eq!(stats.current_lagged(), 0);
+
         }
+
     }
 
     #[test]
     fn test_lag_packets_held_until_lag_elapsed() {
+
         unsafe {
+
             // Create a new packet (will have recent arrival time)
             let packet = PacketData::from(WinDivertPacket::<NetworkLayer>::new(vec![1, 2, 3]));
 
@@ -213,12 +232,16 @@ mod tests {
             assert_eq!(packets.len(), 0);
             assert_eq!(storage.len(), 1);
             assert_eq!(stats.current_lagged(), 1);
+
         }
+
     }
 
     #[test]
     fn test_all_packets_lagged_with_100_percent() {
+
         unsafe {
+
             // Create multiple packets
             let packet1 = PacketData::from(WinDivertPacket::<NetworkLayer>::new(vec![1, 2, 3]));
             let packet2 = PacketData::from(WinDivertPacket::<NetworkLayer>::new(vec![4, 5, 6]));
@@ -243,6 +266,9 @@ mod tests {
             assert_eq!(packets.len(), 0);
             assert_eq!(storage.len(), 3);
             assert_eq!(stats.current_lagged(), 3);
+
         }
+
     }
+
 }

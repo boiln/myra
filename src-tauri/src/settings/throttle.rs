@@ -4,11 +4,14 @@ use clap::Parser;
 use serde::{Deserialize, Serialize};
 
 fn default_max_buffer() -> usize {
+
     2000
+
 }
 
 #[derive(Parser, Debug, Serialize, Deserialize, Clone)]
 pub struct ThrottleOptions {
+
     /// Whether this module is enabled
     #[arg(skip)]
     #[serde(default)]
@@ -62,15 +65,20 @@ pub struct ThrottleOptions {
     #[arg(long = "throttle-freeze-mode", default_value_t = false, id = "throttle-freeze-mode")]
     #[serde(default)]
     pub freeze_mode: bool,
+
 }
 
 fn default_throttle_ms() -> u64 {
+
     300
+
 }
 
 impl Default for ThrottleOptions {
     fn default() -> Self {
+
         Self {
+
             enabled: false,
             inbound: true,
             outbound: true,
@@ -80,6 +88,8 @@ impl Default for ThrottleOptions {
             drop: false,
             max_buffer: 2000,
             freeze_mode: false,
+
         }
+
     }
 }

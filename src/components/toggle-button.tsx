@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { HotkeyBadge } from "@/components/hotkey-badge";
 
 export function ToggleButton() {
+
     const { isActive, isTogglingActive, toggleActive } = useNetworkStore();
 
     return (
@@ -13,6 +14,7 @@ export function ToggleButton() {
             <motion.div
                 whileTap={{ scale: 0.97 }}
                 animate={{
+
                     boxShadow: isActive
                         ? [
                               "0 0 0 rgba(225, 29, 72, 0)",
@@ -24,6 +26,7 @@ export function ToggleButton() {
                               "0 0 10px rgba(5, 150, 105, 0.3)",
                               "0 0 0 rgba(5, 150, 105, 0)",
                           ],
+
                 }}
                 transition={{
                     boxShadow: {
@@ -58,4 +61,5 @@ export function ToggleButton() {
             <HotkeyBadge action="toggleFilter" />
         </div>
     );
+
 }

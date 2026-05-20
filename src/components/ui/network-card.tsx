@@ -13,6 +13,7 @@ interface NetworkCardProps extends Omit<
 
 export const NetworkCard = React.forwardRef<HTMLDivElement, NetworkCardProps>(
     ({ isActive = false, isFeatured = false, children, className, ...props }, ref) => {
+
         const [isHovered, setIsHovered] = useState(false);
 
         return (
@@ -48,6 +49,7 @@ export const NetworkCard = React.forwardRef<HTMLDivElement, NetworkCardProps>(
                 {children}
             </motion.div>
         );
+
     }
 );
 

@@ -34,7 +34,6 @@
 //!     .with_lag_chance(50.0)  // 50% chance of lag
 //!     .build();
 //! ```
-
 // Enforce stricter lints for code quality
 #![warn(clippy::all, clippy::pedantic, clippy::nursery)]
 #![allow(

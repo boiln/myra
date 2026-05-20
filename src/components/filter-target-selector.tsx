@@ -11,12 +11,14 @@ import { ProcessInfo } from "@/types";
 import { ProcessSelector } from "@/components/ui/process-selector";
 import { MyraCheckbox } from "@/components/ui/myra-checkbox";
 import {
+
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
     DropdownMenuLabel,
     DropdownMenuSeparator,
+
 } from "@/components/ui/dropdown-menu";
 import { ManipulationService } from "@/lib/services/manipulation";
 
@@ -25,6 +27,7 @@ interface FilterTargetSelectorProps {
 }
 
 export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
+
     const { isActive, filter, updateFilter, filterTarget, setFilterTarget, isInitialized } =
         useNetworkStore();
 
@@ -55,13 +58,16 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
 
     // Sync local filter with store filter
     useEffect(() => {
+
         if (filter && filter !== localFilter) {
             setLocalFilter(filter);
         }
+
     }, [filter]);
 
     // Sync state when filterTarget changes (e.g., from loading preset)
     useEffect(() => {
+
         if (filterTarget) {
             // Skip auto-apply when syncing from preset - the filter was already set
             skipAutoApplyRef.current = true;
@@ -76,13 +82,17 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
 
             // Reset the skip flag after state updates propagate
             setTimeout(() => {
+
                 skipAutoApplyRef.current = false;
+
             }, 200);
         }
+
     }, [filterTarget]);
 
     // Load processes
     const loadProcesses = useCallback(async () => {
+
         setLoadingProcesses(true);
         try {
             const result = await invoke<ProcessInfo[]>("list_processes");
@@ -96,15 +106,18 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
 
     // Load processes on mount
     useEffect(() => {
+
         loadProcesses();
         // Load filter history
         ManipulationService.getFilterHistory()
             .then((list) => setPreviousFilters(list ?? []))
             .catch(() => setPreviousFilters([]));
+
     }, [loadProcesses]);
 
     // Validate filter with backend
     const validateFilter = useCallback(async (filterStr: string): Promise<boolean> => {
+
         try {
             const isValid = await invoke<boolean>("validate_filter", { filter: filterStr });
             if (isValid) {
@@ -120,6 +133,7 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
 
     // Build filter string from current state
     const buildFilterString = useCallback(async (): Promise<string> => {
+
         let baseFilter = "";
 
         // Build direction part
@@ -183,10 +197,12 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
 
     // Auto-apply filter when dependencies change
     useEffect(() => {
+
         // Skip if filtering is active, syncing from preset, or app not yet initialized
         if (isActive || skipAutoApplyRef.current || !isInitialized) return;
 
         const applyFilter = async () => {
+
             const newFilter = await buildFilterString();
 
             // If a specific filter is already set in store and differs,
@@ -202,6 +218,7 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
             if (isValid) {
                 await updateFilter(newFilter);
             }
+
         };
 
         // Debounce the filter application
@@ -211,10 +228,13 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
         filterTimeoutRef.current = setTimeout(applyFilter, 150);
 
         return () => {
+
             if (filterTimeoutRef.current) {
                 clearTimeout(filterTimeoutRef.current);
             }
+
         };
+
     }, [
         selectedProcess,
         includeInbound,
@@ -229,13 +249,16 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
 
     // Handle manual filter input change
     const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+
         const newFilter = e.target.value;
         setLocalFilter(newFilter);
         setFilterError(null);
+
     };
 
     // Handle filter blur - validate and apply
     const handleFilterBlur = async () => {
+
         if (isActive || localFilter === filter) return;
 
         const isValid = await validateFilter(localFilter);
@@ -247,10 +270,12 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                 setPreviousFilters(list ?? []);
             } catch {}
         }
+
     };
 
     // Handle filter keydown
     const handleFilterKeyDown = async (e: React.KeyboardEvent) => {
+
         if (e.key === "Enter" && !isActive) {
             e.preventDefault();
             const isValid = await validateFilter(localFilter);
@@ -258,10 +283,12 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                 await updateFilter(localFilter);
             }
         }
+
     };
 
     // Handle direction change
     const handleDirectionChange = (direction: "inbound" | "outbound", checked: boolean) => {
+
         if (direction === "inbound") {
             // Ensure at least one is selected
             if (!checked && !includeOutbound) {
@@ -279,10 +306,13 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
 
     // Handle process change
     const handleProcessChange = (value: string) => {
+
         setSelectedProcess(value);
+
     };
 
     const applyPreviousFilter = async (value: string) => {
+
         if (isActive) return; // Do not change while active
         const ok = await validateFilter(value);
         if (!ok) return;
@@ -292,6 +322,7 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
             const list = await ManipulationService.getFilterHistory();
             setPreviousFilters(list ?? []);
         } catch {}
+
     };
 
     return (
@@ -361,11 +392,13 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
                                 onClick={async () => {
+
                                     if (disabled || isActive) return;
                                     try {
                                         await ManipulationService.clearFilterHistory();
                                         setPreviousFilters([]);
                                     } catch {}
+
                                 }}
                                 className="text-xs text-muted-foreground"
                                 disabled={disabled || isActive || previousFilters.length === 0}

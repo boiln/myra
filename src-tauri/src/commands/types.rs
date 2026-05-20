@@ -2,7 +2,6 @@
 //!
 //! This module contains the data structures used for communication
 //! between the Tauri frontend and backend.
-
 use serde::{Deserialize, Serialize};
 
 /// Information about a network condition simulation module.
@@ -11,6 +10,7 @@ use serde::{Deserialize, Serialize};
 /// network condition simulation module (e.g., lag, drop, throttle).
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ModuleInfo {
+
     /// Internal identifier for the module
     pub name: String,
     /// User-friendly display name
@@ -21,6 +21,7 @@ pub struct ModuleInfo {
     pub config: ModuleConfig,
     /// Additional module-specific parameters
     pub params: Option<ModuleParams>,
+
 }
 
 /// Configuration for a network condition simulation module.
@@ -29,6 +30,7 @@ pub struct ModuleInfo {
 /// including which directions to affect and the probability of action.
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct ModuleConfig {
+
     /// Whether to apply to inbound traffic
     pub inbound: bool,
     /// Whether to apply to outbound traffic
@@ -79,6 +81,7 @@ pub struct ModuleConfig {
     /// Reverse mode - release packets in reverse order (for reorder/burst)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reverse: Option<bool>,
+
 }
 
 /// Additional parameters for a network condition simulation module.
@@ -97,6 +100,7 @@ pub struct ModuleParams {
 /// including whether it's running, statistics, and module configurations.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ProcessingStatisticsDto {
+
     // Burst stats
     pub burst_buffered: usize,
     pub burst_released: usize,
@@ -109,14 +113,17 @@ pub struct ProcessingStatisticsDto {
     pub lag_current_lagged: usize,
     // Reorder stats (optional, useful to know queued delayed packets)
     pub reorder_delayed_packets: usize,
+
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ProcessingStatus {
+
     /// Whether packet processing is currently running
     pub running: bool,
     /// Current processing statistics, if available
     pub statistics: Option<ProcessingStatisticsDto>,
     /// Configuration of all available modules
     pub modules: Vec<ModuleInfo>,
+
 }

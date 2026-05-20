@@ -31,6 +31,7 @@ export function ThemeProvider({
     );
 
     useEffect(() => {
+
         const root = window.document.documentElement;
         root.classList.remove("light", "dark");
 
@@ -44,13 +45,16 @@ export function ThemeProvider({
             : "light";
 
         root.classList.add(systemTheme);
+
     }, [theme]);
 
     const value = {
         theme,
         setTheme: (theme: Theme) => {
+
             localStorage.setItem(storageKey, theme);
             setTheme(theme);
+
         },
     };
 
@@ -58,9 +62,11 @@ export function ThemeProvider({
 }
 
 export const useTheme = () => {
+
     const context = useContext(ThemeProviderContext);
 
     if (context === undefined) throw new Error("useTheme must be used within a ThemeProvider");
 
     return context;
+
 };

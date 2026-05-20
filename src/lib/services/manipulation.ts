@@ -1,20 +1,26 @@
 import { invoke } from "@tauri-apps/api/core";
 import {
+
     FilterTarget,
     LoadConfigResponse,
+    ManipulationMode,
     PacketManipulationSettings,
     ProcessingStatus,
+
 } from "@/types";
+import { ClassicBackendSettings } from "@/types/classic";
 
 // Track WFP throttle state to avoid duplicate start/stop calls
 let wfpThrottleActive = false;
 
 export const ManipulationService = {
     async startProcessing(settings: PacketManipulationSettings, filter?: string): Promise<void> {
+
         // Start the filtering first
         await invoke("start_processing", { settings, filter });
         // Then start WFP throttle if needed (filtering is now active)
         await this.handleWfpThrottle(settings, true);
+
     },
 
     async stopProcessing(): Promise<void> {
@@ -33,12 +39,14 @@ export const ManipulationService = {
         settings: PacketManipulationSettings,
         isFilteringActive: boolean = false
     ): Promise<void> {
+
         // Handle WFP throttle based on bandwidth settings AND filtering state
         await this.handleWfpThrottle(settings, isFilteringActive);
 
         // Create the modules array from settings
         const modules = this.createModulesFromSettings(settings);
         return invoke("update_settings", { modules });
+
     },
 
     // Handle WFP throttle based on bandwidth settings - only starts when filtering is active
@@ -46,6 +54,7 @@ export const ManipulationService = {
         settings: PacketManipulationSettings,
         isFilteringActive: boolean
     ): Promise<void> {
+
         const bandwidth = settings.bandwidth;
         // WFP should only be active when: bandwidth enabled + use_wfp checked + filtering is running
         const shouldBeActive = bandwidth?.enabled && bandwidth?.use_wfp && isFilteringActive;
@@ -79,6 +88,7 @@ export const ManipulationService = {
             await this.stopWfpThrottle();
             await this.startWfpThrottle(bandwidth!.limit || 1, direction);
         }
+
     },
 
     async startWfpThrottle(limitKbps: number, direction: string): Promise<void> {
@@ -88,6 +98,7 @@ export const ManipulationService = {
         } catch (e) {
             console.error("Failed to start WFP throttle:", e);
         }
+
     },
 
     async stopWfpThrottle(): Promise<void> {
@@ -102,6 +113,7 @@ export const ManipulationService = {
     // Helper function to convert settings to modules array
     // Always sends all modules with their settings, using enabled field to track active state
     createModulesFromSettings(settings: PacketManipulationSettings): any[] {
+
         const modules = [];
 
         // Lag module - always include
@@ -303,6 +315,7 @@ export const ManipulationService = {
         });
 
         return modules;
+
     },
 
     async getSettings(): Promise<PacketManipulationSettings> {
@@ -329,8 +342,11 @@ export const ManipulationService = {
         name: string,
         filterTarget?: FilterTarget,
         hotkeys?: { action: string; shortcut: string | null; enabled: boolean }[],
-        tap?: { enabled: boolean; interval_ms: number; duration_ms: number }
+        tap?: { enabled: boolean; interval_ms: number; duration_ms: number },
+        classic?: ClassicBackendSettings,
+        mode?: ManipulationMode
     ): Promise<void> {
+
         // Convert camelCase to snake_case for Rust
         const rustFilterTarget = filterTarget
             ? {
@@ -345,7 +361,15 @@ export const ManipulationService = {
               }
             : undefined;
 
-        return invoke("save_config", { name, filterTarget: rustFilterTarget, hotkeys, tap });
+        return invoke("save_config", {
+            name,
+            filterTarget: rustFilterTarget,
+            hotkeys,
+            tap,
+            classic,
+            mode,
+        });
+
     },
 
     async loadConfig(name: string): Promise<LoadConfigResponse> {

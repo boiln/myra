@@ -3,6 +3,7 @@ import { FilterTargetSelector } from "@/components/filter-target-selector";
 import { ToggleButton } from "@/components/toggle-button";
 
 export function NetworkControls() {
+
     return (
         <motion.div
             initial={{ opacity: 0.9, y: 5 }}
@@ -18,4 +19,5 @@ export function NetworkControls() {
             </div>
         </motion.div>
     );
+
 }

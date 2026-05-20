@@ -4,6 +4,7 @@ import { ManipulationService } from "@/lib/services/manipulation";
 import { DEFAULT_PRESET_NAME } from "@/lib/stores/network/constants";
 import { useHotkeyStore } from "@/lib/stores/hotkey-store";
 import { useTapStore } from "@/lib/stores/tap-store";
+import { useClassicStore } from "@/lib/stores/classic-store";
 
 export const createPresetSlice: StateCreator<
     NetworkStore,
@@ -15,6 +16,7 @@ export const createPresetSlice: StateCreator<
     >
 > = (set, get) => ({
     loadPresets: async () => {
+
         try {
             set({ loadingPresets: true });
             const presets = await ManipulationService.listConfigs();
@@ -26,7 +28,8 @@ export const createPresetSlice: StateCreator<
         }
     },
 
-    savePreset: async (name: string) => {
+    savePreset: async (name: string, mode?: "standard" | "classic") => {
+
         try {
             const settings = await ManipulationService.getSettings();
             // Use store filter as fallback - backend may return null if not set
@@ -50,9 +53,19 @@ export const createPresetSlice: StateCreator<
                 duration_ms: tapSettings.durationMs,
             };
 
+            // Get classic settings
+            const classicSettings = useClassicStore.getState().getBackendSettings();
+
             await ManipulationService.updateSettings(settings, get().isActive);
             await ManipulationService.updateFilter(filter);
-            await ManipulationService.saveConfig(name, filterTarget || undefined, hotkeys, tap);
+            await ManipulationService.saveConfig(
+                name,
+                filterTarget || undefined,
+                hotkeys,
+                tap,
+                classicSettings,
+                mode
+            );
             await get().loadPresets();
             set({ currentPreset: name });
         } catch (error) {
@@ -61,6 +74,7 @@ export const createPresetSlice: StateCreator<
     },
 
     loadPreset: async (name: string) => {
+
         try {
             const response = await ManipulationService.loadConfig(name);
 
@@ -115,14 +129,27 @@ export const createPresetSlice: StateCreator<
                 });
             }
 
+            // Restore classic settings if present
+            if (response.classic) {
+                useClassicStore.getState().initializeFromBackend(response.classic);
+            }
+
+            // Return mode so caller can update UI
+            const loadedMode = (response.mode as "standard" | "classic") ?? "standard";
+
             await get().loadStatus();
             set({ currentPreset: name });
+
+            // Return the loaded mode for the caller to handle
+            return { mode: loadedMode };
         } catch (error) {
             console.error("Failed to load preset:", error);
+            return undefined;
         }
     },
 
     deletePreset: async (name: string) => {
+
         if (name === DEFAULT_PRESET_NAME) return;
 
         try {
@@ -138,6 +165,7 @@ export const createPresetSlice: StateCreator<
     },
 
     initializeDefaultPreset: async () => {
+
         try {
             const configs = await ManipulationService.listConfigs();
 

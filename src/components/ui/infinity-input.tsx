@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 interface InfinityInputProps {
+
     id: string;
     value: string | number;
     onChange: (e: ChangeEvent<HTMLInputElement>) => void;
@@ -12,6 +13,7 @@ interface InfinityInputProps {
     infinityLabel?: string;
     /** Placeholder when clicking on infinity to edit */
     editPlaceholder?: string;
+
 }
 
 /**
@@ -36,42 +38,53 @@ export function InfinityInput({
 
     // Sync local value when prop changes (but not during editing)
     useEffect(() => {
+
         if (!isEditing) {
             setLocalValue(isInfinity ? "" : value.toString());
         }
+
     }, [value, isInfinity, isEditing]);
 
     // Focus input when entering edit mode
     useEffect(() => {
+
         if (isEditing && inputRef.current) {
             inputRef.current.focus();
             inputRef.current.select();
         }
+
     }, [isEditing]);
 
     const handleInfinityClick = () => {
+
         if (disabled) return;
         setIsEditing(true);
         setLocalValue("");
+
     };
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+
         const input = e.target.value;
         setLocalValue(input);
-        
+
         // Forward the change event
         onChange(e);
+
     };
 
     const handleBlur = () => {
+
         setIsEditing(false);
         // If empty or 0, show infinity
         if (localValue === "" || localValue === "0") {
             setLocalValue("");
         }
+
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
+
         if (e.key === "Escape") {
             setIsEditing(false);
             setLocalValue(isInfinity ? "" : value.toString());
@@ -81,6 +94,7 @@ export function InfinityInput({
         if (e.key === "Enter") {
             setIsEditing(false);
         }
+
     };
 
     // Show infinity display when value is 0 and not editing

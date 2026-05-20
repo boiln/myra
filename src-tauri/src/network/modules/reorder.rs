@@ -21,19 +21,26 @@ pub struct ReorderModule;
 pub type ReorderState = BinaryHeap<DelayedPacket<'static>>;
 
 impl PacketModule for ReorderModule {
+
     type Options = ReorderOptions;
     type State = ReorderState;
 
     fn name(&self) -> &'static str {
+
         "reorder"
+
     }
 
     fn display_name(&self) -> &'static str {
+
         "Packet Reorder"
+
     }
 
     fn get_duration_ms(&self, options: &Self::Options) -> u64 {
+
         options.duration_ms
+
     }
 
     fn process<'a>(
@@ -43,6 +50,7 @@ impl PacketModule for ReorderModule {
         state: &mut Self::State,
         ctx: &mut ModuleContext,
     ) -> Result<()> {
+
         let mut stats = ctx.write_stats(self.name())?;
 
         // Safety: We need to transmute lifetimes here because the storage persists
@@ -59,7 +67,9 @@ impl PacketModule for ReorderModule {
             &mut stats.reorder_stats,
         );
         Ok(())
+
     }
+
 }
 
 /// Reorders packets based on specified probability and delay parameters
@@ -86,6 +96,7 @@ pub fn reorder_packets<'a>(
     apply_outbound: bool,
     stats: &mut ReorderStats,
 ) {
+
     if max_delay.as_millis() == 0 {
         warn!("Max delay cannot be zero. Skipping packet reordering.");
         return;
@@ -155,7 +166,7 @@ pub fn reorder_packets<'a>(
             error!("Expected a delayed packet, but none was found in storage.");
             break;
         };
-        
+
         released_packets.push(delayed_packet.packet);
         released_count += 1;
     }
@@ -169,4 +180,5 @@ pub fn reorder_packets<'a>(
             storage.len()
         );
     }
+
 }

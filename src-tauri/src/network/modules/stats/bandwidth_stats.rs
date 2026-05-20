@@ -11,6 +11,7 @@ use std::time::{Duration, Instant};
 /// It provides methods to record traffic and retrieve statistics about recent throughput.
 #[derive(Debug)]
 pub struct BandwidthStats {
+
     /// Number of packets currently held in the bandwidth limiter's buffer
     pub(crate) storage_packet_count: usize,
 
@@ -28,9 +29,11 @@ pub struct BandwidthStats {
 
     /// Interval at which to update the EWMA
     update_interval: Duration,
+
 }
 
 impl BandwidthStats {
+
     /// Creates a new `BandwidthStats` instance with the specified alpha value for the EWMA
     ///
     /// The alpha value controls how quickly the EWMA responds to changes in throughput.
@@ -47,14 +50,18 @@ impl BandwidthStats {
     /// let stats = BandwidthStats::new(0.5); // Equal weight to recent and historical data
     /// ```
     pub fn new(alpha: f64) -> Self {
+
         Self {
+
             storage_packet_count: 0,
             total_byte_count: 0,
             ewma: Ewma::new(alpha),
             recent_byte_sent: 0,
             recent_timer: Instant::now(),
             update_interval: Duration::from_millis(100),
+
         }
+
     }
 
     /// Records bytes sent and updates the throughput statistics
@@ -68,6 +75,7 @@ impl BandwidthStats {
     ///
     /// * `bytes_sent` - The number of bytes sent in this operation
     pub fn record(&mut self, bytes_sent: usize) {
+
         self.total_byte_count += bytes_sent;
         self.recent_byte_sent += bytes_sent;
         if self.recent_timer.elapsed() >= self.update_interval {
@@ -77,6 +85,7 @@ impl BandwidthStats {
             self.recent_byte_sent = 0;
             self.recent_timer = Instant::now();
         }
+
     }
 
     /// Returns the total number of bytes sent
@@ -85,7 +94,9 @@ impl BandwidthStats {
     ///
     /// The total number of bytes that have passed through the bandwidth limiter
     pub fn total_bytes(&self) -> usize {
+
         self.total_byte_count
+
     }
 
     /// Returns the number of packets currently held in the buffer
@@ -94,17 +105,22 @@ impl BandwidthStats {
     ///
     /// The number of packets being held in the bandwidth limiter's buffer
     pub fn buffered_packets(&self) -> usize {
+
         self.storage_packet_count
+
     }
 
     /// Resets all statistics to zero
     ///
     /// This resets the packet count, byte count, and EWMA calculations.
     pub fn reset(&mut self) {
+
         self.storage_packet_count = 0;
         self.total_byte_count = 0;
         self.recent_byte_sent = 0;
         self.ewma.reset();
         self.recent_timer = Instant::now();
+
     }
+
 }

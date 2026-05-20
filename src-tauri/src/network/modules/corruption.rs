@@ -17,19 +17,26 @@ use windivert_sys::ChecksumFlags;
 pub struct CorruptionModule;
 
 impl PacketModule for CorruptionModule {
+
     type Options = CorruptionOptions;
     type State = ();
 
     fn name(&self) -> &'static str {
+
         "corruption"
+
     }
 
     fn display_name(&self) -> &'static str {
+
         "Packet Corruption"
+
     }
 
     fn get_duration_ms(&self, options: &Self::Options) -> u64 {
+
         options.duration_ms
+
     }
 
     fn process(
@@ -39,6 +46,7 @@ impl PacketModule for CorruptionModule {
         _state: &mut Self::State,
         ctx: &mut ModuleContext,
     ) -> Result<()> {
+
         let mut stats = ctx.write_stats(self.name())?;
 
         corruption_packets(
@@ -51,7 +59,9 @@ impl PacketModule for CorruptionModule {
             &mut stats.corruption_stats,
         );
         Ok(())
+
     }
+
 }
 
 /// Randomly corruptions with packet data based on specified probabilities
@@ -94,6 +104,7 @@ pub fn corruption_packets(
     apply_outbound: bool,
     stats: &mut CorruptionStats,
 ) {
+
     let should_update_stats = stats.should_update();
     let mut rng = rng();
 
@@ -116,12 +127,16 @@ pub fn corruption_packets(
         let data = packet_data.packet.data.to_mut();
 
         let (ip_header_len, protocol) = match get_ip_version(data) {
+
             Some((4, data)) => parse_ipv4_header(data),
             Some((6, data)) => parse_ipv6_header(data),
             _ => {
+
                 error!("Unsupported IP version");
                 continue;
+
             }
+
         };
 
         let total_header_len = match protocol {
@@ -162,7 +177,9 @@ pub fn corruption_packets(
                 .packet
                 .recalculate_checksums(ChecksumFlags::new())
             {
+
                 error!("Error recalculating checksums: {}", e);
+
             }
         }
 
@@ -175,6 +192,7 @@ pub fn corruption_packets(
             && packet_data.packet.address.udp_checksum();
         stats.updated();
     }
+
 }
 
 /// Applies random corruptioning to a slice of data
@@ -191,6 +209,7 @@ pub fn corruption_packets(
 ///
 /// A `HashSet` containing the indices of all modified bytes
 fn apply_corruptioning(data: &mut [u8], bytes_to_corruption: usize) -> HashSet<usize> {
+
     let mut corruptioned_indices = HashSet::new();
     let mut corruptioned_count = 0;
     let data_len = data.len();
@@ -202,16 +221,19 @@ fn apply_corruptioning(data: &mut [u8], bytes_to_corruption: usize) -> HashSet<u
             corruptioned_count += 1;
             let corruption_type = rng.random_range(0..3);
             let modified_indices = match corruption_type {
+
                 0 => bit_manipulation(data, index, rng.random_range(0..8), true),
                 1 => bit_flipping(data, index, rng.random_range(0..8)),
                 2 => value_adjustment(data, index, rng.random_range(-64..64)),
                 _ => vec![],
+
             };
             corruptioned_indices.extend(modified_indices);
         }
     }
 
     corruptioned_indices
+
 }
 
 /// Creates a vector of boolean flags indicating which bytes were corruptioned with
@@ -225,6 +247,7 @@ fn apply_corruptioning(data: &mut [u8], bytes_to_corruption: usize) -> HashSet<u
 ///
 /// A vector of boolean flags where true indicates a corruptioned byte
 fn calculate_corruptioned_flags(data_len: usize, corruptioned_indices: &HashSet<usize>) -> Vec<bool> {
+
     let mut corruptioned_flags = vec![false; data_len];
     for &index in corruptioned_indices {
         if index < data_len {
@@ -232,6 +255,7 @@ fn calculate_corruptioned_flags(data_len: usize, corruptioned_indices: &HashSet<
         }
     }
     corruptioned_flags
+
 }
 
 /// Extracts the IP version from a packet data slice
@@ -244,11 +268,13 @@ fn calculate_corruptioned_flags(data_len: usize, corruptioned_indices: &HashSet<
 ///
 /// Option containing a tuple of (IP version, data slice reference) if successful
 fn get_ip_version(data: &[u8]) -> Option<(u8, &[u8])> {
+
     if data.is_empty() {
         return None;
     }
     let version = data[0] >> 4;
     Some((version, data))
+
 }
 
 /// Parses an IPv4 header to extract header length and protocol
@@ -261,9 +287,11 @@ fn get_ip_version(data: &[u8]) -> Option<(u8, &[u8])> {
 ///
 /// A tuple of (header length in bytes, protocol number)
 fn parse_ipv4_header(data: &[u8]) -> (usize, u8) {
+
     let header_length = ((data[0] & 0x0F) * 4) as usize;
     let protocol = data[9];
     (header_length, protocol)
+
 }
 
 /// Parses an IPv6 header to extract header length and next header type
@@ -276,9 +304,11 @@ fn parse_ipv4_header(data: &[u8]) -> (usize, u8) {
 ///
 /// A tuple of (header length in bytes, next header type)
 fn parse_ipv6_header(data: &[u8]) -> (usize, u8) {
+
     let header_length = 40; // IPv6 header is always 40 bytes
     let next_header = data[6];
     (header_length, next_header)
+
 }
 
 /// Calculates the total header length for a UDP packet
@@ -292,8 +322,10 @@ fn parse_ipv6_header(data: &[u8]) -> (usize, u8) {
 ///
 /// Total header length (IP header + UDP header) in bytes
 fn parse_udp_header(_data: &[u8], ip_header_len: usize) -> usize {
+
     let udp_header_len = 8; // UDP header is always 8 bytes
     ip_header_len + udp_header_len
+
 }
 
 /// Calculates the total header length for a TCP packet
@@ -307,8 +339,10 @@ fn parse_udp_header(_data: &[u8], ip_header_len: usize) -> usize {
 ///
 /// Total header length (IP header + TCP header) in bytes
 fn parse_tcp_header(data: &[u8], ip_header_len: usize) -> usize {
+
     let tcp_data_offset = (data[ip_header_len + 12] >> 4) * 4;
     ip_header_len + tcp_data_offset as usize
+
 }
 
 /// Manipulates a specific bit in a byte to a specified value
@@ -329,6 +363,7 @@ fn bit_manipulation(
     bit_position: usize,
     new_bit: bool,
 ) -> Vec<usize> {
+
     if byte_index >= data.len() || bit_position >= 8 {
         return vec![];
     }
@@ -342,6 +377,7 @@ fn bit_manipulation(
     }
 
     vec![byte_index]
+
 }
 
 /// Flips a specific bit in a byte (0 becomes 1, 1 becomes 0)
@@ -356,12 +392,14 @@ fn bit_manipulation(
 ///
 /// A vector containing the index of the modified byte, or empty if no modification occurred
 fn bit_flipping(data: &mut [u8], byte_index: usize, bit_position: usize) -> Vec<usize> {
+
     if byte_index >= data.len() || bit_position >= 8 {
         return vec![];
     }
 
     data[byte_index] ^= 1 << bit_position;
     vec![byte_index]
+
 }
 
 /// Adjusts a byte value by adding a signed offset
@@ -376,6 +414,7 @@ fn bit_flipping(data: &mut [u8], byte_index: usize, bit_position: usize) -> Vec<
 ///
 /// A vector containing the index of the modified byte, or empty if no modification occurred
 fn value_adjustment(data: &mut [u8], offset: usize, value: i8) -> Vec<usize> {
+
     if offset >= data.len() {
         return vec![];
     }
@@ -383,4 +422,5 @@ fn value_adjustment(data: &mut [u8], offset: usize, value: i8) -> Vec<usize> {
     let adjusted_value = data[offset].wrapping_add(value as u8);
     data[offset] = adjusted_value;
     vec![offset]
+
 }

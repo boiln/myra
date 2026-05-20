@@ -3,6 +3,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 interface MyraCheckboxProps {
+
     id?: string;
     label?: string;
     checked?: boolean;
@@ -11,6 +12,7 @@ interface MyraCheckboxProps {
     className?: string;
     labelClassName?: string;
     isHighlighted?: boolean;
+
 }
 
 export function MyraCheckbox({
