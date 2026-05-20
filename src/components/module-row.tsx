@@ -8,6 +8,7 @@ import { HotkeyBadge } from "@/components/hotkey-badge";
 
 // Map module names to hotkey actions
 const MODULE_HOTKEY_ACTIONS: Record<string, string> = {
+
     drop: "toggleDrop",
     lag: "toggleLag",
     throttle: "toggleThrottle",
@@ -16,15 +17,18 @@ const MODULE_HOTKEY_ACTIONS: Record<string, string> = {
     corruption: "toggleCorruption",
     reorder: "toggleReorder",
     burst: "toggleBurst",
+
 };
 
 interface ModuleRowProps {
+
     module: ModuleInfo;
     isActive: boolean;
     onModuleToggle: (module: ModuleInfo) => Promise<void>;
     onDirectionToggle: (module: ModuleInfo, direction: "inbound" | "outbound") => Promise<void>;
     onSettingChange: (module: ModuleInfo, setting: string, value: number) => void;
     onBooleanSettingChange?: (module: ModuleInfo, setting: string, value: boolean) => void;
+
 }
 
 export function ModuleRow({
@@ -34,10 +38,12 @@ export function ModuleRow({
     onSettingChange,
     onBooleanSettingChange,
 }: ModuleRowProps) {
+
     const [inputValues, setInputValues] = React.useState<Record<string, string>>({});
 
     // Handle input change - allow any valid number format during typing
     const handleInputChange = (
+
         e: ChangeEvent<HTMLInputElement>,
         setting: string,
         _min: number,
@@ -89,6 +95,7 @@ export function ModuleRow({
 
         // Clamp to valid range
         let clamped = parsed;
+
         if (parsed < min) clamped = min;
         if (parsed > max) clamped = max;
 
@@ -120,6 +127,7 @@ export function ModuleRow({
     };
 
     return (
+
         <div key={module.name} className="flex items-center gap-x-3 py-2 first:pt-0.5 last:pb-0.5">
             {/* Module Enable Checkbox */}
             <div className="flex shrink-0 items-center gap-1.5">
@@ -171,6 +179,7 @@ export function ModuleRow({
                                 value={getDisplayValue("throttle_ms")}
                                 onChange={(e) =>
                                     handleInputChange(e, "throttle_ms", 1, 60000, true)
+
                                 }
                                 onBlur={() => handleInputBlur("throttle_ms", 1, 60000, true)}
                                 className="h-6 w-[50px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"

@@ -10,8 +10,10 @@ use std::time::Instant;
 
 /// Trait for module options that can be enabled/disabled.
 pub trait ModuleOptions {
+
     /// Returns whether this module is enabled.
     fn is_enabled(&self) -> bool;
+
 }
 
 /// Context passed to packet modules during processing.
@@ -44,9 +46,11 @@ impl ModuleContext<'_, '_> {
         &self,
         module_name: &str,
     ) -> Result<std::sync::RwLockWriteGuard<'_, PacketProcessingStatistics>> {
+
         self.statistics
             .write()
             .map_err(|_| MyraError::stats_lock(module_name))
+
     }
 
 }
@@ -94,9 +98,7 @@ pub trait PacketModule {
 
     /// Returns the human-readable display name for this module
     fn display_name(&self) -> &'static str {
-
         self.name()
-
     }
 
     /// Process packets according to module-specific logic.
@@ -126,9 +128,7 @@ pub trait PacketModule {
     /// Check if the module should skip processing based on options.
     /// Override this for modules with skip conditions (e.g., bandwidth=0).
     fn should_skip(&self, _options: &Self::Options) -> bool {
-
         false
-
     }
 
 }

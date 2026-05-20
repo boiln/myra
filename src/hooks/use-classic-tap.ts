@@ -13,6 +13,7 @@ import { ClassicModuleName } from "@/types/classic";
  * - Then re-enable them
  */
 export function useClassicTap() {
+
     const { settings, isTapping, setIsTapping } = useTapStore();
     const { isProcessing, toggleModule } = useClassicStore();
 
@@ -31,6 +32,7 @@ export function useClassicTap() {
     // Uses refs internally to track tap state without causing effect re-runs
     useEffect(() => {
         const shouldRun = settings.enabled && isProcessing;
+
         console.log(
             "[ClassicTap] Effect: shouldRun=",
             shouldRun,
@@ -44,6 +46,7 @@ export function useClassicTap() {
         const getEnabledModules = (): ClassicModuleName[] => {
             const names: ClassicModuleName[] = [];
             const modules = useClassicStore.getState().modules;
+
             for (const m of modules) {
                 if (m.enabled) names.push(m.name);
             }
@@ -54,9 +57,11 @@ export function useClassicTap() {
         // Restore modules helper
         const restoreModules = async () => {
             const modulesToRestore = savedModulesRef.current;
+
             if (modulesToRestore.length === 0) return;
 
             console.log("[ClassicTap] Restoring modules:", modulesToRestore);
+
             try {
                 await Promise.all(modulesToRestore.map((moduleName) => toggleModule(moduleName)));
             } catch (error) {
@@ -74,10 +79,12 @@ export function useClassicTap() {
                 clearInterval(intervalRef.current);
                 intervalRef.current = null;
             }
+
             if (tapTimeoutRef.current) {
                 clearTimeout(tapTimeoutRef.current);
                 tapTimeoutRef.current = null;
             }
+
             // Restore modules if we were in a tap when disabled
             if (savedModulesRef.current.length > 0) {
                 restoreModules();
@@ -102,6 +109,7 @@ export function useClassicTap() {
 
             // Check cooldown
             const timeSinceLastTap = Date.now() - lastTapEndedAtRef.current;
+
             if (timeSinceLastTap < cooldownMs) {
                 console.log("[ClassicTap] runTapCycle: In cooldown, skipping");
                 return;
@@ -109,6 +117,7 @@ export function useClassicTap() {
 
             // Check if we have enabled modules
             const enabledModules = getEnabledModules();
+
             if (enabledModules.length === 0) {
                 console.log("[ClassicTap] runTapCycle: No enabled modules, skipping");
                 return;
@@ -138,6 +147,7 @@ export function useClassicTap() {
             // Schedule end of tap
             tapTimeoutRef.current = setTimeout(async () => {
                 const modulesToRestore = [...savedModulesRef.current];
+
                 console.log("[ClassicTap] Tap duration ended, re-enabling:", modulesToRestore);
 
                 if (modulesToRestore.length === 0) {
@@ -176,10 +186,12 @@ export function useClassicTap() {
 
         return () => {
             console.log("[ClassicTap] Effect cleanup");
+
             if (intervalRef.current) {
                 clearInterval(intervalRef.current);
                 intervalRef.current = null;
             }
+
             if (tapTimeoutRef.current) {
                 clearTimeout(tapTimeoutRef.current);
                 tapTimeoutRef.current = null;
@@ -199,6 +211,7 @@ export function useClassicTap() {
     useEffect(() => {
         return () => {
             savedModulesRef.current = [];
+
             if (intervalRef.current) clearInterval(intervalRef.current);
             if (tapTimeoutRef.current) clearTimeout(tapTimeoutRef.current);
         };
@@ -208,4 +221,5 @@ export function useClassicTap() {
         isTapping,
         settings,
     };
+
 }

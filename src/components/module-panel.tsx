@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
 
 export function ModulePanel() {
+
     const {
         isActive,
         manipulationStatus,
@@ -23,9 +24,11 @@ export function ModulePanel() {
     }, [loadStatus]);
 
     const debouncedSettingChange = useDebounce(
+
         async (module: ModuleInfo, setting: string, value: number) => {
             try {
                 const newConfig = { ...module.config, [setting]: value };
+
                 await updateModuleSettings(module.name || "", newConfig);
             } catch (error) {
                 console.error("Error updating setting:", error);
@@ -47,6 +50,7 @@ export function ModulePanel() {
         if (module.name === "burst" && setting === "release_delay_us") {
             try {
                 const newConfig = { ...module.config, [setting]: value };
+
                 await updateModuleSettings(module.name || "", newConfig);
             } catch (error) {
                 console.error("Error updating setting:", error);
@@ -66,12 +70,14 @@ export function ModulePanel() {
     };
 
     const handleBooleanSettingChange = async (
+
         module: ModuleInfo,
         setting: string,
         value: boolean
     ) => {
         try {
             const newConfig = { ...module.config, [setting]: value };
+
             await updateModuleSettings(module.name || "", newConfig);
         } catch (error) {
             console.error("Error updating boolean setting:", error);
@@ -79,6 +85,7 @@ export function ModulePanel() {
     };
 
     return (
+
         <div className="relative z-10 flex flex-col">
             <Card className="border-border bg-card/90">
                 <CardHeader className="rounded-t-lg bg-card/90 pb-2">
@@ -110,4 +117,5 @@ export function ModulePanel() {
             </Card>
         </div>
     );
+
 }

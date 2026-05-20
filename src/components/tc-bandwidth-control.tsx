@@ -9,12 +9,14 @@ import {
 import { MyraCheckbox } from "./ui/myra-checkbox";
 
 interface State {
+
     enabled: boolean;
     limitKbps: number;
     direction: TcDirection;
     status: TcBandwidthStatus | null;
     error: string | null;
     loading: boolean;
+
 }
 
 type Action =
@@ -25,25 +27,36 @@ type Action =
     | { type: "operationEnd"; enabled?: boolean; error?: string | null };
 
 const initialState: State = {
+
     enabled: false,
     limitKbps: 1.0,
     direction: "inbound",
     status: null,
     error: null,
     loading: false,
+
 };
 
 function reducer(state: State, action: Action): State {
     switch (action.type) {
         case "setLimit":
+
             return { ...state, limitKbps: action.value };
+
         case "setDirection":
+
             return { ...state, direction: action.value };
+
         case "statusFetched":
+
             return { ...state, status: action.status, enabled: action.status.active };
+
         case "operationStart":
+
             return { ...state, loading: true, error: null };
+
         case "operationEnd":
+
             return {
                 ...state,
                 loading: false,
@@ -51,11 +64,13 @@ function reducer(state: State, action: Action): State {
                 ...(action.error !== undefined ? { error: action.error } : {}),
             };
         default:
+
             return state;
     }
 }
 
 export function TcBandwidthControl() {
+
     const [state, dispatch] = useReducer(reducer, initialState);
     const { enabled, limitKbps, direction, status, error, loading } = state;
 
@@ -63,6 +78,7 @@ export function TcBandwidthControl() {
         const fetchStatus = async () => {
             try {
                 const s = await getTcBandwidthStatus();
+
                 dispatch({ type: "statusFetched", status: s });
             } catch (e) {
                 console.error("Failed to get TC status:", e);
@@ -70,7 +86,9 @@ export function TcBandwidthControl() {
         };
 
         fetchStatus();
+
         const interval = setInterval(fetchStatus, 2000);
+
         return () => clearInterval(interval);
     }, []);
 
@@ -107,6 +125,7 @@ export function TcBandwidthControl() {
     };
 
     return (
+
         <div className="rounded-lg border border-zinc-700 bg-zinc-900/50 p-4">
             <div className="mb-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -143,6 +162,7 @@ export function TcBandwidthControl() {
                                 type: "setLimit",
                                 value: Math.max(0.1, parseFloat(e.target.value) || 0.1),
                             })
+
                         }
                         className="w-full rounded border border-zinc-700 bg-zinc-800 px-2 py-1 text-sm text-zinc-200"
                     />

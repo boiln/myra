@@ -7,7 +7,9 @@ vi.mock("@tauri-apps/api/core");
 
 // Mock modules for testing
 const createMockModules = (): ModuleInfo[] => [
+
     {
+
         name: "lag",
         display_name: "Lag",
         enabled: false,
@@ -18,8 +20,10 @@ const createMockModules = (): ModuleInfo[] => [
             enabled: false,
             duration_ms: 1000,
         },
+
     },
     {
+
         name: "drop",
         display_name: "Drop",
         enabled: false,
@@ -30,8 +34,10 @@ const createMockModules = (): ModuleInfo[] => [
             enabled: false,
             duration_ms: 0,
         },
+
     },
     {
+
         name: "throttle",
         display_name: "Throttle",
         enabled: false,
@@ -44,8 +50,10 @@ const createMockModules = (): ModuleInfo[] => [
             throttle_ms: 300,
             freeze_mode: false,
         },
+
     },
     {
+
         name: "duplicate",
         display_name: "Duplicate",
         enabled: false,
@@ -57,8 +65,10 @@ const createMockModules = (): ModuleInfo[] => [
             duration_ms: 0,
             count: 2,
         },
+
     },
     {
+
         name: "bandwidth",
         display_name: "Bandwidth",
         enabled: false,
@@ -71,8 +81,10 @@ const createMockModules = (): ModuleInfo[] => [
             limit_kbps: 100,
             use_wfp: false,
         },
+
     },
     {
+
         name: "corruption",
         display_name: "Corruption",
         enabled: false,
@@ -83,8 +95,10 @@ const createMockModules = (): ModuleInfo[] => [
             enabled: false,
             duration_ms: 0,
         },
+
     },
     {
+
         name: "reorder",
         display_name: "Reorder",
         enabled: false,
@@ -96,8 +110,10 @@ const createMockModules = (): ModuleInfo[] => [
             duration_ms: 0,
             throttle_ms: 100,
         },
+
     },
     {
+
         name: "burst",
         display_name: "Burst",
         enabled: false,
@@ -112,10 +128,12 @@ const createMockModules = (): ModuleInfo[] => [
             release_delay_us: 500,
             reverse: false,
         },
+
     },
 ];
 
 describe("NetworkStore", () => {
+
     beforeEach(() => {
         vi.clearAllMocks();
         // Reset store to initial state
@@ -144,6 +162,7 @@ describe("NetworkStore", () => {
     describe("initial state", () => {
         it("should have correct initial values", () => {
             const state = useNetworkStore.getState();
+
             expect(state.isActive).toBe(false);
             expect(state.filter).toBe("outbound");
             expect(state.filterTarget?.mode).toBe("all");
@@ -153,6 +172,7 @@ describe("NetworkStore", () => {
     describe("buildSettings", () => {
         it("should build settings from modules correctly", () => {
             const modules = createMockModules();
+
             // Enable lag module
             modules[0].enabled = true;
             modules[0].config.chance = 50;
@@ -173,6 +193,7 @@ describe("NetworkStore", () => {
         it("should preserve throttle freeze_mode in settings", () => {
             const modules = createMockModules();
             const throttleModule = modules.find((m) => m.name === "throttle")!;
+
             throttleModule.enabled = true;
             throttleModule.config.freeze_mode = true;
 
@@ -188,6 +209,7 @@ describe("NetworkStore", () => {
         it("should preserve burst reverse mode in settings", () => {
             const modules = createMockModules();
             const burstModule = modules.find((m) => m.name === "burst")!;
+
             burstModule.enabled = true;
             burstModule.config.reverse = true;
 
@@ -203,6 +225,7 @@ describe("NetworkStore", () => {
         it("should map duplicate count correctly", () => {
             const modules = createMockModules();
             const duplicateModule = modules.find((m) => m.name === "duplicate")!;
+
             duplicateModule.enabled = true;
             duplicateModule.config.count = 5;
 
@@ -218,6 +241,7 @@ describe("NetworkStore", () => {
         it("should map bandwidth limit correctly", () => {
             const modules = createMockModules();
             const bandwidthModule = modules.find((m) => m.name === "bandwidth")!;
+
             bandwidthModule.enabled = true;
             bandwidthModule.config.limit_kbps = 200;
             bandwidthModule.config.use_wfp = true;
@@ -236,9 +260,11 @@ describe("NetworkStore", () => {
     describe("setFilterTarget", () => {
         it("should update filter target", () => {
             const store = useNetworkStore.getState();
+
             store.setFilterTarget({ mode: "process", processId: 1234, processName: "test.exe" });
 
             const newState = useNetworkStore.getState();
+
             expect(newState.filterTarget?.mode).toBe("process");
             expect(newState.filterTarget?.processId).toBe(1234);
             expect(newState.filterTarget?.processName).toBe("test.exe");
@@ -251,6 +277,7 @@ describe("NetworkStore", () => {
             vi.mocked(invoke).mockImplementation(async (cmd: string) => {
                 if (cmd === "update_filter") return undefined;
                 if (cmd === "get_status") return { running: false, modules: createMockModules() };
+
                 return undefined;
             });
 
@@ -266,6 +293,7 @@ describe("NetworkStore", () => {
             vi.mocked(invoke).mockImplementation(async (cmd: string) => {
                 if (cmd === "start_processing") return undefined;
                 if (cmd === "get_status") return { running: true, modules: createMockModules() };
+
                 return undefined;
             });
 
@@ -279,6 +307,7 @@ describe("NetworkStore", () => {
             vi.mocked(invoke).mockImplementation(async (cmd: string) => {
                 if (cmd === "stop_processing") return undefined;
                 if (cmd === "get_status") return { running: false, modules: createMockModules() };
+
                 return undefined;
             });
 
@@ -305,6 +334,7 @@ describe("NetworkStore", () => {
             vi.mocked(invoke).mockImplementation(async (cmd: string) => {
                 if (cmd === "delete_config") return undefined;
                 if (cmd === "list_configs") return ["remaining-preset"];
+
                 return undefined;
             });
 
@@ -318,4 +348,5 @@ describe("NetworkStore", () => {
             expect(invoke).toHaveBeenCalledWith("list_configs");
         });
     });
+
 });

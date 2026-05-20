@@ -46,17 +46,17 @@ pub struct FilterTarget {
 }
 
 fn default_true() -> bool {
-
     true
-
 }
 
 /// Hotkey binding configuration
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct HotkeyBinding {
+
     pub action: String,
     pub shortcut: Option<String>,
     pub enabled: bool,
+
 }
 
 /// Tap feature settings (frontend-only, stored in config for persistence)
@@ -76,15 +76,11 @@ pub struct TapSettings {
 }
 
 fn default_tap_interval() -> u64 {
-
     3000
-
 }
 
 fn default_tap_duration() -> u64 {
-
     600
-
 }
 
 /// Configuration file structure for storing application settings
@@ -141,12 +137,14 @@ pub async fn save_config(
 ) -> Result<(), String> {
 
     let settings = state
+
         .settings
         .lock()
         .map_err(|e| format!("Failed to lock settings mutex: {}", e))?
         .clone();
 
     let filter = state
+
         .filter
         .lock()
         .map_err(|e| format!("Failed to lock filter mutex: {}", e))?
@@ -154,19 +152,23 @@ pub async fn save_config(
 
     // Get classic settings from state if not provided
     let classic_settings = match classic {
+
         Some(c) => Some(c),
         None => {
 
             let cs = classic_state
+
                 .settings
                 .lock()
                 .map_err(|e| format!("Failed to lock classic settings: {}", e))?
                 .clone();
+
             if cs.has_any_enabled() {
                 Some(cs)
             } else {
                 None
             }
+
         }
 
     };
@@ -186,9 +188,11 @@ pub async fn save_config(
     };
 
     let content = toml::to_string_pretty(&config)
+
         .map_err(|e| format!("Failed to serialize config: {}", e))?;
 
     let mut file = fs::File::create(&config_path)
+
         .map_err(|e| format!("Failed to create config file: {}", e))?;
 
     file.write_all(content.as_bytes())
@@ -197,6 +201,7 @@ pub async fn save_config(
     info!("Saved configuration to {}", name);
 
     Ok(())
+
 }
 
 /// Response structure for `load_config` that includes filter target
@@ -234,9 +239,11 @@ pub async fn load_config(
     let config_path = get_config_path(&name)?;
 
     let content = fs::read_to_string(&config_path)
+
         .map_err(|e| format!("Failed to read config file: {}", e))?;
 
     let config: ConfigFile =
+
         toml::from_str(&content).map_err(|e| format!("Failed to deserialize config: {}", e))?;
 
     *state
@@ -285,9 +292,11 @@ pub async fn list_configs() -> Result<Vec<String>, String> {
     let config_dir = get_config_dir()?;
 
     let mut configs = Vec::new();
+
     for entry in std::fs::read_dir(config_dir).map_err(|e| e.to_string())? {
         let entry = entry.map_err(|e| e.to_string())?;
         let path = entry.path();
+
         if path.is_file() && path.extension().is_some_and(|ext| ext == "toml") {
             if let Some(name) = path.file_stem() {
                 if let Some(name) = name.to_str() {
@@ -339,12 +348,14 @@ pub async fn delete_config(name: String) -> Result<(), String> {
 fn get_config_dir() -> Result<PathBuf, String> {
 
     let exe_dir = std::env::current_exe()
+
         .map_err(|e| format!("Could not determine executable path: {}", e))?
         .parent()
         .ok_or_else(|| "Could not determine executable directory".to_string())?
         .to_path_buf();
 
     let config_dir = exe_dir.join("configs");
+
     if !config_dir.exists() {
         std::fs::create_dir_all(&config_dir)
             .map_err(|e| format!("Failed to create config directory: {}", e))?;
@@ -365,11 +376,10 @@ fn get_config_dir() -> Result<PathBuf, String> {
 /// * `Ok(PathBuf)` - Path to the configuration file
 /// * `Err(String)` - If there was an error determining the path
 fn get_config_path(name: &str) -> Result<PathBuf, String> {
-
     let mut path = get_config_dir()?;
+
     path.push(format!("{}.toml", name));
     Ok(path)
-
 }
 
 #[cfg(test)]
@@ -379,10 +389,9 @@ mod tests {
 
     #[test]
     fn test_filter_target_mode_default() {
-
         let mode: FilterTargetMode = Default::default();
-        assert!(matches!(mode, FilterTargetMode::All));
 
+        assert!(matches!(mode, FilterTargetMode::All));
     }
 
     #[test]
@@ -391,6 +400,7 @@ mod tests {
         // When deserializing with missing fields, serde uses the default functions
         let json = r#"{"mode": "all"}"#;
         let target: FilterTarget = serde_json::from_str(json).unwrap();
+
         assert!(matches!(target.mode, FilterTargetMode::All));
         assert!(target.include_inbound);
         assert!(target.include_outbound);
@@ -403,7 +413,6 @@ mod tests {
     fn test_filter_target_serialization() {
 
         let target = FilterTarget {
-
             mode: FilterTargetMode::Process,
             process_id: Some(1234),
             process_name: Some("test.exe".to_string()),
@@ -412,7 +421,6 @@ mod tests {
             custom_filter: None,
             include_inbound: true,
             include_outbound: false,
-
         };
 
         let json = serde_json::to_string(&target).unwrap();
@@ -467,6 +475,7 @@ mod tests {
     fn test_hotkey_binding_default() {
 
         let binding: HotkeyBinding = Default::default();
+
         assert!(binding.action.is_empty());
         assert!(binding.shortcut.is_none());
         assert!(!binding.enabled);
@@ -497,6 +506,7 @@ mod tests {
         // When deserializing with missing fields, serde uses the default functions
         let json = r#"{}"#;
         let tap: TapSettings = serde_json::from_str(json).unwrap();
+
         assert!(!tap.enabled);
         assert_eq!(tap.interval_ms, 3000);
         assert_eq!(tap.duration_ms, 600);
@@ -525,7 +535,6 @@ mod tests {
     fn test_load_config_response_serialization() {
 
         let response = LoadConfigResponse {
-
             settings: Settings::default(),
             filter: Some("outbound".to_string()),
             filter_target: Some(FilterTarget::default()),
@@ -535,7 +544,6 @@ mod tests {
                 enabled: true,
             }]),
             tap: Some(TapSettings::default()),
-
         };
 
         let json = serde_json::to_string(&response).unwrap();

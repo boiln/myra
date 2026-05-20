@@ -6,9 +6,11 @@ import { cn } from "@/lib/utils";
 import { HotkeyBadge } from "@/components/hotkey-badge";
 
 export function ToggleButton() {
+
     const { isActive, isTogglingActive, toggleActive } = useNetworkStore();
 
     return (
+
         <div className="flex items-center gap-2">
             <m.div
                 whileTap={{ scale: 0.97 }}
@@ -58,4 +60,5 @@ export function ToggleButton() {
             <HotkeyBadge action="toggleFilter" />
         </div>
     );
+
 }

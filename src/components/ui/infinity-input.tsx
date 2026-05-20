@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 interface InfinityInputProps {
+
     id: string;
     value: string | number;
     onChange: (e: ChangeEvent<HTMLInputElement>) => void;
@@ -12,6 +13,7 @@ interface InfinityInputProps {
     infinityLabel?: string;
     /** Placeholder when clicking on infinity to edit */
     editPlaceholder?: string;
+
 }
 
 /**
@@ -28,6 +30,7 @@ export function InfinityInput({
     infinityLabel = "∞",
     editPlaceholder = "0",
 }: InfinityInputProps) {
+
     const numValue = typeof value === "string" ? parseFloat(value) || 0 : value;
     const isInfinity = numValue === 0;
     const [isEditing, setIsEditing] = useState(false);
@@ -51,12 +54,14 @@ export function InfinityInput({
 
     const handleInfinityClick = () => {
         if (disabled) return;
+
         setIsEditing(true);
         setLocalValue("");
     };
 
     const editLocalValue = (e: ChangeEvent<HTMLInputElement>) => {
         const input = e.target.value;
+
         setLocalValue(input);
 
         // Forward the change event
@@ -65,6 +70,7 @@ export function InfinityInput({
 
     const commitInputValue = () => {
         setIsEditing(false);
+
         // If empty or 0, show infinity
         if (localValue === "" || localValue === "0") {
             setLocalValue("");
@@ -86,6 +92,7 @@ export function InfinityInput({
     // Show infinity display when value is 0 and not editing
     if (isInfinity && !isEditing) {
         return (
+
             <button
                 type="button"
                 onClick={handleInfinityClick}
@@ -105,6 +112,7 @@ export function InfinityInput({
     }
 
     return (
+
         <Input
             ref={inputRef}
             id={id}
@@ -122,4 +130,5 @@ export function InfinityInput({
             placeholder={editPlaceholder}
         />
     );
+
 }

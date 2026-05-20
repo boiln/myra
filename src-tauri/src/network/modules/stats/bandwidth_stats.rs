@@ -50,18 +50,14 @@ impl BandwidthStats {
     /// let stats = BandwidthStats::new(0.5); // Equal weight to recent and historical data
     /// ```
     pub fn new(alpha: f64) -> Self {
-
         Self {
-
             storage_packet_count: 0,
             total_byte_count: 0,
             ewma: Ewma::new(alpha),
             recent_byte_sent: 0,
             recent_timer: Instant::now(),
             update_interval: Duration::from_millis(100),
-
         }
-
     }
 
     /// Records bytes sent and updates the throughput statistics
@@ -78,6 +74,7 @@ impl BandwidthStats {
 
         self.total_byte_count += bytes_sent;
         self.recent_byte_sent += bytes_sent;
+
         if self.recent_timer.elapsed() >= self.update_interval {
             self.ewma.update(
                 (self.recent_byte_sent as f64 / 1024f64) / self.update_interval.as_secs_f64(),
@@ -94,9 +91,7 @@ impl BandwidthStats {
     ///
     /// The total number of bytes that have passed through the bandwidth limiter
     pub fn total_bytes(&self) -> usize {
-
         self.total_byte_count
-
     }
 
     /// Returns the number of packets currently held in the buffer
@@ -105,9 +100,7 @@ impl BandwidthStats {
     ///
     /// The number of packets being held in the bandwidth limiter's buffer
     pub fn buffered_packets(&self) -> usize {
-
         self.storage_packet_count
-
     }
 
     /// Resets all statistics to zero

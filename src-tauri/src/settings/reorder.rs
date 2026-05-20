@@ -45,18 +45,16 @@ pub struct ReorderOptions {
 }
 
 impl Default for ReorderOptions {
+
     fn default() -> Self {
-
         Self {
-
             enabled: false,
             inbound: true,
             outbound: true,
             probability: Probability::default(),
             max_delay: 100,
             duration_ms: 0,
-
         }
-
     }
+
 }

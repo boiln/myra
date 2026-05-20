@@ -41,21 +41,15 @@ impl PacketModule for ThrottleModule {
     type State = ThrottleState;
 
     fn name(&self) -> &'static str {
-
         "throttle"
-
     }
 
     fn display_name(&self) -> &'static str {
-
         "Network Throttle"
-
     }
 
     fn get_duration_ms(&self, options: &Self::Options) -> u64 {
-
         options.duration_ms
-
     }
 
     fn process<'a>(
@@ -69,6 +63,7 @@ impl PacketModule for ThrottleModule {
         let mut stats = ctx.write_stats(self.name())?;
 
         let buffer: &mut VecDeque<PacketData<'a>> =
+
             unsafe { std::mem::transmute(&mut state.buffer) };
 
         throttle_packets(
@@ -144,20 +139,22 @@ pub fn throttle_packets<'a>(
     // In freeze_mode: No cooldown - continuous buffering creates freeze effect
     // In normal mode: 40ms cooldown - allows packets to flow, prevents disconnects
     let in_cooldown = !freeze_mode && last_flush
+
         .map(|flush_time| now.duration_since(flush_time) < cooldown)
         .unwrap_or(false);
 
     // Check if we need to release/drop buffered packets
     let should_flush = cycle_start.as_ref().is_some_and(|start| {
         let elapsed = now.duration_since(*start);
+
         // Flush if timeframe elapsed OR buffer full
         elapsed >= timeframe || buffer.len() >= max_buffer
     });
 
     // Track if we just flushed to prevent immediate re-buffering
     let just_flushed = if should_flush {
-
         let count = buffer.len();
+
         if drop {
             // Drop Throttled mode - discard all buffered packets
             info!("THROTTLE: Dropping {} buffered packets", count);
@@ -167,6 +164,7 @@ pub fn throttle_packets<'a>(
             // Release mode - send all buffered packets at once
             info!("THROTTLE: Releasing {} buffered packets (throttle was {}ms)",
                   count, timeframe.as_millis());
+
             while let Some(packet) = buffer.pop_front() {
                 packets.push(packet);
             }
@@ -175,7 +173,6 @@ pub fn throttle_packets<'a>(
         *last_flush = Some(now); // Start cooldown
         stats.is_throttling = false;
         true // Mark that we just flushed
-
     } else {
         false
     };
@@ -211,11 +208,13 @@ pub fn throttle_packets<'a>(
         let mut buffered_this_cycle = 0;
         let mut passthrough_count = 0;
         let mut i = 0;
+
         while i < packets.len() {
             let packet = &packets[i];
 
             // Check direction
             let should_buffer = (packet.is_outbound && apply_outbound)
+
                 || (!packet.is_outbound && apply_inbound);
 
             if !should_buffer {
@@ -224,6 +223,7 @@ pub fn throttle_packets<'a>(
             }
 
             let packet_size = packet.packet.data.len();
+
             if packet_size <= KEEPALIVE_THRESHOLD {
                 // Small packet - let it through as keepalive
                 passthrough_count += 1;
@@ -239,6 +239,7 @@ pub fn throttle_packets<'a>(
 
             let packet = packets.remove(i);
             let static_packet: PacketData<'static> = unsafe { std::mem::transmute(packet) };
+
             buffer.push_back(static_packet);
             buffered_this_cycle += 1;
         }
@@ -251,6 +252,7 @@ pub fn throttle_packets<'a>(
         stats.is_throttling = true;
         stats.buffered_count = buffer.len();
     }
+
 }
 
 #[cfg(test)]
@@ -263,14 +265,14 @@ mod tests {
 
     #[test]
     fn test_throttle_buffering() {
-
         unsafe {
-
             let mut packets = vec![
+
                 PacketData::new(WinDivertPacket::<NetworkLayer>::new(vec![1, 2, 3]), true),
                 PacketData::new(WinDivertPacket::<NetworkLayer>::new(vec![4, 5, 6]), true),
                 PacketData::new(WinDivertPacket::<NetworkLayer>::new(vec![7, 8, 9]), true),
             ];
+
             let mut buffer = VecDeque::new();
             let mut cycle_start = Some(Instant::now());
             let mut last_flush = None;
@@ -297,18 +299,15 @@ mod tests {
             assert_eq!(packets.len(), 0);
             assert_eq!(buffer.len(), 3);
             assert!(stats.is_throttling);
-
         }
-
     }
 
     #[test]
     fn test_throttle_release_on_timeframe_end() {
-
         unsafe {
-
             let mut packets = Vec::new();
             let mut buffer = VecDeque::new();
+
             buffer.push_back(PacketData::new(
                 WinDivertPacket::<NetworkLayer>::new(vec![1, 2, 3]),
                 true,
@@ -345,18 +344,15 @@ mod tests {
             assert_eq!(buffer.len(), 0);
             // last_flush should be set after release
             assert!(last_flush.is_some());
-
         }
-
     }
 
     #[test]
     fn test_throttle_drop_mode() {
-
         unsafe {
-
             let mut packets = Vec::new();
             let mut buffer = VecDeque::new();
+
             buffer.push_back(PacketData::new(
                 WinDivertPacket::<NetworkLayer>::new(vec![1, 2, 3]),
                 true,
@@ -387,9 +383,7 @@ mod tests {
             assert_eq!(packets.len(), 0);
             assert_eq!(buffer.len(), 0);
             assert_eq!(stats.dropped_count, 1);
-
         }
-
     }
 
 }

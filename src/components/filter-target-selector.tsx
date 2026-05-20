@@ -21,11 +21,15 @@ import {
 import { ManipulationService } from "@/lib/services/manipulation";
 
 interface FilterTargetSelectorProps {
+
     disabled?: boolean;
+
 }
 
 export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
+
     const { isActive, filter, updateFilter, filterTarget, setFilterTarget, isInitialized } =
+
         useNetworkStore();
 
     // Grouped UI state for the filter input field
@@ -38,6 +42,7 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
         error: null,
         history: [],
     });
+
     const { localFilter, error: filterError, history: previousFilters } = filterUi;
 
     // Grouped process-list state
@@ -45,6 +50,7 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
         list: ProcessInfo[];
         loading: boolean;
     }>({ list: [], loading: false });
+
     const { list: processes, loading: loadingProcesses } = processList;
 
     // Grouped filter-target state
@@ -57,6 +63,7 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
         includeInbound: filterTarget?.includeInbound ?? false,
         includeOutbound: filterTarget?.includeOutbound ?? true,
     });
+
     const { selectedProcess, includeInbound, includeOutbound } = target;
 
     // Debounce timer for auto-apply
@@ -99,8 +106,10 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
     // Load processes
     const loadProcesses = useCallback(async () => {
         setProcessList((s) => ({ ...s, loading: true }));
+
         try {
             const result = await invoke<ProcessInfo[]>("list_processes");
+
             setProcessList({ list: result, loading: false });
         } catch (error) {
             console.error("Failed to load processes:", error);
@@ -121,14 +130,17 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
     const validateFilter = useCallback(async (filterStr: string): Promise<boolean> => {
         try {
             const isValid = await invoke<boolean>("validate_filter", { filter: filterStr });
+
             if (isValid) {
                 setFilterUi((s) => ({ ...s, error: null }));
+
                 return true;
             }
 
             return false;
         } catch (error) {
             setFilterUi((s) => ({ ...s, error: error as string }));
+
             return false;
         }
     }, []);
@@ -139,6 +151,7 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
 
         // Build direction part
         const dirFilter =
+
             includeInbound && includeOutbound ? "true" : includeInbound ? "inbound" : "outbound";
 
         // If process is selected, build process filter
@@ -165,12 +178,14 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
 
             // Try to get flow-based filter if available
             const flowFilter = await invoke<string | null>("get_flow_filter").catch(() => null);
+
             if (flowFilter) {
                 baseFilter = flowFilter;
             }
 
             // Update filter target
             const process = processes.find((p) => p.pid === pid);
+
             setFilterTarget({
                 mode: "process",
                 processId: pid,
@@ -214,6 +229,7 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
 
             // Validate before applying
             const isValid = await validateFilter(newFilter);
+
             if (isValid) {
                 await updateFilter(newFilter);
             }
@@ -235,6 +251,7 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
     // Handle manual filter input change
     const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newFilter = e.target.value;
+
         setFilterUi((s) => ({ ...s, localFilter: newFilter, error: null }));
     };
 
@@ -243,11 +260,14 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
         if (isActive || localFilter === filter) return;
 
         const isValid = await validateFilter(localFilter);
+
         if (isValid) {
             await updateFilter(localFilter);
+
             // Refresh history after successful update
             try {
                 const list = await ManipulationService.getFilterHistory();
+
                 setFilterUi((s) => ({ ...s, history: list ?? [] }));
             } catch {}
         }
@@ -257,7 +277,9 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
     const handleFilterKeyDown = async (e: React.KeyboardEvent) => {
         if (e.key === "Enter" && !isActive) {
             e.preventDefault();
+
             const isValid = await validateFilter(localFilter);
+
             if (isValid) {
                 await updateFilter(localFilter);
             }
@@ -290,17 +312,23 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
 
     const applyPreviousFilter = async (value: string) => {
         if (isActive) return; // Do not change while active
+
         const ok = await validateFilter(value);
+
         if (!ok) return;
+
         setFilterUi((s) => ({ ...s, localFilter: value }));
         await updateFilter(value);
+
         try {
             const list = await ManipulationService.getFilterHistory();
+
             setFilterUi((s) => ({ ...s, history: list ?? [] }));
         } catch {}
     };
 
     return (
+
         <div className="flex flex-col gap-2">
             {/* Main row: Filter input + Process selector */}
             <div className="flex items-center gap-2">
@@ -439,4 +467,5 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
             {filterError && <p className="text-xs text-red-500">{filterError}</p>}
         </div>
     );
+
 }

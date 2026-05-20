@@ -18,6 +18,7 @@ pub fn process_tamper<'a>(
 
     for packet in packets.iter_mut() {
         let matches_direction = (packet.is_outbound && options.outbound)
+
             || (!packet.is_outbound && options.inbound);
 
         if !matches_direction {
@@ -40,7 +41,6 @@ pub fn process_tamper<'a>(
         let ip_version = (data[0] >> 4) & 0x0F;
         let header_len = match ip_version {
             4 => {
-
                 let ihl = (data[0] & 0x0F) as usize * 4;
                 let protocol = data[9];
 
@@ -51,10 +51,8 @@ pub fn process_tamper<'a>(
                 };
 
                 ihl + transport_header
-
             }
             6 => {
-
                 // IPv6 has 40 byte fixed header + extension headers (simplified)
                 let next_header = data[6];
                 let transport_header = match next_header {
@@ -63,7 +61,6 @@ pub fn process_tamper<'a>(
                     _ => 0,
                 };
                 40 + transport_header
-
             }
             _ => continue,
         };
@@ -84,6 +81,7 @@ pub fn process_tamper<'a>(
             // Small packet: XOR entire payload
             for i in 0..payload_len {
                 let pattern_idx = (state.pattern_index + i) % 8;
+
                 data[payload_start + i] ^= state.patterns[pattern_idx];
             }
             state.pattern_index = (state.pattern_index + payload_len) % 8;
@@ -94,8 +92,10 @@ pub fn process_tamper<'a>(
 
             for i in 0..tamper_len {
                 let data_idx = payload_start + start_offset + i;
+
                 if data_idx < data.len() {
                     let pattern_idx = (state.pattern_index + i) % 8;
+
                     data[data_idx] ^= state.patterns[pattern_idx];
                 }
             }
@@ -107,6 +107,7 @@ pub fn process_tamper<'a>(
             recalculate_checksums(data);
         }
     }
+
 }
 
 /// Recalculate IP and transport layer checksums.
@@ -126,11 +127,13 @@ fn recalculate_checksums(data: &mut [u8]) {
         // Calculate IP header checksum
         let ihl = (data[0] & 0x0F) as usize * 4;
         let checksum = calculate_checksum(&data[..ihl]);
+
         data[10] = (checksum >> 8) as u8;
         data[11] = (checksum & 0xFF) as u8;
 
         // Handle transport layer checksum
         let protocol = data[9];
+
         match protocol {
             6 => { // TCP
                 if data.len() >= ihl + 20 {

@@ -25,6 +25,7 @@ pub fn log_statistics(received: usize, sent: usize) {
         "Received Packets: {}, Sent Packets: {}, Skipped Packets: {} - {:.2}%",
         received, sent, dropped, dropped_percentage
     );
+
 }
 
 /// Checks if a module effect is still active based on its duration and start time.
@@ -47,6 +48,7 @@ pub fn is_effect_active(duration_ms: u64, start_time: std::time::Instant) -> boo
     }
 
     let elapsed = start_time.elapsed().as_millis() as u64;
+
     elapsed < duration_ms
 
 }

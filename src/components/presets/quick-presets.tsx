@@ -11,14 +11,18 @@ import { Zap } from "lucide-react";
 import { toast } from "sonner";
 
 interface QuickPreset {
+
     name: string;
     description: string;
     settings: PacketManipulationSettings;
     filter?: string;
+
 }
 
 const QUICK_PRESETS: QuickPreset[] = [
+
     {
+
         name: "Network Throttle",
         description: "300ms inbound throttle with freeze mode",
         settings: {
@@ -34,10 +38,12 @@ const QUICK_PRESETS: QuickPreset[] = [
             },
         },
         filter: "inbound",
+
     },
 ];
 
 export function QuickPresets() {
+
     const { manipulationStatus, loadStatus, isActive } = useNetworkStore();
 
     const applyQuickPreset = async (preset: QuickPreset) => {
@@ -152,6 +158,7 @@ export function QuickPresets() {
     };
 
     return (
+
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="h-7 gap-1.5 px-2">
@@ -173,4 +180,5 @@ export function QuickPresets() {
             </DropdownMenuContent>
         </DropdownMenu>
     );
+
 }

@@ -89,9 +89,11 @@ pub struct ModuleConfig {
 /// Contains module-specific parameters that don't fit into the standard config.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ModuleParams {
+
     /// Optional delay time in milliseconds
     #[serde(skip_serializing_if = "Option::is_none")]
     pub lag_time: Option<u64>,
+
 }
 
 /// Status information about the packet processing engine.

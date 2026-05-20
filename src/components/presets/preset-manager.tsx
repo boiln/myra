@@ -25,6 +25,7 @@ import { create } from "zustand";
 import { QuickPresets } from "./quick-presets";
 
 interface PresetUIState {
+
     presetName: string;
     saveDialogOpen: boolean;
     isLoading: boolean;
@@ -34,6 +35,7 @@ interface PresetUIState {
     setIsLoading: (loading: boolean) => void;
     setShowPresetInfo: (show: boolean) => void;
     resetState: () => void;
+
 }
 
 const usePresetUIStore = create<PresetUIState>((set) => ({
@@ -55,8 +57,11 @@ const usePresetUIStore = create<PresetUIState>((set) => ({
 }));
 
 export function PresetManager() {
+
     const { loadPresets, presets, currentPreset, loadPreset, deletePreset, savePreset } =
+
         useNetworkStore();
+
     const { mode, setMode } = useModeStore();
     const {
         presetName,
@@ -113,6 +118,7 @@ export function PresetManager() {
 
         try {
             const result = await loadPreset(name);
+
             // Restore the mode if it was saved with the preset
             if (result?.mode) {
                 setMode(result.mode);
@@ -128,6 +134,7 @@ export function PresetManager() {
     const handleDeletePreset = async (name: string) => {
         if (!name) return;
         if (!confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`))
+
             return;
 
         setIsLoading(true);
@@ -144,6 +151,7 @@ export function PresetManager() {
     };
 
     return (
+
         <Card className="border-border bg-card/90">
             <CardContent className="p-2">
                 <div className="flex items-center gap-2">
@@ -230,4 +238,5 @@ export function PresetManager() {
             </CardContent>
         </Card>
     );
+
 }

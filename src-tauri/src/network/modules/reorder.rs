@@ -26,21 +26,15 @@ impl PacketModule for ReorderModule {
     type State = ReorderState;
 
     fn name(&self) -> &'static str {
-
         "reorder"
-
     }
 
     fn display_name(&self) -> &'static str {
-
         "Packet Reorder"
-
     }
 
     fn get_duration_ms(&self, options: &Self::Options) -> u64 {
-
         options.duration_ms
-
     }
 
     fn process<'a>(
@@ -117,6 +111,7 @@ pub fn reorder_packets<'a>(
     for packet in packets.drain(..) {
         // Check if this packet's direction should be affected
         let matches_direction = (packet.is_outbound && apply_outbound)
+
             || (!packet.is_outbound && apply_inbound);
 
         if !matches_direction {

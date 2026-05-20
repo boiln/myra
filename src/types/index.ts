@@ -2,11 +2,14 @@
 export * from "./classic";
 
 export interface CaptureStatus {
+
     active: boolean;
     filter: string;
+
 }
 
 export interface ModuleConfig {
+
     inbound: boolean;
     outbound: boolean;
     chance: number;
@@ -25,40 +28,52 @@ export interface ModuleConfig {
     use_wfp?: boolean;
     passthrough_threshold?: number;
     reverse?: boolean;
+
 }
 
 export interface ModuleInfo {
+
     name: string;
     display_name: string;
     enabled: boolean;
     config: ModuleConfig;
     params?: ModuleParams;
+
 }
 
 export interface ModuleParams {
+
     lag_time?: number;
+
 }
 
 export interface ManipulationStatus {
+
     active: boolean;
     filter: string;
     modules: ModuleInfo[];
+
 }
 
 export interface Preset {
+
     name: string;
     description?: string;
     settings: PacketManipulationSettings;
     filter: string;
     createdAt?: string;
+
 }
 
 export interface Config {
+
     default_filter: string;
     module_configs: Record<string, ModuleConfig>;
+
 }
 
 export interface PacketManipulationSettings {
+
     drop?: DropOptions;
     lag?: LagOptions;
     throttle?: ThrottleOptions;
@@ -70,32 +85,40 @@ export interface PacketManipulationSettings {
     burst_release_delay_us?: number;
     lag_bypass?: boolean; // swap IPs on send failure
     tap?: TapOptions; // Tap feature settings
+
 }
 
 export interface TapOptions {
+
     enabled: boolean;
     interval_ms: number; // How often to tap (every X ms)
     duration_ms: number; // How long to keep modules off (X ms)
+
 }
 
 export interface DropOptions {
+
     enabled?: boolean;
     inbound?: boolean;
     outbound?: boolean;
     probability: number;
     duration_ms: number;
+
 }
 
 export interface LagOptions {
+
     enabled?: boolean;
     inbound?: boolean;
     outbound?: boolean;
     probability: number;
     delay_ms: number; // The actual lag time in ms
     duration_ms: number; // Effect duration (0 = infinite)
+
 }
 
 export interface ThrottleOptions {
+
     enabled?: boolean;
     inbound?: boolean;
     outbound?: boolean;
@@ -105,35 +128,43 @@ export interface ThrottleOptions {
     drop?: boolean; // If true, drop buffered packets; if false, release them
     max_buffer?: number; // Max packets to buffer (default 2000)
     freeze_mode?: boolean; // If true, disable cooldown for death loop effect (may DC faster)
+
 }
 
 export interface ReorderOptions {
+
     enabled?: boolean;
     inbound?: boolean;
     outbound?: boolean;
     probability: number;
     duration_ms: number;
     max_delay?: number;
+
 }
 
 export interface CorruptionOptions {
+
     enabled?: boolean;
     inbound?: boolean;
     outbound?: boolean;
     probability: number;
     duration_ms: number;
+
 }
 
 export interface DuplicateOptions {
+
     enabled?: boolean;
     inbound?: boolean;
     outbound?: boolean;
     probability: number;
     count: number;
     duration_ms: number;
+
 }
 
 export interface BandwidthOptions {
+
     enabled?: boolean;
     inbound?: boolean;
     outbound?: boolean;
@@ -144,9 +175,11 @@ export interface BandwidthOptions {
     passthrough_threshold?: number;
     /** Use WFP token bucket algorithm instead of inline packet pacing */
     use_wfp?: boolean;
+
 }
 
 export interface BurstOptions {
+
     enabled?: boolean;
     inbound?: boolean;
     outbound?: boolean;
@@ -156,15 +189,19 @@ export interface BurstOptions {
     keepalive_ms: number;
     release_delay_us: number;
     reverse?: boolean;
+
 }
 
 export interface ProcessingStatus {
+
     running: boolean;
     statistics?: ProcessingStatistics;
     modules: ModuleInfo[];
+
 }
 
 export interface ProcessingStatistics {
+
     burst_buffered: number;
     burst_released: number;
     burst_buffered_count: number;
@@ -173,12 +210,14 @@ export interface ProcessingStatistics {
     throttle_is_throttling: boolean;
     lag_current_lagged: number;
     reorder_delayed_packets: number;
+
 }
 
 // Filter target types for the filter selector
 export type FilterTargetMode = "all" | "process" | "device" | "custom";
 
 export interface FilterTarget {
+
     mode: FilterTargetMode;
     processId?: number;
     processName?: string;
@@ -187,19 +226,23 @@ export interface FilterTarget {
     customFilter?: string;
     includeInbound?: boolean;
     includeOutbound?: boolean;
+
 }
 
 export interface ProcessInfo {
+
     pid: number;
     name: string;
     path?: string;
     window_title?: string;
     icon?: string;
+
 }
 
 export type ManipulationMode = "standard" | "classic";
 
 export interface LoadConfigResponse {
+
     settings: PacketManipulationSettings;
     filter?: string;
     filter_target?: {
@@ -265,17 +308,22 @@ export interface LoadConfigResponse {
         };
     };
     mode?: ManipulationMode;
+
 }
 
 export interface NetworkDevice {
+
     ip: string;
     mac?: string;
     hostname?: string;
     device_type?: string;
+
 }
 
 declare global {
+
     interface Window {
+
         __TAURI__: {
             event: {
                 listen: (
@@ -284,5 +332,7 @@ declare global {
                 ) => Promise<() => void>;
             };
         };
+
     }
+
 }

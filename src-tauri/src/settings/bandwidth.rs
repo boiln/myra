@@ -4,9 +4,7 @@ use clap::Parser;
 use serde::{Deserialize, Serialize};
 
 fn default_passthrough_threshold() -> usize {
-
     200  // Increased to let kill confirmations and small control packets through
-
 }
 
 #[derive(Parser, Debug, Serialize, Deserialize, Default, Clone)]

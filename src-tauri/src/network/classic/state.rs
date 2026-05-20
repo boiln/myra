@@ -6,8 +6,10 @@ use std::time::Instant;
 /// State for Classic Latency module.
 #[derive(Debug, Default)]
 pub struct ClassicLatencyState {
+
     /// Queue of packets being held (with their capture time)
     pub buffer: VecDeque<(PacketData<'static>, Instant)>,
+
 }
 
 /// State for Classic Throttle module.
@@ -44,15 +46,15 @@ pub struct ClassicTamperState {
 }
 
 impl Default for ClassicTamperState {
-    fn default() -> Self {
 
+    fn default() -> Self {
         Self {
             // Use a rotating pattern similar to the original
             patterns: [0xA5, 0x5A, 0xF0, 0x0F, 0xCC, 0x33, 0xAA, 0x55],
             pattern_index: 0,
         }
-
     }
+
 }
 
 /// State for Classic Bandwidth module.
@@ -69,15 +71,15 @@ pub struct ClassicBandwidthState {
 }
 
 impl Default for ClassicBandwidthState {
-    fn default() -> Self {
 
+    fn default() -> Self {
         Self {
             buffer: VecDeque::new(),
             last_tick: Instant::now(),
             byte_budget: 0.0,
         }
-
     }
+
 }
 
 /// Combined state for all Classic mode modules.
@@ -93,10 +95,9 @@ pub struct ClassicProcessingState {
 }
 
 impl ClassicProcessingState {
+
     pub fn new() -> Self {
-
         Self::default()
-
     }
 
     /// Flush all buffered packets (for shutdown).
@@ -127,4 +128,5 @@ impl ClassicProcessingState {
         packets
 
     }
+
 }

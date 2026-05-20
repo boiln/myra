@@ -4,27 +4,19 @@
 use serde::{Deserialize, Serialize};
 
 fn default_true() -> bool {
-
     true
-
 }
 
 fn default_chance() -> f64 {
-
     10.0
-
 }
 
 fn default_window_ms() -> u64 {
-
     30
-
 }
 
 fn default_max_buffer() -> usize {
-
     1000
-
 }
 
 /// Classic Throttle module options.
@@ -65,10 +57,9 @@ pub struct ClassicThrottleOptions {
 }
 
 impl Default for ClassicThrottleOptions {
+
     fn default() -> Self {
-
         Self {
-
             enabled: false,
             inbound: true,
             outbound: true,
@@ -76,8 +67,7 @@ impl Default for ClassicThrottleOptions {
             window_ms: 30,
             drop_on_release: false,
             max_buffer: 1000,
-
         }
-
     }
+
 }

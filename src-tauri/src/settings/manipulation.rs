@@ -18,10 +18,14 @@ where
     T: Serialize,
     S: Serializer,
 {
+
     match value {
+
         Some(v) => v.serialize(serializer),
         None => serializer.serialize_none(),
+
     }
+
 }
 
 /// Represents all network packet manipulation settings.
@@ -80,16 +84,13 @@ pub struct Settings {
 }
 
 fn default_burst_release_delay() -> u64 {
-
     500
-
 }
 
 impl Default for Settings {
+
     fn default() -> Self {
-
         Self {
-
             drop: None,
             lag: None,
             throttle: None,
@@ -101,75 +102,74 @@ impl Default for Settings {
             burst_release_delay_us: default_burst_release_delay(),
             lag_bypass: false,
             tc_bandwidth: None,
-
         }
-
     }
+
 }
 
 // Implement ModuleOptions trait for all option types
 use crate::network::modules::traits::ModuleOptions;
 
 impl ModuleOptions for DropOptions {
+
     fn is_enabled(&self) -> bool {
-
         self.enabled
-
     }
+
 }
 
 impl ModuleOptions for LagOptions {
+
     fn is_enabled(&self) -> bool {
-
         self.enabled
-
     }
+
 }
 
 impl ModuleOptions for ThrottleOptions {
+
     fn is_enabled(&self) -> bool {
-
         self.enabled
-
     }
+
 }
 
 impl ModuleOptions for ReorderOptions {
+
     fn is_enabled(&self) -> bool {
-
         self.enabled
-
     }
+
 }
 
 impl ModuleOptions for CorruptionOptions {
+
     fn is_enabled(&self) -> bool {
-
         self.enabled
-
     }
+
 }
 
 impl ModuleOptions for DuplicateOptions {
+
     fn is_enabled(&self) -> bool {
-
         self.enabled
-
     }
+
 }
 
 impl ModuleOptions for BandwidthOptions {
+
     fn is_enabled(&self) -> bool {
-
         self.enabled
-
     }
+
 }
 
 impl ModuleOptions for BurstOptions {
+
     fn is_enabled(&self) -> bool {
-
         self.enabled
-
     }
+
 }

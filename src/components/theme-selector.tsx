@@ -12,9 +12,11 @@ import { useTheme } from "@/providers/theme-provider";
 import { themes } from "@/types/theme";
 
 export function ThemeSelector() {
+
     const { theme, setTheme } = useTheme();
 
     return (
+
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button
@@ -58,4 +60,5 @@ export function ThemeSelector() {
             </DropdownMenuContent>
         </DropdownMenu>
     );
+
 }

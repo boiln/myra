@@ -10,10 +10,13 @@ export async function invokeCommand<T>(
     command: string,
     args: Record<string, unknown> = {}
 ): Promise<T> {
+
     try {
         return await invoke<T>(command, args);
     } catch (error) {
         console.error(`Error invoking command ${command}:`, error);
+
         throw error;
     }
+
 }

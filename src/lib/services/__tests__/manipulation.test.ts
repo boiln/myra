@@ -6,6 +6,7 @@ import type { PacketManipulationSettings } from "@/types";
 vi.mock("@tauri-apps/api/core");
 
 describe("ManipulationService", () => {
+
     beforeEach(() => {
         vi.clearAllMocks();
         vi.mocked(invoke).mockResolvedValue(undefined);
@@ -243,6 +244,7 @@ describe("ManipulationService", () => {
                     duration_ms: 0,
                 },
             };
+
             const filter = "outbound";
 
             await ManipulationService.startProcessing(settings, filter);
@@ -304,6 +306,7 @@ describe("ManipulationService", () => {
                 includeInbound: true,
                 includeOutbound: true,
             };
+
             const hotkeys = [{ action: "toggle", shortcut: "Ctrl+1", enabled: true }];
             const tap = { enabled: true, interval_ms: 100, duration_ms: 50 };
 
@@ -353,4 +356,5 @@ describe("ManipulationService", () => {
             expect(invoke).toHaveBeenCalledWith("delete_config", { name: "test-config" });
         });
     });
+
 });

@@ -50,7 +50,5 @@ pub use update::{__cmd__update_settings, update_settings};
 use tauri::App;
 
 pub fn register_commands(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
-
     state::register_state(app)
-
 }

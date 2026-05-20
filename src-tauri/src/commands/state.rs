@@ -31,28 +31,26 @@ pub struct PacketProcessingState {
 }
 
 impl Default for PacketProcessingState {
+
     fn default() -> Self {
-
         Self {
-
             running: Arc::new(AtomicBool::new(false)),
             settings: Arc::new(Mutex::new(Settings::default())),
             statistics: Arc::new(RwLock::new(PacketProcessingStatistics::default())),
             filter: Arc::new(Mutex::new(None)),
             flow_tracker: Arc::new(Mutex::new(FlowTracker::new())),
-
         }
-
     }
+
 }
 
 impl PacketProcessingState {
+
     /// Creates a new `PacketProcessingState` with default values.
     pub fn new() -> Self {
-
         Self::default()
-
     }
+
 }
 
 /// Registers the packet processing state with the Tauri application.

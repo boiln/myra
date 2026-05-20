@@ -5,11 +5,13 @@ import { useEffect, useRef, useState } from "react";
 import { LazyMotion, domAnimation, m } from "framer-motion";
 
 export interface AutoInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+
     onValueChange?: (value: string) => void;
     isLoading?: boolean;
     debounceMs?: number;
     containerClassName?: string;
     ref?: React.Ref<HTMLInputElement>;
+
 }
 
 export function AutoInput({
@@ -23,12 +25,14 @@ export function AutoInput({
     ref,
     ...props
 }: AutoInputProps) {
+
     const [value, setValue] = useState(propValue || "");
     const [isFocused, setIsFocused] = useState(false);
 
     // Keep latest onValueChange callback in a ref so the debounce effect
     // doesn't re-fire when the parent passes a fresh function each render.
     const onValueChangeRef = useRef(onValueChange);
+
     useEffect(() => {
         onValueChangeRef.current = onValueChange;
     }, [onValueChange]);
@@ -55,6 +59,7 @@ export function AutoInput({
     };
 
     return (
+
         <div className={cn("relative", containerClassName)}>
             <Input
                 ref={ref}
@@ -82,4 +87,5 @@ export function AutoInput({
             )}
         </div>
     );
+
 }

@@ -5,6 +5,7 @@ import { useHotkeyStore } from "../hotkey-store";
 vi.mock("@tauri-apps/plugin-global-shortcut");
 
 describe("HotkeyStore", () => {
+
     beforeEach(() => {
         vi.clearAllMocks();
         vi.mocked(register).mockResolvedValue(undefined);
@@ -35,17 +36,20 @@ describe("HotkeyStore", () => {
     describe("initial state", () => {
         it("should have default bindings", () => {
             const state = useHotkeyStore.getState();
+
             expect(state.bindings.toggleFilter.shortcut).toBe("F9");
             expect(state.bindings.toggleFilter.enabled).toBe(true);
         });
 
         it("should not be recording by default", () => {
             const state = useHotkeyStore.getState();
+
             expect(state.isRecording).toBeNull();
         });
 
         it("should have all module toggles defined", () => {
             const state = useHotkeyStore.getState();
+
             expect(state.bindings.toggleDrop).toBeDefined();
             expect(state.bindings.toggleLag).toBeDefined();
             expect(state.bindings.toggleThrottle).toBeDefined();
@@ -77,6 +81,7 @@ describe("HotkeyStore", () => {
             await useHotkeyStore.getState().setBinding("toggleDrop", "F10");
 
             const state = useHotkeyStore.getState();
+
             expect(state.bindings.toggleDrop.shortcut).toBe("F10");
             expect(state.bindings.toggleDrop.enabled).toBe(true);
         });
@@ -95,6 +100,7 @@ describe("HotkeyStore", () => {
             await useHotkeyStore.getState().setBinding("toggleDrop", null);
 
             const state = useHotkeyStore.getState();
+
             expect(state.bindings.toggleDrop.shortcut).toBeNull();
             expect(state.bindings.toggleDrop.enabled).toBe(false);
         });
@@ -247,6 +253,7 @@ describe("HotkeyStore", () => {
     describe("restoreBindings", () => {
         it("should restore bindings from array", async () => {
             const bindingsToRestore = [
+
                 { action: "toggleFilter", shortcut: "F1", enabled: true },
                 { action: "toggleDrop", shortcut: "F2", enabled: true },
             ];
@@ -254,6 +261,7 @@ describe("HotkeyStore", () => {
             await useHotkeyStore.getState().restoreBindings(bindingsToRestore);
 
             const state = useHotkeyStore.getState();
+
             expect(state.bindings.toggleFilter.shortcut).toBe("F1");
             expect(state.bindings.toggleDrop.shortcut).toBe("F2");
         });
@@ -274,4 +282,5 @@ describe("HotkeyStore", () => {
             expect(unregister).toHaveBeenCalled();
         });
     });
+
 });

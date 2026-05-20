@@ -16,46 +16,36 @@ pub struct BurstStats {
 impl BurstStats {
 
     pub fn new(_ema_factor: f64) -> Self {
-
         Self {
             buffered: 0,
             released: 0,
             buffered_count: 0,
         }
-
     }
 
     pub fn record_buffer(&mut self, count: usize) {
-
         self.buffered += count;
-
     }
 
     pub fn record_release(&mut self, count: usize) {
-
         self.released = count;
-
     }
 
     pub fn set_buffered_count(&mut self, count: usize) {
-
         self.buffered_count = count;
-
     }
 
     pub fn reset_periodic(&mut self) {
-
         self.buffered = 0;
         self.released = 0;
-
     }
 
 }
 
 impl Default for BurstStats {
+
     fn default() -> Self {
-
         Self::new(0.05)
-
     }
+
 }

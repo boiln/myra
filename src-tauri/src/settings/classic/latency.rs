@@ -4,21 +4,15 @@
 use serde::{Deserialize, Serialize};
 
 fn default_true() -> bool {
-
     true
-
 }
 
 fn default_delay() -> u64 {
-
     100
-
 }
 
 fn default_chance() -> f64 {
-
     100.0
-
 }
 
 /// Classic Latency module options.
@@ -52,17 +46,15 @@ pub struct ClassicLatencyOptions {
 }
 
 impl Default for ClassicLatencyOptions {
+
     fn default() -> Self {
-
         Self {
-
             enabled: false,
             inbound: true,
             outbound: true,
             chance: 100.0,
             delay_ms: 100,
-
         }
-
     }
+
 }

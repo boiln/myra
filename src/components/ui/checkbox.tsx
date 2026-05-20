@@ -11,7 +11,9 @@ function Checkbox({
     ref,
     ...props
 }: React.ComponentProps<typeof CheckboxPrimitive.Root>) {
+
     return (
+
         <CheckboxPrimitive.Root
             ref={ref}
             className={cn(
@@ -27,6 +29,7 @@ function Checkbox({
             </CheckboxPrimitive.Indicator>
         </CheckboxPrimitive.Root>
     );
+
 }
 
 export { Checkbox };

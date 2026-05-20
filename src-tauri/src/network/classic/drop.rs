@@ -15,8 +15,8 @@ pub fn process_drop<'a>(
     let chance = options.chance / 100.0;
 
     packets.retain(|packet| {
-
         let matches_direction = (packet.is_outbound && options.outbound)
+
             || (!packet.is_outbound && options.inbound);
 
         if !matches_direction {
@@ -29,7 +29,6 @@ pub fn process_drop<'a>(
         }
 
         true // Keep packet
-
     });
 
 }

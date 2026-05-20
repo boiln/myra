@@ -29,7 +29,6 @@ fn swap_ip_addresses(packet_data: &mut PacketData) -> bool {
 
     match version {
         4 => {
-
             if data.len() < 20 {
                 return false;
             }
@@ -42,10 +41,8 @@ fn swap_ip_addresses(packet_data: &mut PacketData) -> bool {
             data[11] = 0;
 
             true
-
         }
         6 => {
-
             if data.len() < 40 {
                 return false;
             }
@@ -55,7 +52,6 @@ fn swap_ip_addresses(packet_data: &mut PacketData) -> bool {
             }
 
             true
-
         }
         _ => false,
     }
@@ -68,11 +64,10 @@ fn send_with_bypass(
     packet_data: &mut PacketData,
     enable_bypass: bool,
 ) -> std::result::Result<(), windivert::error::WinDivertError> {
-    match wd.send(&packet_data.packet) {
 
+    match wd.send(&packet_data.packet) {
         Ok(_bytes_sent) => Ok(()),
         Err(e) => {
-
             if !enable_bypass {
                 return Err(e);
             }
@@ -84,30 +79,26 @@ fn send_with_bypass(
             }
 
             let current = packet_data.packet.address.outbound();
+
             packet_data.packet.address.set_outbound(!current);
 
             match wd.send(&packet_data.packet) {
-
                 Ok(_bytes_sent) => {
-
                     debug!("IP swap bypass successful");
                     Ok(())
-
                 }
                 Err(e2) => {
-
                     swap_ip_addresses(packet_data);
+
                     let current = packet_data.packet.address.outbound();
+
                     packet_data.packet.address.set_outbound(!current);
                     Err(e2)
-
                 }
-
             }
-
         }
-
     }
+
 }
 
 /// Starts the packet processing loop that handles network packet manipulation.
@@ -138,6 +129,7 @@ pub fn start_packet_processing(
 ) -> Result<()> {
 
     let mut wd = WinDivert::<NetworkLayer>::network(
+
         "false",
         0,
         WinDivertFlags::set_send_only(WinDivertFlags::new()),
@@ -166,6 +158,7 @@ pub fn start_packet_processing(
 
         if duration < Duration::from_millis(2) {
             let target = Instant::now() + duration;
+
             while Instant::now() < target {
                 std::hint::spin_loop();
             }
@@ -173,8 +166,11 @@ pub fn start_packet_processing(
         }
 
         let to_sleep = duration.checked_sub(Duration::from_millis(1)).unwrap();
+
         std::thread::sleep(to_sleep);
+
         let target = Instant::now() + Duration::from_millis(1);
+
         while Instant::now() < target {
             std::hint::spin_loop();
         }
@@ -195,33 +191,29 @@ pub fn start_packet_processing(
         }
 
         match settings.lock() {
-
             Ok(settings) => {
-
                 state.burst_release_delay_us = settings.burst_release_delay_us;
                 enable_bypass = settings.lag_bypass;
 
                 if let Err(e) = process_packets(&settings, &mut packets, &mut state, &statistics) {
                     error!("Error processing packets: {}", e);
                 }
-
             }
             Err(e) => {
-
                 error!(
                     "Failed to acquire lock on packet manipulation settings: {}",
                     e
                 );
-
             }
-
         }
 
         let pacing_needed = packets.len() > 20;
         let release_delay = state.burst_release_delay_us;
+
         if pacing_needed {
             info!("BURST REPLAY: Sending {} packets with {}us delay each", packets.len(), release_delay);
         }
+
         for mut packet_data in packets {
             if let Err(e) = send_with_bypass(&wd, &mut packet_data, enable_bypass) {
                 error!("Failed to send packet: {e}");
@@ -243,6 +235,7 @@ pub fn start_packet_processing(
         }
 
         let elapsed = cycle_start.elapsed();
+
         if elapsed < Duration::from_millis(CYCLE_TIME_MS) {
             std::thread::sleep(Duration::from_millis(CYCLE_TIME_MS).checked_sub(elapsed).unwrap());
         }
@@ -260,6 +253,7 @@ pub fn start_packet_processing(
     debug!("Closing packet processing WinDivert handle");
 
     let close_result = wd.close(CloseAction::Nothing);
+
     if let Err(e) = &close_result {
         error!("Failed to close WinDivert handle: {}", e);
     }
@@ -269,21 +263,19 @@ pub fn start_packet_processing(
     }
 
     match WinDivert::<NetworkLayer>::network(
+
         "false",
         0,
         WinDivertFlags::new(),
     ) {
 
         Ok(mut flush_handle) => {
-
             let _ = flush_handle.close(CloseAction::Nothing);
-            debug!("Successfully flushed WFP cache");
 
+            debug!("Successfully flushed WFP cache");
         }
         Err(e) => {
-
             error!("Failed to flush WFP cache: {}", e);
-
         }
 
     }
@@ -313,6 +305,7 @@ pub fn process_packets(
     state: &mut ModuleProcessingState,
     statistics: &Arc<RwLock<PacketProcessingStatistics>>,
 ) -> Result<()> {
+
     if !packets.is_empty() {
         debug!(
             "Processing {} packets through module registry",
@@ -321,4 +314,5 @@ pub fn process_packets(
     }
 
     process_all_modules(settings, packets, state, statistics)
+
 }

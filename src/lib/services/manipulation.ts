@@ -12,35 +12,46 @@ import { ClassicBackendSettings } from "@/types/classic";
 let wfpThrottleActive = false;
 
 export const ManipulationService = {
+
     async startProcessing(settings: PacketManipulationSettings, filter?: string): Promise<void> {
+
         // Start the filtering first
         await invoke("start_processing", { settings, filter });
         // Then start WFP throttle if needed (filtering is now active)
         await this.handleWfpThrottle(settings, true);
+
     },
 
     async stopProcessing(): Promise<void> {
+
         // Also stop WFP throttle if active
         if (wfpThrottleActive) {
             await this.stopWfpThrottle();
         }
+
         return invoke("stop_processing");
+
     },
 
     async getStatus(): Promise<ProcessingStatus> {
+
         return invoke("get_status");
+
     },
 
     async updateSettings(
         settings: PacketManipulationSettings,
         isFilteringActive: boolean = false
     ): Promise<void> {
+
         // Handle WFP throttle based on bandwidth settings AND filtering state
         await this.handleWfpThrottle(settings, isFilteringActive);
 
         // Create the modules array from settings
         const modules = this.createModulesFromSettings(settings);
+
         return invoke("update_settings", { modules });
+
     },
 
     // Handle WFP throttle based on bandwidth settings - only starts when filtering is active
@@ -48,6 +59,7 @@ export const ManipulationService = {
         settings: PacketManipulationSettings,
         isFilteringActive: boolean
     ): Promise<void> {
+
         const bandwidth = settings.bandwidth;
         // WFP should only be active when: bandwidth enabled + use_wfp checked + filtering is running
         const shouldBeActive = bandwidth?.enabled && bandwidth?.use_wfp && isFilteringActive;
@@ -55,6 +67,7 @@ export const ManipulationService = {
         if (shouldBeActive && !wfpThrottleActive) {
             // Start WFP throttle
             const direction =
+
                 bandwidth.inbound && bandwidth.outbound
                     ? "both"
                     : bandwidth.inbound
@@ -73,6 +86,7 @@ export const ManipulationService = {
         if (shouldBeActive && wfpThrottleActive) {
             // Update: restart with new settings
             const direction =
+
                 bandwidth!.inbound && bandwidth!.outbound
                     ? "both"
                     : bandwidth!.inbound
@@ -81,29 +95,35 @@ export const ManipulationService = {
             await this.stopWfpThrottle();
             await this.startWfpThrottle(bandwidth!.limit || 1, direction);
         }
+
     },
 
     async startWfpThrottle(limitKbps: number, direction: string): Promise<void> {
+
         try {
             await invoke("start_tc_bandwidth", { limitKbps, direction });
             wfpThrottleActive = true;
         } catch (e) {
             console.error("Failed to start WFP throttle:", e);
         }
+
     },
 
     async stopWfpThrottle(): Promise<void> {
+
         try {
             await invoke("stop_tc_bandwidth");
             wfpThrottleActive = false;
         } catch (e) {
             console.error("Failed to stop WFP throttle:", e);
         }
+
     },
 
     // Helper function to convert settings to modules array
     // Always sends all modules with their settings, using enabled field to track active state
     createModulesFromSettings(settings: PacketManipulationSettings): any[] {
+
         const modules = [];
 
         // Lag module - always include
@@ -305,26 +325,37 @@ export const ManipulationService = {
         });
 
         return modules;
+
     },
 
     async getSettings(): Promise<PacketManipulationSettings> {
+
         return invoke("get_settings");
+
     },
 
     async updateFilter(filter: string | null): Promise<void> {
+
         return invoke("update_filter", { filter });
+
     },
 
     async getFilter(): Promise<string | null> {
+
         return invoke("get_filter");
+
     },
 
     async getFilterHistory(): Promise<string[]> {
+
         return invoke("get_filter_history");
+
     },
 
     async clearFilterHistory(): Promise<void> {
+
         return invoke("clear_filter_history");
+
     },
 
     async saveConfig(
@@ -335,8 +366,10 @@ export const ManipulationService = {
         classic?: ClassicBackendSettings,
         mode?: ManipulationMode
     ): Promise<void> {
+
         // Convert camelCase to snake_case for Rust
         const rustFilterTarget = filterTarget
+
             ? {
                   mode: filterTarget.mode,
                   process_id: filterTarget.processId,
@@ -357,17 +390,25 @@ export const ManipulationService = {
             classic,
             mode,
         });
+
     },
 
     async loadConfig(name: string): Promise<LoadConfigResponse> {
+
         return invoke("load_config", { name });
+
     },
 
     async listConfigs(): Promise<string[]> {
+
         return invoke("list_configs");
+
     },
 
     async deleteConfig(name: string): Promise<void> {
+
         return invoke("delete_config", { name });
+
     },
+
 };

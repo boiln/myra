@@ -43,18 +43,16 @@ pub struct DuplicateOptions {
 }
 
 impl Default for DuplicateOptions {
+
     fn default() -> Self {
-
         Self {
-
             enabled: false,
             inbound: true,
             outbound: true,
             count: 1,
             probability: Probability::default(),
             duration_ms: 0,
-
         }
-
     }
+
 }

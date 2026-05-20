@@ -35,19 +35,17 @@ pub struct TcBandwidthOptions {
 }
 
 fn default_limit() -> u32 {
-
     1 // 1 KB/s default
-
 }
 
 impl TcBandwidthOptions {
-    pub fn new(limit_kbps: u32, direction: TcDirection) -> Self {
 
+    pub fn new(limit_kbps: u32, direction: TcDirection) -> Self {
         Self {
             enabled: true,
             limit_kbps,
             direction,
         }
-
     }
+
 }

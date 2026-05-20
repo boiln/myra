@@ -33,28 +33,27 @@ pub async fn stop_processing(state: State<'_, PacketProcessingState>) -> Result<
     }
 
     let original_settings: Settings;
-    {
 
+    {
         let mut settings = state
+
             .settings
             .lock()
             .map_err(|e| format!("Failed to lock settings mutex: {}", e))?;
         original_settings = settings.clone();
 
         *settings = Settings::default();
-
     }
 
     thread::sleep(Duration::from_millis(300));
 
     {
-
         let mut settings = state
+
             .settings
             .lock()
             .map_err(|e| format!("Failed to lock settings mutex: {}", e))?;
         *settings = original_settings;
-
     }
 
     thread::sleep(Duration::from_millis(100));

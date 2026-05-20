@@ -18,6 +18,7 @@ pub fn process_reorder<'a>(
 
     // SAFETY: Storage outlives processing calls
     let held_packet: &mut Option<PacketData<'a>> =
+
         unsafe { std::mem::transmute(&mut state.held_packet) };
 
     // If we're holding a packet, check if we should release it
@@ -26,6 +27,7 @@ pub fn process_reorder<'a>(
 
         // Release if we have new packets OR exceeded hold limit
         let has_new_packets = !packets.is_empty();
+
         if has_new_packets || state.hold_cycles >= options.max_hold_cycles {
             // Insert held packet at the front (it was originally first)
             if let Some(packet) = held_packet.take() {
@@ -38,6 +40,7 @@ pub fn process_reorder<'a>(
 
     // Filter packets by direction
     let matching_indices: Vec<usize> = packets
+
         .iter()
         .enumerate()
         .filter(|(_, p)| {
@@ -54,6 +57,7 @@ pub fn process_reorder<'a>(
     if matching_indices.len() == 1 {
         if rng.random::<f64>() < chance {
             let idx = matching_indices[0];
+
             *held_packet = Some(packets.remove(idx));
             state.hold_cycles = 0;
         }
@@ -67,10 +71,12 @@ pub fn process_reorder<'a>(
 
     // Swap adjacent matching packets
     let mut i = 0;
+
     while i + 1 < matching_indices.len() {
         if rng.random::<f64>() < chance {
             let idx1 = matching_indices[i];
             let idx2 = matching_indices[i + 1];
+
             packets.swap(idx1, idx2);
         }
         i += 1;

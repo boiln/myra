@@ -3,8 +3,10 @@ import React, { createContext, use, useEffect, useState } from "react";
 import { ThemeId, themes } from "@/types/theme";
 
 interface ThemeContextType {
+
     theme: ThemeId;
     setTheme: (theme: ThemeId) => void;
+
 }
 
 const defaultTheme = themes[0].id;
@@ -15,9 +17,11 @@ const ThemeContext = createContext<ThemeContextType>({
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
+
     const [theme, setTheme] = useState<ThemeId>(() => {
         // Check if theme exists in localStorage
         const savedTheme = localStorage.getItem("theme") as ThemeId | null;
+
         return savedTheme && themes.some((t) => t.id === savedTheme) ? savedTheme : defaultTheme;
     });
 
@@ -37,9 +41,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }, [theme]);
 
     return <ThemeContext.Provider value={{ theme, setTheme }}>{children}</ThemeContext.Provider>;
+
 }
 
 export const useTheme = () => {
+
     const context = use(ThemeContext);
 
     if (!context) {
@@ -47,4 +53,5 @@ export const useTheme = () => {
     }
 
     return context;
+
 };

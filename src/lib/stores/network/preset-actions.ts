@@ -16,23 +16,29 @@ export const createPresetSlice: StateCreator<
     >
 > = (set, get) => ({
     loadPresets: async () => {
+
         try {
             set({ loadingPresets: true });
+
             const presets = await ManipulationService.listConfigs();
+
             set({ presets });
         } catch (error) {
             console.error("Failed to load presets:", error);
         } finally {
             set({ loadingPresets: false });
         }
+
     },
 
     savePreset: async (name: string, mode?: "standard" | "classic") => {
         try {
             const [settings, backendFilter] = await Promise.all([
+
                 ManipulationService.getSettings(),
                 ManipulationService.getFilter(),
             ]);
+
             // Use store filter as fallback - backend may return null if not set
             const filter = backendFilter || get().filter || "outbound";
             const filterTarget = get().filterTarget;
@@ -145,11 +151,13 @@ export const createPresetSlice: StateCreator<
             return { mode: loadedMode };
         } catch (error) {
             console.error("Failed to load preset:", error);
+
             return undefined;
         }
     },
 
     deletePreset: async (name: string) => {
+
         if (name === DEFAULT_PRESET_NAME) return;
 
         try {
@@ -162,6 +170,7 @@ export const createPresetSlice: StateCreator<
         } catch (error) {
             console.error("Failed to delete preset:", error);
         }
+
     },
 
     initializeDefaultPreset: async () => {
@@ -177,9 +186,11 @@ export const createPresetSlice: StateCreator<
 
             // No default config exists - create one from current settings
             const [settings, filter] = await Promise.all([
+
                 ManipulationService.getSettings(),
                 ManipulationService.getFilter(),
             ]);
+
             const filterTarget = get().filterTarget;
 
             // Get tap settings (always save with enabled: false by default)

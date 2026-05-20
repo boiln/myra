@@ -8,6 +8,7 @@ import { useState, useEffect, useRef } from "react";
  * @returns Object with elapsed time in ms and formatted time string
  */
 export function useActiveTimer(isActive: boolean) {
+
     const [elapsedMs, setElapsedMs] = useState(0);
     const startTimeRef = useRef<number | null>(null);
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -53,6 +54,7 @@ export function useActiveTimer(isActive: boolean) {
         if (hours > 0) {
             return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}.${tenths}`;
         }
+
         return `${minutes}:${seconds.toString().padStart(2, "0")}.${tenths}`;
     };
 
@@ -60,4 +62,5 @@ export function useActiveTimer(isActive: boolean) {
         elapsedMs,
         formattedTime: formatTime(elapsedMs),
     };
+
 }

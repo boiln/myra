@@ -73,11 +73,10 @@ pub async fn start_processing(
 
     thread::spawn(move || {
         if let Err(e) =
+
             start_packet_processing(settings_proc, packet_receiver, running_proc, statistics)
         {
-
             error!("Packet processing error: {}", e);
-
         }
     });
 

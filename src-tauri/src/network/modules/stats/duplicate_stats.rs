@@ -6,9 +6,11 @@ use crate::network::modules::stats::util::ewma::Ewma;
 /// exponentially weighted moving average of duplication rates.
 #[derive(Debug)]
 pub struct DuplicateStats {
+
     pub(crate) incoming_packet_count: usize,
     pub(crate) outgoing_packet_count: usize,
     ewma: Ewma,
+
 }
 
 impl DuplicateStats {
@@ -19,13 +21,11 @@ impl DuplicateStats {
     ///
     /// * `alpha` - Smoothing factor for exponentially weighted moving average
     pub fn new(alpha: f64) -> Self {
-
         Self {
             incoming_packet_count: 0,
             outgoing_packet_count: 0,
             ewma: Ewma::new(alpha),
         }
-
     }
 
     /// Records a packet duplication event
@@ -39,6 +39,7 @@ impl DuplicateStats {
         self.outgoing_packet_count += outgoing_count;
 
         let current_duplication_multiplier = outgoing_count as f64;
+
         self.ewma.update(current_duplication_multiplier);
 
     }

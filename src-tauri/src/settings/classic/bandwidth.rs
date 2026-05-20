@@ -4,27 +4,19 @@
 use serde::{Deserialize, Serialize};
 
 fn default_true() -> bool {
-
     true
-
 }
 
 fn default_chance() -> f64 {
-
     100.0
-
 }
 
 fn default_limit_kbps() -> f64 {
-
     115.0
-
 }
 
 fn default_max_buffer() -> usize {
-
     6000
-
 }
 
 /// Classic Bandwidth module options.
@@ -61,18 +53,16 @@ pub struct ClassicBandwidthOptions {
 }
 
 impl Default for ClassicBandwidthOptions {
+
     fn default() -> Self {
-
         Self {
-
             enabled: false,
             inbound: true,
             outbound: true,
             chance: 100.0,
             limit_kbps: 115.0,
             max_buffer: 6000,
-
         }
-
     }
+
 }

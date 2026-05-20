@@ -15,20 +15,20 @@ pub struct ClassicProcessingState {
 }
 
 impl Default for ClassicProcessingState {
-    fn default() -> Self {
 
+    fn default() -> Self {
         Self {
             running: Arc::new(AtomicBool::new(false)),
             settings: Arc::new(Mutex::new(ClassicSettings::default())),
         }
-
     }
+
 }
 
 impl ClassicProcessingState {
+
     pub fn new() -> Self {
-
         Self::default()
-
     }
+
 }

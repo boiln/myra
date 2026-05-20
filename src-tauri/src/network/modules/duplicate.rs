@@ -20,27 +20,19 @@ impl PacketModule for DuplicateModule {
     type State = ();
 
     fn name(&self) -> &'static str {
-
         "duplicate"
-
     }
 
     fn display_name(&self) -> &'static str {
-
         "Packet Duplicate"
-
     }
 
     fn get_duration_ms(&self, options: &Self::Options) -> u64 {
-
         options.duration_ms
-
     }
 
     fn should_skip(&self, options: &Self::Options) -> bool {
-
         options.count == 0 || options.probability.value() <= 0.0
-
     }
 
     fn process(
@@ -93,6 +85,7 @@ pub fn duplicate_packets(
     for packet_data in packets.iter() {
         // Check if this packet's direction should be affected
         let matches_direction = (packet_data.is_outbound && apply_outbound)
+
             || (!packet_data.is_outbound && apply_inbound);
 
         if !matches_direction {
@@ -129,12 +122,12 @@ mod tests {
 
     #[test]
     fn test_packet_duplication() {
-
         unsafe {
-
             let original_packets = vec![PacketData::from(WinDivertPacket::<NetworkLayer>::new(
+
                 vec![1, 2, 3],
             ))];
+
             let original_len = original_packets.len();
             let mut packets = original_packets.clone();
             let mut stats = DuplicateStats::new(0.05);
@@ -157,9 +150,7 @@ mod tests {
                     assert_eq!(packet_data.packet.data[..], [1, 2, 3]);
                 }
             }
-
         }
-
     }
 
 }

@@ -4,20 +4,25 @@ import { useNetworkStore } from "@/lib/stores/network";
 import { toast } from "sonner";
 
 export function useHotkeys() {
+
     const { registerAllHotkeys, unregisterAllHotkeys } = useHotkeyStore();
     const { toggleActive, applyModuleSettings, manipulationStatus } = useNetworkStore();
 
     const getModuleEnabled = useCallback(
+
         (moduleName: string) => {
             const module = manipulationStatus.modules.find((m) => m.name === moduleName);
+
             return module?.enabled ?? false;
         },
         [manipulationStatus.modules]
     );
 
     const toggleModule = useCallback(
+
         async (moduleName: string, displayName: string) => {
             const currentEnabled = getModuleEnabled(moduleName);
+
             await applyModuleSettings(moduleName, !currentEnabled);
             toast.success(`${displayName} ${currentEnabled ? "disabled" : "enabled"}`, {
                 duration: 1500,
@@ -72,4 +77,5 @@ export function useHotkeys() {
             unregisterAllHotkeys();
         };
     }, [registerAllHotkeys, unregisterAllHotkeys, toggleActive, toggleModule]);
+
 }

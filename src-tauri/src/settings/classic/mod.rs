@@ -49,6 +49,7 @@ pub struct ClassicSettings {
 }
 
 impl ClassicSettings {
+
     /// Returns true if any classic module is enabled.
     pub fn has_any_enabled(&self) -> bool {
 
@@ -60,4 +61,5 @@ impl ClassicSettings {
             || self.bandwidth.as_ref().is_some_and(|o| o.enabled)
 
     }
+
 }

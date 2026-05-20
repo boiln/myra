@@ -1,23 +1,30 @@
 import React from "react";
 
 interface ErrorBoundaryProps {
+
     children: React.ReactNode;
     fallback?: React.ReactNode;
+
 }
 
 interface ErrorBoundaryState {
+
     hasError: boolean;
     error: Error | null;
+
 }
 
 export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+
     constructor(props: ErrorBoundaryProps) {
         super(props);
         this.state = { hasError: false, error: null };
     }
 
     static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+
         return { hasError: true, error };
+
     }
 
     componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
@@ -31,6 +38,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
             }
 
             return (
+
                 <div className="flex min-h-[200px] flex-col items-center justify-center gap-4 p-4">
                     <h2 className="text-lg font-semibold text-destructive">Something went wrong</h2>
                     <p className="text-sm text-muted-foreground">
@@ -48,4 +56,5 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
 
         return this.props.children;
     }
+
 }

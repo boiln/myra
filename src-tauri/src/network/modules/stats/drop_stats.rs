@@ -43,13 +43,11 @@ impl DropStats {
     /// let stats = DropStats::new(0.3); // EWMA with alpha = 0.3
     /// ```
     pub fn new(alpha: f64) -> Self {
-
         Self {
             total_packets: 0,
             total_dropped: 0,
             ewma: Ewma::new(alpha),
         }
-
     }
 
     /// Records a packet processing result, updating all statistics.
@@ -68,12 +66,14 @@ impl DropStats {
     pub fn record(&mut self, dropped: bool) {
 
         self.total_packets += 1;
+
         if dropped {
             self.total_dropped += 1;
         }
 
         // Update the EWMA with the new drop status (1.0 if dropped, 0.0 if not)
         let current_drop_rate = if dropped { 1.0 } else { 0.0 };
+
         self.ewma.update(current_drop_rate);
 
     }
@@ -94,13 +94,11 @@ impl DropStats {
     /// assert_eq!(stats.total_drop_rate(), 0.5); // 50% drop rate
     /// ```
     pub fn total_drop_rate(&self) -> f64 {
-
         if self.total_packets == 0 {
             return 0.0;
         }
 
         self.total_dropped as f64 / self.total_packets as f64
-
     }
 
     /// Gets the recent drop rate based on the EWMA.
@@ -113,9 +111,7 @@ impl DropStats {
     /// A value between 0.0 and 1.0 representing the recent
     /// drop rate. Returns 0.0 if no packets have been processed.
     pub fn recent_drop_rate(&self) -> f64 {
-
         self.ewma.get().unwrap_or(0.0)
-
     }
 
     /// Resets all statistics to zero.
@@ -141,6 +137,7 @@ mod tests {
     fn test_new_drop_stats() {
 
         let stats = DropStats::new(0.5);
+
         assert_eq!(stats.total_packets, 0);
         assert_eq!(stats.total_dropped, 0);
         assert_eq!(stats.total_drop_rate(), 0.0);

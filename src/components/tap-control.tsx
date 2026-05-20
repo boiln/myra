@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 
 export function TapControl() {
+
     const {
         settings,
         setEnabled,
@@ -20,15 +21,18 @@ export function TapControl() {
 
     const getDisplayValue = (key: string, fallback: number) => {
         if (key in inputValues) return inputValues[key];
+
         return (fallback ?? 0).toString();
     };
 
     const handleInputChange = (
+
         e: ChangeEvent<HTMLInputElement>,
         key: "intervalMs" | "durationMs" | "minBufferForTap" | "cooldownMs",
         isInteger = true
     ) => {
         const input = e.target.value;
+
         setInputValues((prev) => ({ ...prev, [key]: input }));
 
         // Allow empty and partial numeric input during typing
@@ -37,6 +41,7 @@ export function TapControl() {
         if (input === "." || input === "-" || input === "-." || input.endsWith(".")) return;
 
         const parsed = isInteger ? parseInt(input, 10) : parseFloat(input);
+
         if (isNaN(parsed)) return;
 
         // Do not clamp while typing; update store with parsed value
@@ -57,6 +62,7 @@ export function TapControl() {
     };
 
     const handleInputBlur = (
+
         key: "intervalMs" | "durationMs" | "minBufferForTap" | "cooldownMs",
         min: number,
         max: number,
@@ -66,6 +72,7 @@ export function TapControl() {
         const parsed = isInteger ? parseInt(input ?? "", 10) : parseFloat(input ?? "");
 
         let clamped: number;
+
         if (isNaN(parsed)) {
             clamped = min;
         } else {
@@ -101,6 +108,7 @@ export function TapControl() {
     }, [settings.intervalMs, settings.durationMs, settings.minBufferForTap, settings.cooldownMs]);
 
     return (
+
         <div className="flex items-center gap-3 rounded-lg border border-border bg-card/90 p-2 shadow-sm backdrop-blur-sm">
             {/* Tap enable checkbox */}
             <MyraCheckbox
@@ -204,4 +212,5 @@ export function TapControl() {
             </div>
         </div>
     );
+
 }

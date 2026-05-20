@@ -31,18 +31,16 @@ pub struct BandwidthState {
 }
 
 impl Default for BandwidthState {
+
     fn default() -> Self {
-
         Self {
-
             buffer: VecDeque::new(),
             total_buffer_size: 0,
             last_send_time: Instant::now(),
             next_release_time: Instant::now(),
-
         }
-
     }
+
 }
 
 impl PacketModule for BandwidthModule {
@@ -51,28 +49,20 @@ impl PacketModule for BandwidthModule {
     type State = BandwidthState;
 
     fn name(&self) -> &'static str {
-
         "bandwidth"
-
     }
 
     fn display_name(&self) -> &'static str {
-
         "Bandwidth Limit"
-
     }
 
     fn get_duration_ms(&self, options: &Self::Options) -> u64 {
-
         options.duration_ms
-
     }
 
     fn should_skip(&self, options: &Self::Options) -> bool {
-
         // Skip if limit is 0 OR if using WFP mode (external throttle handles it)
         options.limit == 0 || options.use_wfp
-
     }
 
     fn process<'a>(
@@ -88,6 +78,7 @@ impl PacketModule for BandwidthModule {
         // Safety: We need to transmute lifetimes here because the buffer persists
         // across processing calls.
         let buffer: &mut VecDeque<PacketData<'a>> =
+
             unsafe { std::mem::transmute(&mut state.buffer) };
 
         bandwidth_limiter(
@@ -189,7 +180,9 @@ fn bandwidth_limiter_paced<'a>(
     for packet in packets.drain(..) {
         let packet_size = packet.packet.data.len();
         let matches_direction = (packet.is_outbound && apply_outbound)
+
             || (!packet.is_outbound && apply_inbound);
+
         let is_small = passthrough_threshold > 0 && packet_size <= passthrough_threshold;
 
         if !matches_direction || is_small {
@@ -211,12 +204,14 @@ fn bandwidth_limiter_paced<'a>(
     if now >= *next_release_time {
         if let Some(packet) = remove_packet_from_buffer(buffer, total_buffer_size, stats) {
             let packet_size = packet.packet.data.len();
+
             bytes_sent = packet_size;
 
             let bytes_per_sec = (bandwidth_limit_kbps as f64) * 1024.0;
             let transmission_time_secs = if bytes_per_sec > 0.0 { packet_size as f64 / bytes_per_sec } else { 1.0 };
 
             let transmission_duration = std::time::Duration::from_secs_f64(transmission_time_secs);
+
             *next_release_time = now + transmission_duration;
 
             to_send.push(packet);
@@ -244,10 +239,8 @@ fn add_packet_to_buffer<'a>(
     packet: PacketData<'a>,
     total_size: &mut usize,
 ) {
-
     *total_size += packet.packet.data.len();
     buffer.push_back(packet);
-
 }
 
 /// Moves all packets from the input vector to the buffer
@@ -265,11 +258,9 @@ fn add_packets_to_buffer<'a>(
     packets: &mut Vec<PacketData<'a>>,
     total_size: &mut usize,
 ) {
-
     while let Some(packet) = packets.pop() {
         add_packet_to_buffer(buffer, packet, total_size);
     }
-
 }
 
 /// Removes a packet from the front of the buffer and updates the total buffer size
@@ -310,13 +301,11 @@ fn maintain_buffer_size(
     total_size: &mut usize,
     stats: &mut BandwidthStats,
 ) {
-
     while *total_size > MAX_BUFFER_SIZE {
         if remove_packet_from_buffer(buffer, total_size, stats).is_none() {
             break;
         }
     }
-
 }
 
 #[cfg(test)]
@@ -336,19 +325,20 @@ mod tests {
     /// Safely creates a dummy packet with a specified length.
     /// Assumes the vector created with the specified length is valid for packet creation.
     fn create_dummy_packet<'a>(length: usize) -> WinDivertPacket<'a, NetworkLayer> {
-
         let data = vec![1; length];
-        unsafe { WinDivertPacket::<NetworkLayer>::new(data) }
 
+        unsafe { WinDivertPacket::<NetworkLayer>::new(data) }
     }
 
     #[test]
     fn test_basic_bandwidth_limiting() {
 
         let mut packets = vec![
+
             PacketData::from(create_dummy_packet(1000)),
             PacketData::from(create_dummy_packet(1000)),
         ];
+
         let mut buffer = VecDeque::new();
         let total_buffer_size: &mut usize = &mut 0usize;
         let mut last_send_time = Instant::now() - Duration::from_secs(1);
@@ -381,9 +371,11 @@ mod tests {
         // Fill the buffer with packets to exceed the max total size
         while total_buffer_size < MAX_BUFFER_SIZE + 10_000 {
             let packet = PacketData::from(create_dummy_packet(1000));
+
             total_buffer_size += packet.packet.data.len();
             buffer.push_back(packet);
         }
+
         let mut last_send_time = Instant::now();
         let bandwidth_limit = 100; // High enough to not limit the test
         let mut stats = BandwidthStats::new(0.5);
@@ -401,6 +393,7 @@ mod tests {
         );
 
         let actual_total_size: usize = buffer.iter().map(|p| p.packet.data.len()).sum();
+
         assert!(actual_total_size <= MAX_BUFFER_SIZE);
 
     }
@@ -409,9 +402,11 @@ mod tests {
     fn test_no_bandwidth_limiting() {
 
         let mut packets = vec![
+
             PacketData::from(create_dummy_packet(1000)),
             PacketData::from(create_dummy_packet(1000)),
         ];
+
         let mut buffer = VecDeque::new();
         let mut total_buffer_size = 0;
         let mut last_send_time = Instant::now() - Duration::from_secs(1);
@@ -438,9 +433,11 @@ mod tests {
     fn test_zero_bandwidth() {
 
         let mut packets = vec![
+
             PacketData::from(create_dummy_packet(1000)),
             PacketData::from(create_dummy_packet(1000)),
         ];
+
         let mut buffer = VecDeque::new();
         let mut total_buffer_size = 0;
         let mut last_send_time = Instant::now();
@@ -513,6 +510,7 @@ mod tests {
         let mut buffer = VecDeque::new();
         let mut total_size = 0;
         let mut packets = vec![
+
             PacketData::from(create_dummy_packet(1000)),
             PacketData::from(create_dummy_packet(2000)),
         ];
@@ -532,7 +530,9 @@ mod tests {
         let mut buffer = VecDeque::new();
         let mut total_size = 0;
         let packet = PacketData::from(create_dummy_packet(1000));
+
         add_packet_to_buffer(&mut buffer, packet.clone(), &mut total_size);
+
         let mut stats = BandwidthStats::new(0.5);
 
         let removed_packet = remove_packet_from_buffer(&mut buffer, &mut total_size, &mut stats);

@@ -9,17 +9,16 @@ use myra::commands;
 struct SimpleLogger;
 
 impl log::Log for SimpleLogger {
+
     fn enabled(&self, metadata: &log::Metadata) -> bool {
-
         metadata.level() <= log::max_level()
-
     }
 
     fn log(&self, record: &log::Record) {
-
         if self.enabled(record.metadata()) {
             let mut stdout = io::stdout();
             let timestamp = chrono::Local::now().format("%H:%M:%S%.3f");
+
             writeln!(
                 stdout,
                 "[{}] {} - {}: {}",
@@ -33,16 +32,14 @@ impl log::Log for SimpleLogger {
                 .flush()
                 .unwrap_or_else(|e| error!("Failed to flush stdout: {}", e));
         }
-
     }
 
     fn flush(&self) {
-
         io::stdout()
             .flush()
             .unwrap_or_else(|e| error!("Failed to flush stdout: {}", e));
-
     }
+
 }
 
 static LOGGER: SimpleLogger = SimpleLogger;
@@ -51,9 +48,7 @@ static LOGGER: SimpleLogger = SimpleLogger;
 ///
 /// Sets up the SimpleLogger with Info level filtering
 fn init_logger() -> Result<(), SetLoggerError> {
-
     log::set_logger(&LOGGER).map(|()| log::set_max_level(LevelFilter::Info))
-
 }
 
 /// Main entry point for the Myra application
@@ -132,11 +127,11 @@ fn is_admin() -> bool {
     };
 
     unsafe {
-
         let mut sid = std::ptr::null_mut();
         let sub_authorities = [SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS];
 
         if AllocateAndInitializeSid(
+
             &SECURITY_NT_AUTHORITY as *const _ as *mut _,
             2,
             sub_authorities[0],
@@ -155,11 +150,11 @@ fn is_admin() -> bool {
 
         let mut is_member = 0;
         let is_admin =
+
             CheckTokenMembership(std::ptr::null_mut(), sid, &mut is_member) != 0 && is_member != 0;
 
         FreeSid(sid);
         is_admin
-
     }
 
 }

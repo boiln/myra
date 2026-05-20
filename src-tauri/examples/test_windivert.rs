@@ -7,6 +7,7 @@ fn main() {
 
     // Test various filter combinations
     let filters = [
+
         "true",
         "outbound",
         "outbound and !loopback",
@@ -19,24 +20,19 @@ fn main() {
         println!("\n=== Testing filter: {} ===", filter);
 
         let wd = match WinDivert::<NetworkLayer>::network(
+
             filter,
             0, // Priority 0
             WinDivertFlags::new(),
         ) {
-
             Ok(handle) => {
-
                 println!("Handle opened successfully!");
                 handle
-
             }
             Err(e) => {
-
                 eprintln!("FAILED to open: {:?}", e);
                 continue;
-
             }
-
         };
 
         let mut buffer = vec![0u8; 65535];
@@ -46,26 +42,21 @@ fn main() {
 
         while start.elapsed() < timeout && count < 3 {
             match wd.recv(Some(&mut buffer)) {
-
                 Ok(packet) => {
-
                     count += 1;
                     println!("Got packet: {} bytes", packet.data.len());
-
                 }
                 Err(e) => {
-
                     eprintln!("recv error: {:?}", e);
                     break;
-
                 }
-
             }
         }
 
         if count == 0 {
             println!("NO packets received!");
         }
+
         if count > 0 {
             println!("Received {} packets", count);
         }

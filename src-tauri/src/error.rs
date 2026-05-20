@@ -28,25 +28,21 @@ impl MyraError {
 
     /// Creates a new lock poisoned error with a descriptive message.
     pub fn lock_poisoned(resource: &str) -> Self {
-
         Self::LockPoisoned(format!("Failed to acquire lock on {}", resource))
-
     }
 
     /// Creates a new statistics lock error.
     pub fn stats_lock(module: &str) -> Self {
-
         Self::StatisticsLock(format!("{} statistics", module))
-
     }
 
 }
 
 /// Convert `MyraError` to a String for Tauri command responses.
 impl From<MyraError> for String {
+
     fn from(error: MyraError) -> Self {
-
         error.to_string()
-
     }
+
 }

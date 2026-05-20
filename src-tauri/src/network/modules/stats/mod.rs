@@ -45,10 +45,9 @@ pub struct PacketProcessingStatistics {
 }
 
 impl Default for PacketProcessingStatistics {
+
     fn default() -> Self {
-
         Self {
-
             drop_stats: DropStats::new(0.005),
             lag_stats: LagStats::new(),
             throttle_stats: ThrottleStats::new(),
@@ -57,8 +56,7 @@ impl Default for PacketProcessingStatistics {
             duplicate_stats: DuplicateStats::new(0.005),
             bandwidth_stats: BandwidthStats::new(0.005),
             burst_stats: BurstStats::new(0.005),
-
         }
-
     }
+
 }

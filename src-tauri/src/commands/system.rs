@@ -34,10 +34,12 @@ pub async fn list_processes() -> Result<Vec<ProcessInfo>, String> {
     use sysinfo::{ProcessRefreshKind, RefreshKind, System};
 
     let system = System::new_with_specifics(
+
         RefreshKind::nothing().with_processes(ProcessRefreshKind::everything()),
     );
 
     let mut processes: Vec<ProcessInfo> = system
+
         .processes()
         .iter()
         .map(|(pid, process)| {
@@ -45,13 +47,11 @@ pub async fn list_processes() -> Result<Vec<ProcessInfo>, String> {
             let icon = path.as_ref().and_then(|p| extract_icon(p));
 
             ProcessInfo {
-
                 pid: pid.as_u32(),
                 name: process.name().to_string_lossy().to_string(),
                 path,
                 window_title: None,
                 icon,
-
             }
         })
         .collect();
@@ -59,12 +59,15 @@ pub async fn list_processes() -> Result<Vec<ProcessInfo>, String> {
     processes.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
 
     let mut seen: HashMap<String, ProcessInfo> = HashMap::new();
+
     for proc in processes {
         let key = proc.name.to_lowercase();
+
         seen.entry(key).or_insert(proc);
     }
 
     let mut result: Vec<ProcessInfo> = seen.into_values().collect();
+
     result.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
 
     Ok(result)
@@ -85,6 +88,7 @@ pub async fn scan_network_devices() -> Result<Vec<NetworkDevice>, String> {
     }
 
     let output = Command::new("arp")
+
         .args(["-a"])
         .output()
         .map_err(|e| format!("Failed to run arp: {}", e))?;
@@ -94,12 +98,10 @@ pub async fn scan_network_devices() -> Result<Vec<NetworkDevice>, String> {
 
     if let Some(local_ip) = get_local_ip() {
         devices.push(NetworkDevice {
-
             ip: local_ip,
             mac: None,
             hostname: Some("This PC".to_string()),
             device_type: None,
-
         });
     }
 
@@ -122,19 +124,15 @@ pub async fn scan_network_devices() -> Result<Vec<NetworkDevice>, String> {
         let mac = parse_mac_from_arp(parts.get(1).copied());
 
         let hostname = match gateway_ip.as_ref() {
-
             Some(gw) if gw == ip_str => Some("Router / Gateway".to_string()),
             _ => None,
-
         };
 
         devices.push(NetworkDevice {
-
             ip: ip_str.to_string(),
             mac,
             hostname,
             device_type: None,
-
         });
     }
 
@@ -165,6 +163,7 @@ pub async fn scan_network_devices() -> Result<Vec<NetworkDevice>, String> {
     }
 
     let ips_needing_resolution: Vec<String> = devices
+
         .iter()
         .filter(|d| d.hostname.is_none())
         .map(|d| d.ip.clone())
@@ -201,6 +200,7 @@ pub async fn scan_network_devices() -> Result<Vec<NetworkDevice>, String> {
             }
 
             let name = mdns_results
+
                 .get(&device.ip)
                 .or_else(|| ssdp_results.get(&device.ip))
                 .or_else(|| netbios_results.get(&device.ip));
@@ -219,6 +219,7 @@ pub async fn scan_network_devices() -> Result<Vec<NetworkDevice>, String> {
     }
 
     let macs_to_lookup: Vec<String> = devices
+
         .iter()
         .filter(|d| d.hostname.is_none() && d.mac.is_some())
         .filter_map(|d| d.mac.clone())
@@ -230,7 +231,6 @@ pub async fn scan_network_devices() -> Result<Vec<NetworkDevice>, String> {
     }
 
     devices.sort_by(|a, b| {
-
         let a_named = a.hostname.is_some();
         let b_named = b.hostname.is_some();
 
@@ -240,8 +240,8 @@ pub async fn scan_network_devices() -> Result<Vec<NetworkDevice>, String> {
 
         let a_octets: Vec<u8> = a.ip.split('.').filter_map(|s| s.parse().ok()).collect();
         let b_octets: Vec<u8> = b.ip.split('.').filter_map(|s| s.parse().ok()).collect();
-        a_octets.cmp(&b_octets)
 
+        a_octets.cmp(&b_octets)
     });
 
     log::info!("Device scan complete, found {} devices", devices.len());
@@ -261,6 +261,7 @@ pub fn build_process_filter(pid: u32, _include_inbound: bool, _include_outbound:
 
     if local_ports.is_empty() && remote_ips.is_empty() {
         log::warn!("No active connections found for PID {}. Using broad outbound filter.", pid);
+
         return "outbound".to_string();
     }
 
@@ -292,6 +293,7 @@ pub fn start_flow_tracking(
 ) -> Result<(), String> {
 
     let mut tracker = state
+
         .flow_tracker
         .lock()
         .map_err(|e| format!("Failed to lock flow tracker: {}", e))?;
@@ -307,6 +309,7 @@ pub fn start_flow_tracking(
 pub fn stop_flow_tracking(state: State<'_, PacketProcessingState>) -> Result<(), String> {
 
     let mut tracker = state
+
         .flow_tracker
         .lock()
         .map_err(|e| format!("Failed to lock flow tracker: {}", e))?;
@@ -322,6 +325,7 @@ pub fn stop_flow_tracking(state: State<'_, PacketProcessingState>) -> Result<(),
 pub fn get_flow_filter(state: State<'_, PacketProcessingState>) -> Result<Option<String>, String> {
 
     let tracker = state
+
         .flow_tracker
         .lock()
         .map_err(|e| format!("Failed to lock flow tracker: {}", e))?;
@@ -335,6 +339,7 @@ pub fn get_flow_filter(state: State<'_, PacketProcessingState>) -> Result<Option
 pub fn is_flow_tracking(state: State<'_, PacketProcessingState>) -> Result<bool, String> {
 
     let tracker = state
+
         .flow_tracker
         .lock()
         .map_err(|e| format!("Failed to lock flow tracker: {}", e))?;
@@ -352,6 +357,7 @@ pub fn build_device_filter(ip: String, include_inbound: bool, include_outbound: 
 
     if include_outbound && include_inbound {
         return format!(
+
             "(outbound and ip.DstAddr == {}) or (inbound and ip.SrcAddr == {})",
             ip, ip
         );
@@ -380,17 +386,15 @@ pub fn validate_filter(filter: String) -> Result<bool, String> {
     if open_parens != close_parens {
         return Err("Unbalanced parentheses".to_string());
     }
+
     // Try opening a WinDivert handle to validate the expression
     match WinDivert::<NetworkLayer>::network(filter, 0, WinDivertFlags::new()) {
-
         Ok(mut handle) => {
-
             let _ = handle.close(CloseAction::Nothing);
-            Ok(true)
 
+            Ok(true)
         }
         Err(e) => Err(format!("Invalid filter: {}", e)),
-
     }
 
 }
@@ -410,12 +414,12 @@ fn extract_icon(exe_path: &str) -> Option<String> {
     use winapi::um::winuser::{DestroyIcon, GetIconInfo, ICONINFO};
 
     let wide_path: Vec<u16> = OsStr::new(exe_path)
+
         .encode_wide()
         .chain(std::iter::once(0))
         .collect();
 
     unsafe {
-
         let mut large_icon: HICON = null_mut();
         let count = ExtractIconExW(wide_path.as_ptr(), 0, &mut large_icon, null_mut(), 1);
 
@@ -427,6 +431,7 @@ fn extract_icon(exe_path: &str) -> Option<String> {
 
         if GetIconInfo(large_icon, &mut icon_info) == 0 {
             DestroyIcon(large_icon);
+
             return None;
         }
 
@@ -434,6 +439,7 @@ fn extract_icon(exe_path: &str) -> Option<String> {
 
         if hdc.is_null() {
             cleanup_icon_resources(&icon_info, large_icon);
+
             return None;
         }
 
@@ -441,6 +447,7 @@ fn extract_icon(exe_path: &str) -> Option<String> {
         let height = 32i32;
 
         let mut bmi: BITMAPINFO = std::mem::zeroed();
+
         bmi.bmiHeader.biSize = std::mem::size_of::<BITMAPINFOHEADER>() as u32;
         bmi.bmiHeader.biWidth = width;
         bmi.bmiHeader.biHeight = -height;
@@ -452,6 +459,7 @@ fn extract_icon(exe_path: &str) -> Option<String> {
         let old_bmp = SelectObject(hdc, icon_info.hbmColor.cast());
 
         let result = GetDIBits(
+
             hdc,
             icon_info.hbmColor,
             0,
@@ -474,11 +482,11 @@ fn extract_icon(exe_path: &str) -> Option<String> {
         }
 
         let encoded = STANDARD.encode(&pixels);
+
         Some(format!(
             "data:image/raw;width=32;height=32;base64,{}",
             encoded
         ))
-
     }
 
 }
@@ -518,18 +526,16 @@ fn discover_mdns_names(ips_to_resolve: &[String]) -> HashMap<String, String> {
     log::info!("mDNS: Starting discovery for {} devices ..", ips_set.len());
 
     let mdns = match ServiceDaemon::new() {
-
         Ok(daemon) => daemon,
         Err(e) => {
-
             log::warn!("mDNS: Failed to create daemon: {}", e);
+
             return HashMap::new();
-
         }
-
     };
 
     let service_types = [
+
         "_services._dns-sd._udp.local.",
         "_workstation._tcp.local.",
         "_device-info._tcp.local.",
@@ -569,6 +575,7 @@ fn discover_mdns_names(ips_to_resolve: &[String]) -> HashMap<String, String> {
     let mut discovered: HashMap<String, String> = HashMap::new();
 
     let mut receivers = Vec::new();
+
     for service_type in &service_types {
         if let Ok(receiver) = mdns.browse(service_type) {
             receivers.push(receiver);
@@ -593,6 +600,7 @@ fn discover_mdns_names(ips_to_resolve: &[String]) -> HashMap<String, String> {
                     }
 
                     let name = info
+
                         .get_fullname()
                         .split('.')
                         .next()
@@ -621,6 +629,7 @@ fn discover_mdns_names(ips_to_resolve: &[String]) -> HashMap<String, String> {
     log::info!("mDNS: Resolved {} device names", discovered.len());
 
     let _ = mdns.shutdown();
+
     discovered
 
 }
@@ -640,6 +649,7 @@ fn discover_ssdp_names(ips_to_resolve: &[String]) -> HashMap<String, String> {
     log::info!("SSDP: Starting discovery for {} devices ..", ips_set.len());
 
     let ssdp_request = b"M-SEARCH * HTTP/1.1\r\n\
+
         HOST: 239.255.255.250:1900\r\n\
         MAN: \"ssdp:discover\"\r\n\
         MX: 3\r\n\
@@ -648,6 +658,7 @@ fn discover_ssdp_names(ips_to_resolve: &[String]) -> HashMap<String, String> {
 
     let Ok(socket) = UdpSocket::bind("0.0.0.0:0") else {
         log::warn!("SSDP: Failed to bind UDP socket");
+
         return HashMap::new();
     };
 
@@ -655,8 +666,10 @@ fn discover_ssdp_names(ips_to_resolve: &[String]) -> HashMap<String, String> {
     let _ = socket.set_broadcast(true);
 
     let ssdp_addr: SocketAddr = "239.255.255.250:1900".parse().unwrap();
+
     for _ in 0..3 {
         let _ = socket.send_to(ssdp_request, ssdp_addr);
+
         std::thread::sleep(Duration::from_millis(100));
     }
 
@@ -757,6 +770,7 @@ fn discover_netbios_names(ips_to_resolve: &[String]) -> HashMap<String, String> 
     );
 
     let netbios_query: [u8; 49] = [
+
         0x00, 0x01, 0x00, 0x10, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x43, 0x4b,
         0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41,
         0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x41, 0x00,
@@ -765,6 +779,7 @@ fn discover_netbios_names(ips_to_resolve: &[String]) -> HashMap<String, String> 
 
     let Ok(socket) = UdpSocket::bind("0.0.0.0:0") else {
         log::warn!("NetBIOS: Failed to bind UDP socket");
+
         return HashMap::new();
     };
 
@@ -829,6 +844,7 @@ fn parse_netbios_response(data: &[u8]) -> Option<String> {
     }
 
     let num_names = data[pos] as usize;
+
     pos += 1;
 
     for _ in 0..num_names.min(10) {
@@ -845,6 +861,7 @@ fn parse_netbios_response(data: &[u8]) -> Option<String> {
         }
 
         let name = String::from_utf8_lossy(name_bytes)
+
             .trim()
             .trim_end_matches(char::from(0))
             .to_string();
@@ -855,13 +872,12 @@ fn parse_netbios_response(data: &[u8]) -> Option<String> {
         }
 
         if !name
+
             .chars()
             .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
         {
-
             pos += 18;
             continue;
-
         }
 
         return Some(name);
@@ -876,6 +892,7 @@ type DevicePattern = (&'static [&'static str], Option<&'static [&'static str]>, 
 
 /// Device name lookup table. First match wins.
 const DEVICE_PATTERNS: &[DevicePattern] = &[
+
     (&["directv"], None, "DIRECTV"),
     (&["jetheadinc"], None, "Cable Box"),
     (&["roku"], None, "Roku"),
@@ -894,9 +911,11 @@ const DEVICE_PATTERNS: &[DevicePattern] = &[
 fn match_device_pattern(input: &str) -> Option<String> {
 
     let s = input.to_lowercase();
+
     for (patterns, extra_check, result) in DEVICE_PATTERNS {
         let primary_match = patterns.iter().any(|p| s.contains(p));
         let secondary_match = extra_check.map_or(true, |checks| checks.iter().any(|c| s.contains(c)));
+
         if primary_match && secondary_match {
             return Some((*result).to_string());
         }
@@ -906,9 +925,7 @@ fn match_device_pattern(input: &str) -> Option<String> {
 }
 
 fn extract_ssdp_server_name(server: &str) -> Option<String> {
-
     match_device_pattern(server)
-
 }
 
 fn extract_ssdp_usn_name(usn: &str) -> Option<String> {
@@ -938,6 +955,7 @@ fn fetch_upnp_friendly_name(url: &str) -> Option<String> {
     let (host_port, path) = url.split_once('/').unwrap_or((url, ""));
 
     let stream =
+
         TcpStream::connect_timeout(&host_port.parse().ok()?, Duration::from_millis(500)).ok()?;
 
     stream
@@ -948,14 +966,17 @@ fn fetch_upnp_friendly_name(url: &str) -> Option<String> {
         .ok()?;
 
     let request = format!(
+
         "GET /{} HTTP/1.1\r\nHost: {}\r\nConnection: close\r\n\r\n",
         path, host_port
     );
 
     let mut stream = stream;
+
     stream.write_all(request.as_bytes()).ok()?;
 
     let mut response = String::new();
+
     stream.read_to_string(&mut response).ok()?;
 
     let start = response.find("<friendlyName>")?;
@@ -1001,6 +1022,7 @@ fn ping_sweep_subnet(local_ip: &str) {
     }
 
     let subnet_prefix = format!("{}.{}.{}", parts[0], parts[1], parts[2]);
+
     log::info!("Starting ping sweep on subnet {}.1-254 ..", subnet_prefix);
 
     let batch_size = 50;
@@ -1014,6 +1036,7 @@ fn ping_sweep_subnet(local_ip: &str) {
             for i in batch_start..=batch_end {
                 let ip = format!("{}.{}", prefix, i);
                 let _ = Command::new("ping")
+
                     .args(["-n", "1", "-w", "50", &ip])
                     .stdout(std::process::Stdio::null())
                     .stderr(std::process::Stdio::null())
@@ -1036,6 +1059,7 @@ fn ping_sweep_subnet(local_ip: &str) {
 fn get_default_gateway() -> Option<String> {
 
     let output = Command::new("route")
+
         .args(["print", "0.0.0.0"])
         .output()
         .ok()?;
@@ -1163,6 +1187,7 @@ fn get_process_connections(pid: u32) -> (Vec<u16>, Vec<String>) {
 
         // Extract local port
         let local = parts[1];
+
         if let Some(port) = local.rsplit(':').next().and_then(|p| p.parse::<u16>().ok()) {
             if port > 1024 {
                 ports.push(port);
@@ -1171,16 +1196,16 @@ fn get_process_connections(pid: u32) -> (Vec<u16>, Vec<String>) {
 
         // Extract remote IP (parts[2] is foreign address)
         let remote = parts[2];
+
         if remote != "*:*" && remote != "0.0.0.0:0" && remote != "[::]:0" {
             // Extract just the IP part (before the port)
             if let Some(ip_part) = remote.rsplit(':').nth(1) {
                 // Handle IPv4 - the rsplit gives us the IP when splitting "ip:port"
                 let ip = if remote.starts_with('[') {
-
                     ip_part.trim_start_matches('[').to_string()
-
                 } else {
                     let parts: Vec<&str> = remote.rsplitn(2, ':').collect();
+
                     if parts.len() != 2 {
                         continue;
                     }
@@ -1208,6 +1233,7 @@ fn get_process_connections(pid: u32) -> (Vec<u16>, Vec<String>) {
     );
 
     (ports, remote_ips)
+
 }
 
 async fn lookup_and_update_devices(
@@ -1219,6 +1245,7 @@ async fn lookup_and_update_devices(
     log::info!("Looking up {} new MAC addresses ..", macs_to_lookup.len());
 
     let Ok(client) = reqwest::Client::builder()
+
         .timeout(std::time::Duration::from_secs(10))
         .build()
     else {
@@ -1265,13 +1292,16 @@ async fn lookup_macs_batch(
 
     if !response.status().is_success() {
         log::warn!("MAC resolver returned status: {}", response.status());
+
         return None;
     }
 
     #[derive(Deserialize)]
     struct MacResult {
+
         mac: String,
         vendor: Option<String>,
+
     }
 
     let results: Vec<MacResult> = response.json().await.ok()?;
@@ -1279,10 +1309,13 @@ async fn lookup_macs_batch(
 
     for r in results {
         let Some(vendor) = r.vendor else {
+
             continue;
+
         };
 
         let mac_normalized = r.mac.to_uppercase().replace(':', "-");
+
         log::info!("Resolved {} -> {}", mac_normalized, vendor);
         map.insert(mac_normalized, vendor);
     }
@@ -1294,16 +1327,16 @@ async fn lookup_macs_batch(
 
 /// Generic JSON cache helper for loading/saving `HashMap<String, String>` to disk.
 struct JsonCache {
+
     filename: &'static str,
     name: &'static str,
+
 }
 
 impl JsonCache {
 
     const fn new(filename: &'static str, name: &'static str) -> Self {
-
         Self { filename, name }
-
     }
 
     fn path(&self) -> std::path::PathBuf {
@@ -1321,6 +1354,7 @@ impl JsonCache {
         let Ok(contents) = std::fs::read_to_string(&path) else {
             return HashMap::new();
         };
+
         let Ok(cache) = serde_json::from_str(&contents) else {
             return HashMap::new();
         };
@@ -1335,6 +1369,7 @@ impl JsonCache {
         let Ok(json) = serde_json::to_string_pretty(cache) else {
             return;
         };
+
         if let Err(e) = std::fs::write(&path, json) {
             log::warn!("Failed to save {} cache: {}", self.name, e);
             return;

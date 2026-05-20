@@ -19,11 +19,11 @@ pub struct ThrottleStats {
 }
 
 impl Default for ThrottleStats {
+
     fn default() -> Self {
-
         Self::new()
-
     }
+
 }
 
 impl ThrottleStats {
@@ -40,13 +40,11 @@ impl ThrottleStats {
     /// let stats = ThrottleStats::new();
     /// ```
     pub fn new() -> Self {
-
         Self {
             is_throttling: false,
             dropped_count: 0,
             buffered_count: 0,
         }
-
     }
 
     /// Returns whether throttling is currently active
@@ -55,9 +53,7 @@ impl ThrottleStats {
     ///
     /// `true` if throttling is currently active, `false` otherwise
     pub fn is_throttling(&self) -> bool {
-
         self.is_throttling
-
     }
 
     /// Returns the total number of packets dropped due to throttling
@@ -66,27 +62,21 @@ impl ThrottleStats {
     ///
     /// The total number of packets that have been dropped
     pub fn dropped_count(&self) -> usize {
-
         self.dropped_count
-
     }
 
     /// Resets all statistics to their default values
     ///
     /// This resets the throttling status to inactive and the dropped count to zero
     pub fn reset(&mut self) {
-
         self.is_throttling = false;
         self.dropped_count = 0;
         self.buffered_count = 0;
-
     }
 
     /// Returns the current number of buffered packets
     pub fn buffered_count(&self) -> usize {
-
         self.buffered_count
-
     }
 
 }
@@ -100,6 +90,7 @@ mod tests {
     fn test_new() {
 
         let stats = ThrottleStats::new();
+
         assert!(!stats.is_throttling(), "New stats should not be throttling");
         assert_eq!(
             stats.dropped_count(),

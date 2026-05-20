@@ -4,21 +4,15 @@
 use serde::{Deserialize, Serialize};
 
 fn default_true() -> bool {
-
     true
-
 }
 
 fn default_chance() -> f64 {
-
     10.0
-
 }
 
 fn default_max_hold_cycles() -> u32 {
-
     10
-
 }
 
 /// Classic Reorder module options.
@@ -51,17 +45,15 @@ pub struct ClassicReorderOptions {
 }
 
 impl Default for ClassicReorderOptions {
+
     fn default() -> Self {
-
         Self {
-
             enabled: false,
             inbound: true,
             outbound: true,
             chance: 10.0,
             max_hold_cycles: 10,
-
         }
-
     }
+
 }

@@ -59,11 +59,11 @@ pub struct ModuleEffectStartTimes {
 }
 
 impl Default for ModuleEffectStartTimes {
+
     fn default() -> Self {
-
         let now = Instant::now();
-        Self {
 
+        Self {
             drop: now,
             lag: now,
             throttle: now,
@@ -72,17 +72,15 @@ impl Default for ModuleEffectStartTimes {
             reorder: now,
             bandwidth: now,
             burst: now,
-
         }
-
     }
+
 }
 
 impl ModuleProcessingState {
+
     pub fn new() -> Self {
-
         Self {
-
             lag: LagState::default(),
             reorder: ReorderState::default(),
             bandwidth: BandwidthState::default(),
@@ -91,16 +89,15 @@ impl ModuleProcessingState {
             burst_was_enabled: false,
             burst_release_delay_us: 500, // Default 0.5ms
             effect_start_times: ModuleEffectStartTimes::default(),
-
         }
-
     }
+
 }
 
 impl Default for ModuleProcessingState {
+
     fn default() -> Self {
-
         Self::new()
-
     }
+
 }

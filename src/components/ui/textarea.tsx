@@ -2,11 +2,15 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+
     ref?: React.Ref<HTMLTextAreaElement>;
+
 }
 
 function Textarea({ className, ref, ...props }: TextareaProps) {
+
     return (
+
         <textarea
             ref={ref}
             className={cn(
@@ -16,6 +20,7 @@ function Textarea({ className, ref, ...props }: TextareaProps) {
             {...props}
         />
     );
+
 }
 
 export { Textarea };

@@ -24,6 +24,7 @@ pub fn process_latency<'a>(
 
     // SAFETY: Storage outlives processing calls
     let buffer: &mut std::collections::VecDeque<(PacketData<'a>, Instant)> =
+
         unsafe { std::mem::transmute(&mut state.buffer) };
 
     let mut passthrough = Vec::new();
@@ -31,6 +32,7 @@ pub fn process_latency<'a>(
     // Move matching packets to lag buffer
     for packet in packets.drain(..) {
         let matches_direction = (packet.is_outbound && options.outbound)
+
             || (!packet.is_outbound && options.inbound);
 
         if !matches_direction {
@@ -53,13 +55,16 @@ pub fn process_latency<'a>(
         if now.duration_since(*capture_time) < lag_duration {
             break; // Not ready yet (packets are ordered by time)
         }
+
         let (packet, _) = buffer.pop_front().unwrap();
+
         passthrough.push(packet);
     }
 
     // Emergency flush if buffer exceeds limit
     if buffer.len() > MAX_BUFFER {
         log::warn!("Classic latency buffer overflow, emergency release");
+
         while let Some((packet, _)) = buffer.pop_front() {
             passthrough.push(packet);
         }

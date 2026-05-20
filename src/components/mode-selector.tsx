@@ -3,13 +3,17 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { ManipulationMode } from "@/lib/stores/mode-store";
 
 interface ModeSelectorProps {
+
     mode: ManipulationMode;
     onModeChange: (mode: ManipulationMode) => void;
     disabled?: boolean;
+
 }
 
 export function ModeSelector({ mode, onModeChange, disabled }: ModeSelectorProps) {
+
     return (
+
         <Tabs
             value={mode}
             onValueChange={(v) => onModeChange(v as ManipulationMode)}
@@ -51,4 +55,5 @@ export function ModeSelector({ mode, onModeChange, disabled }: ModeSelectorProps
             </TabsList>
         </Tabs>
     );
+
 }

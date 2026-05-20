@@ -4,15 +4,11 @@
 use serde::{Deserialize, Serialize};
 
 fn default_true() -> bool {
-
     true
-
 }
 
 fn default_chance() -> f64 {
-
     10.0
-
 }
 
 /// Classic Drop module options.
@@ -38,16 +34,14 @@ pub struct ClassicDropOptions {
 }
 
 impl Default for ClassicDropOptions {
+
     fn default() -> Self {
-
         Self {
-
             enabled: false,
             inbound: true,
             outbound: true,
             chance: 10.0,
-
         }
-
     }
+
 }

@@ -19,7 +19,9 @@ function DialogOverlay({
     ref,
     ...props
 }: React.ComponentProps<typeof DialogPrimitive.Overlay>) {
+
     return (
+
         <DialogPrimitive.Overlay
             ref={ref}
             className={cn(
@@ -29,6 +31,7 @@ function DialogOverlay({
             {...props}
         />
     );
+
 }
 
 function DialogContent({
@@ -37,7 +40,9 @@ function DialogContent({
     ref,
     ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content>) {
+
     return (
+
         <DialogPortal>
             <DialogOverlay />
             <DialogPrimitive.Content
@@ -56,14 +61,17 @@ function DialogContent({
             </DialogPrimitive.Content>
         </DialogPortal>
     );
+
 }
 
 const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+
     <div className={cn("flex flex-col gap-1.5 text-center sm:text-left", className)} {...props} />
 );
 DialogHeader.displayName = "DialogHeader";
 
 const DialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+
     <div
         className={cn("flex flex-col-reverse gap-2 sm:flex-row sm:justify-end", className)}
         {...props}
@@ -76,13 +84,16 @@ function DialogTitle({
     ref,
     ...props
 }: React.ComponentProps<typeof DialogPrimitive.Title>) {
+
     return (
+
         <DialogPrimitive.Title
             ref={ref}
             className={cn("text-lg font-semibold leading-none tracking-tight", className)}
             {...props}
         />
     );
+
 }
 
 function DialogDescription({
@@ -90,13 +101,16 @@ function DialogDescription({
     ref,
     ...props
 }: React.ComponentProps<typeof DialogPrimitive.Description>) {
+
     return (
+
         <DialogPrimitive.Description
             ref={ref}
             className={cn("text-sm text-muted-foreground", className)}
             {...props}
         />
     );
+
 }
 
 export {

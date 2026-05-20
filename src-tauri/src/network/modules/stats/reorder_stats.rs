@@ -22,16 +22,12 @@ impl ReorderStats {
     ///
     /// * `alpha` - Smoothing factor for exponentially weighted moving average
     pub fn new(alpha: f64) -> Self {
-
         Self {
-
             total_packets: 0,
             reordered_packets: 0,
             delayed_packets: 0,
             ewma: Ewma::new(alpha),
-
         }
-
     }
 
     /// Records a packet reordering event
@@ -42,11 +38,13 @@ impl ReorderStats {
     pub fn record(&mut self, reordered: bool) {
 
         self.total_packets += 1;
+
         if reordered {
             self.reordered_packets += 1;
         }
 
         let current_reorder_rate = if reordered { 1.0 } else { 0.0 };
+
         self.ewma.update(current_reorder_rate);
 
     }

@@ -27,7 +27,9 @@ pub struct FlowInfo {
 /// Tracks active flows for a specific process
 #[derive(Debug, Default)]
 pub struct ProcessFlows {
+
     pub flows: Vec<FlowInfo>,
+
 }
 
 /// Flow tracker that monitors connections for target processes
@@ -43,16 +45,12 @@ pub struct FlowTracker {
 impl FlowTracker {
 
     pub fn new() -> Self {
-
         Self {
-
             running: Arc::new(AtomicBool::new(false)),
             thread_handle: None,
             flows: Arc::new(RwLock::new(HashMap::new())),
             target_pid: Arc::new(RwLock::new(None)),
-
         }
-
     }
 
     /// Start tracking flows for a specific process
@@ -91,6 +89,7 @@ impl FlowTracker {
         if let Ok(mut flows) = self.flows.write() {
             flows.clear();
         }
+
         if let Ok(mut pid) = self.target_pid.write() {
             *pid = None;
         }
@@ -103,10 +102,8 @@ impl FlowTracker {
     pub fn get_flows(&self) -> Vec<FlowInfo> {
 
         let target = match self.target_pid.read() {
-
             Ok(guard) => *guard,
             Err(_) => return Vec::new(),
-
         };
 
         let Some(pid) = target else {
@@ -146,6 +143,7 @@ impl FlowTracker {
 
         // Also add standalone remote IPs for broader matching
         let unique_ips: Vec<IpAddr> = flows.iter().map(|f| f.remote_addr).collect();
+
         for ip in unique_ips.iter().take(10) {
             // Limit to prevent filter explosion
             if !ip.is_loopback() {
@@ -165,27 +163,25 @@ impl FlowTracker {
 
     /// Check if tracker is running
     pub fn is_running(&self) -> bool {
-
         self.running.load(Ordering::SeqCst)
-
     }
 
 }
 
 impl Default for FlowTracker {
+
     fn default() -> Self {
-
         Self::new()
-
     }
+
 }
 
 impl Drop for FlowTracker {
+
     fn drop(&mut self) {
-
         self.stop();
-
     }
+
 }
 
 fn run_flow_tracker(
@@ -196,32 +192,24 @@ fn run_flow_tracker(
 
     // Open flow layer handle - filter for all flows, we'll check PID ourselves
     let flow_handle = match WinDivert::<FlowLayer>::flow("true", 0, WinDivertFlags::new()) {
-
         Ok(h) => h,
         Err(e) => {
-
             error!("Failed to open flow layer handle: {}", e);
             return;
-
         }
-
     };
 
     info!("Flow tracker started");
 
     while running.load(Ordering::SeqCst) {
         let packet = match flow_handle.recv(None) {
-
             Ok(p) => p,
             Err(e) => {
-
                 if running.load(Ordering::SeqCst) {
                     warn!("Flow recv error: {}", e);
                 }
                 continue;
-
             }
-
         };
 
         let addr = packet.address;
@@ -229,10 +217,8 @@ fn run_flow_tracker(
 
         // Check if this is our target process
         let target = match target_pid.read() {
-
             Ok(guard) => *guard,
             Err(_) => continue,
-
         };
 
         let Some(target_pid_value) = target else {
@@ -244,13 +230,11 @@ fn run_flow_tracker(
         }
 
         let flow_info = FlowInfo {
-
             local_addr: addr.local_address(),
             remote_addr: addr.remote_address(),
             local_port: addr.local_port(),
             remote_port: addr.remote_port(),
             protocol: addr.protocol(),
-
         };
 
         // Skip loopback
@@ -267,16 +251,13 @@ fn run_flow_tracker(
 
         match event {
             windivert::prelude::WinDivertEvent::FlowStablished => {
-
                 debug!(
                     "Flow established: PID {} -> {}:{} (proto: {})",
                     pid, flow_info.remote_addr, flow_info.remote_port, flow_info.protocol
                 );
                 process_flows.flows.push(flow_info);
-
             }
             windivert::prelude::WinDivertEvent::FlowDeleted => {
-
                 debug!(
                     "Flow deleted: PID {} -> {}:{}",
                     pid, flow_info.remote_addr, flow_info.remote_port
@@ -286,7 +267,6 @@ fn run_flow_tracker(
                         || f.remote_port != flow_info.remote_port
                         || f.local_port != flow_info.local_port
                 });
-
             }
             _ => {}
         }

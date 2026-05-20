@@ -125,30 +125,22 @@ pub const MODULES: &[ModuleEntry] = &[
 
 /// Get all module names as a slice.
 pub fn module_names() -> impl Iterator<Item = &'static str> {
-
     MODULES.iter().map(|m| m.name)
-
 }
 
 /// Get the total number of registered modules.
 pub const fn module_count() -> usize {
-
     MODULES.len()
-
 }
 
 /// Find a module by name.
 pub fn find_module(name: &str) -> Option<&'static ModuleEntry> {
-
     MODULES.iter().find(|m| m.name == name)
-
 }
 
 /// Checks if a specific module is enabled in settings.
 pub fn is_module_enabled(settings: &Settings, name: &str) -> bool {
-
     match name {
-
         "drop" => settings.drop.as_ref().is_some_and(|o| o.enabled),
         "lag" => settings.lag.as_ref().is_some_and(|o| o.enabled),
         "throttle" => settings.throttle.as_ref().is_some_and(|o| o.enabled),
@@ -158,16 +150,12 @@ pub fn is_module_enabled(settings: &Settings, name: &str) -> bool {
         "bandwidth" => settings.bandwidth.as_ref().is_some_and(|o| o.enabled),
         "burst" => settings.burst.as_ref().is_some_and(|o| o.enabled),
         _ => false,
-
     }
-
 }
 
 /// Returns true if any module is currently enabled.
 pub fn has_any_enabled(settings: &Settings) -> bool {
-
     MODULES.iter().any(|m| is_module_enabled(settings, m.name))
-
 }
 
 /// Returns a list of currently enabled module names.
@@ -202,7 +190,9 @@ where
 {
 
     let Some(opts) = options else {
+
         return Ok(());
+
     };
 
     if !opts.is_enabled() {
@@ -210,6 +200,7 @@ where
     }
 
     let duration = module.get_duration_ms(opts);
+
     if duration > 0 && !is_effect_active(duration, *effect_start) {
         return Ok(());
     }
@@ -223,9 +214,11 @@ where
     }
 
     let mut ctx = ModuleContext {
+
         statistics,
         has_packets,
         effect_start,
+
     };
 
     module.process(packets, opts, state, &mut ctx)
@@ -316,6 +309,7 @@ pub fn process_all_modules(
     )?;
 
     let burst_enabled = settings.burst.as_ref().is_some_and(|b| b.enabled);
+
     if state.burst_was_enabled && !burst_enabled {
         let buffer_size = state.burst.buffer.len();
         let reverse = settings.burst.as_ref().is_some_and(|b| b.reverse);
@@ -326,6 +320,7 @@ pub fn process_all_modules(
         );
 
         let buffer: &mut VecDeque<(PacketData<'_>, Instant)> =
+
             unsafe { std::mem::transmute(&mut state.burst.buffer) };
         flush_buffer(packets, buffer, &mut state.burst.cycle_start, reverse);
     }
@@ -352,19 +347,19 @@ mod tests {
 
     #[test]
     fn test_module_count() {
-
         assert_eq!(module_count(), 8);
-
     }
 
     #[test]
     fn test_find_module() {
 
         let drop = find_module("drop");
+
         assert!(drop.is_some());
         assert_eq!(drop.unwrap().display_name, "Packet Drop");
 
         let invalid = find_module("nonexistent");
+
         assert!(invalid.is_none());
 
     }
@@ -373,6 +368,7 @@ mod tests {
     fn test_module_names() {
 
         let names: Vec<_> = module_names().collect();
+
         assert!(names.contains(&"drop"));
         assert!(names.contains(&"lag"));
         assert!(names.contains(&"burst"));

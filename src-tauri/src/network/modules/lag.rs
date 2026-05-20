@@ -25,21 +25,15 @@ impl PacketModule for LagModule {
     type State = LagState;
 
     fn name(&self) -> &'static str {
-
         "lag"
-
     }
 
     fn display_name(&self) -> &'static str {
-
         "Lag"
-
     }
 
     fn get_duration_ms(&self, options: &Self::Options) -> u64 {
-
         options.duration_ms
-
     }
 
     fn process<'a>(
@@ -124,6 +118,7 @@ pub fn lag_packets<'a>(
     for packet in packets.drain(..) {
         // Check if this packet's direction should be affected
         let matches_direction = (packet.is_outbound && apply_outbound)
+
             || (!packet.is_outbound && apply_inbound);
 
         if !matches_direction {
@@ -149,6 +144,7 @@ pub fn lag_packets<'a>(
         }
 
         let Some(packet) = storage.pop_front() else { break };
+
         passthrough_packets.push(packet);
     }
 
@@ -169,16 +165,16 @@ mod tests {
 
     #[test]
     fn test_lag_packets_immediate_release_after_lag() {
-
         unsafe {
-
             // Create test packet with an arrival time in the past
             let mut old_packet =
+
                 PacketData::from(WinDivertPacket::<NetworkLayer>::new(vec![1, 2, 3]));
 
             // Manually set arrival time to be in the past by enough to bypass lag
             let now = Instant::now();
             let past = now - Duration::from_millis(200);
+
             std::ptr::write(&mut old_packet.arrival_time as *mut Instant, past);
 
             let mut packets = vec![old_packet];
@@ -200,16 +196,12 @@ mod tests {
             assert_eq!(packets.len(), 1);
             assert_eq!(storage.len(), 0);
             assert_eq!(stats.current_lagged(), 0);
-
         }
-
     }
 
     #[test]
     fn test_lag_packets_held_until_lag_elapsed() {
-
         unsafe {
-
             // Create a new packet (will have recent arrival time)
             let packet = PacketData::from(WinDivertPacket::<NetworkLayer>::new(vec![1, 2, 3]));
 
@@ -232,16 +224,12 @@ mod tests {
             assert_eq!(packets.len(), 0);
             assert_eq!(storage.len(), 1);
             assert_eq!(stats.current_lagged(), 1);
-
         }
-
     }
 
     #[test]
     fn test_all_packets_lagged_with_100_percent() {
-
         unsafe {
-
             // Create multiple packets
             let packet1 = PacketData::from(WinDivertPacket::<NetworkLayer>::new(vec![1, 2, 3]));
             let packet2 = PacketData::from(WinDivertPacket::<NetworkLayer>::new(vec![4, 5, 6]));
@@ -266,9 +254,7 @@ mod tests {
             assert_eq!(packets.len(), 0);
             assert_eq!(storage.len(), 3);
             assert_eq!(stats.current_lagged(), 3);
-
         }
-
     }
 
 }

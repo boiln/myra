@@ -60,14 +60,13 @@ pub async fn start_classic_processing(
     // Spawn packet receiver thread (reuses standard receiver)
     thread::spawn(move || {
         if let Err(e) = crate::network::processing::receive_packets(
+
             packet_sender,
             running_recv,
             settings_recv,
             filter_recv
         ) {
-
             error!("Classic mode packet receiving error: {}", e);
-
         }
     });
 
@@ -77,13 +76,12 @@ pub async fn start_classic_processing(
     // Spawn Classic mode processor thread
     thread::spawn(move || {
         if let Err(e) = start_classic_packet_processing(
+
             classic_settings,
             packet_receiver,
             running_proc,
         ) {
-
             error!("Classic mode packet processing error: {}", e);
-
         }
     });
 
@@ -140,6 +138,7 @@ pub async fn get_classic_status(
 
     let running = classic_state.running.load(Ordering::SeqCst);
     let settings = classic_state
+
         .settings
         .lock()
         .map_err(|e| format!("Failed to lock classic settings mutex: {}", e))?
@@ -151,8 +150,10 @@ pub async fn get_classic_status(
 
 #[derive(serde::Serialize)]
 pub struct ClassicStatusResponse {
+
     pub running: bool,
     pub settings: ClassicSettings,
+
 }
 
 /// Classic mode packet processing loop.
@@ -169,6 +170,7 @@ fn start_classic_packet_processing(
 
     // Initialize WinDivert for sending packets only
     let mut wd = WinDivert::<NetworkLayer>::network(
+
         "false",
         0,
         WinDivertFlags::set_send_only(WinDivertFlags::new()),
@@ -197,12 +199,14 @@ fn start_classic_packet_processing(
         }
 
         let packets_this_cycle = packets.len();
+
         packet_count += packets_this_cycle as u64;
 
         // Log every 2 seconds
         if last_log_time.elapsed() >= Duration::from_secs(2) {
             let settings_guard = settings.lock().ok();
             let any_enabled = settings_guard.as_ref().map(|s| s.has_any_enabled()).unwrap_or(false);
+
             info!("Classic: {} packets received, {} this cycle, any_module_enabled={}",
                 packet_count, packets_this_cycle, any_enabled);
             last_log_time = Instant::now();
@@ -210,18 +214,12 @@ fn start_classic_packet_processing(
 
         // Apply Classic mode processing
         match settings.lock() {
-
             Ok(settings) => {
-
                 process_classic_packets(&mut packets, &settings, &mut state);
-
             }
             Err(e) => {
-
                 error!("Failed to acquire lock on Classic settings: {}", e);
-
             }
-
         }
 
         // Send processed packets
@@ -233,6 +231,7 @@ fn start_classic_packet_processing(
 
         // Maintain 40ms cycle time
         let elapsed = cycle_start.elapsed();
+
         if elapsed < Duration::from_millis(CYCLE_TIME_MS) {
             std::thread::sleep(Duration::from_millis(CYCLE_TIME_MS) - elapsed);
         }
@@ -240,6 +239,7 @@ fn start_classic_packet_processing(
 
     // Flush all buffers on shutdown
     let remaining = state.flush_all_buffers();
+
     for packet_data in remaining {
         if let Err(e) = wd.send(&packet_data.packet) {
             error!("Failed to send buffered packet on shutdown: {}", e);

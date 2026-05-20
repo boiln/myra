@@ -36,6 +36,7 @@ pub fn receive_packets(
 ) -> Result<(), WinDivertError> {
 
     info!("Receiver thread started, running={}", running.load(Ordering::SeqCst));
+
     let mut buffer = vec![0u8; 65535]; // Max packet size
     let mut last_filter: Option<String> = None;
     let mut handle_manager = HandleManager::new();
@@ -48,7 +49,9 @@ pub fn receive_packets(
             error!("Failed to lock filter for reading");
             continue;
         };
+
         let current_filter = construct_filter_with_exclusions(&filter_guard);
+
         drop(filter_guard);
 
         // If filter changed, update WinDivert handle
@@ -60,8 +63,8 @@ pub fn receive_packets(
 
             match &current_filter {
                 Some(filter_str) => {
-
                     let config = HandleConfig::with_filter(filter_str)
+
                         .priority(0)
                         .recv_only(false)
                         .exclude_tauri_port(false); // Already excluded in construct_filter_with_exclusions
@@ -69,14 +72,11 @@ pub fn receive_packets(
                     if let Err(e) = handle_manager.open(config) {
                         error!("Failed to open WinDivert handle: {}", e);
                     }
-
                 }
                 None => {
-
                     if let Err(e) = handle_manager.close() {
                         error!("Failed to close WinDivert handle: {}", e);
                     }
-
                 }
             }
 
@@ -100,45 +100,46 @@ pub fn receive_packets(
         // Log once that we're about to start receiving
         if recv_count == 0 && !logged_missing_handle {
             static LOGGED_WAITING: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
             if !LOGGED_WAITING.swap(true, Ordering::SeqCst) {
                 info!("Receiver: Calling recv() - this will block until a packet arrives");
             }
         }
 
         match wd_handle.recv(Some(&mut buffer)) {
-
             Ok(packet) => {
-
                 recv_count += 1;
+
                 // Capture direction before taking ownership
                 let is_outbound = packet.address.outbound();
+
                 if recv_count % 100 == 1 {
                     info!("Receiver: {} packets captured so far", recv_count);
                 }
+
                 let packet_data = PacketData::new(packet.into_owned(), is_outbound);
+
                 if packet_sender.send(packet_data).is_err() {
                     if should_shutdown(&running) {
                         break;
                     }
                     error!("Failed to send packet data to main thread");
                 }
-
             }
             Err(e) => {
-
                 error!("Failed to receive packet: {}", e);
+
                 if should_shutdown(&running) {
                     break;
                 }
-
             }
-
         }
     }
 
     // HandleManager's Drop impl will clean up, but we explicitly close for logging
     if handle_manager.is_active() {
         debug!("Closing packet receiving WinDivert handle on shutdown");
+
         if let Err(e) = handle_manager.close() {
             error!("Failed to close WinDivert handle on shutdown: {}", e);
         }
@@ -152,11 +153,10 @@ pub fn receive_packets(
 
 /// Checks if the thread should shut down.
 fn should_shutdown(running: &Arc<AtomicBool>) -> bool {
-
     if !running.load(Ordering::SeqCst) {
         debug!("Packet receiving thread exiting due to shutdown signal.");
+
         return true;
     }
     false
-
 }

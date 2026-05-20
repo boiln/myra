@@ -3,7 +3,9 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 function Card({ className, ref, ...props }: React.ComponentProps<"div">) {
+
     return (
+
         <div
             ref={ref}
             className={cn(
@@ -13,6 +15,7 @@ function Card({ className, ref, ...props }: React.ComponentProps<"div">) {
             {...props}
         />
     );
+
 }
 
 function CardHeader({ className, ref, ...props }: React.ComponentProps<"div">) {
@@ -20,13 +23,16 @@ function CardHeader({ className, ref, ...props }: React.ComponentProps<"div">) {
 }
 
 function CardTitle({ className, ref, ...props }: React.ComponentProps<"div">) {
+
     return (
+
         <div
             ref={ref}
             className={cn("text-2xl font-semibold leading-none tracking-tight", className)}
             {...props}
         />
     );
+
 }
 
 function CardDescription({ className, ref, ...props }: React.ComponentProps<"div">) {

@@ -5,17 +5,21 @@ import { ModeSelector } from "@/components/mode-selector";
 import { ManipulationMode } from "@/lib/stores/mode-store";
 
 interface HeaderProps {
+
     mode: ManipulationMode;
     onModeChange: (mode: ManipulationMode) => void;
+
 }
 
 export function Header({ mode, onModeChange }: HeaderProps) {
+
     const { isActive, manipulationStatus } = useNetworkStore();
     const activeModules = manipulationStatus.modules.filter((m) => m.enabled);
     const showTimer = isActive && activeModules.length > 0;
     const { formattedTime } = useActiveTimer(showTimer);
 
     return (
+
         <header className="sticky top-0 z-10 border-b border-border/40 bg-background/80 backdrop-blur-md backdrop-saturate-150 transition-colors">
             <div className="container flex h-9 items-center justify-between px-2">
                 <div className="flex items-center gap-3">
@@ -36,4 +40,5 @@ export function Header({ mode, onModeChange }: HeaderProps) {
             </div>
         </header>
     );
+
 }

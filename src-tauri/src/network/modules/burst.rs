@@ -38,21 +38,15 @@ impl PacketModule for BurstModule {
     type State = BurstState;
 
     fn name(&self) -> &'static str {
-
         "burst"
-
     }
 
     fn display_name(&self) -> &'static str {
-
         "Packet Burst"
-
     }
 
     fn get_duration_ms(&self, options: &Self::Options) -> u64 {
-
         options.duration_ms
-
     }
 
     fn process<'a>(
@@ -70,6 +64,7 @@ impl PacketModule for BurstModule {
         // extends the lifetime to 'static for storage, but packets are always consumed
         // or released before the buffer is dropped.
         let buffer: &mut VecDeque<(PacketData<'a>, Instant)> =
+
             unsafe { std::mem::transmute(&mut state.buffer) };
 
         burst_packets(
@@ -139,38 +134,34 @@ pub fn burst_packets<'a>(
     // Check if we need to send a keepalive (let one packet through)
     let send_keepalive = keepalive_duration.as_millis() > 0 && match last_keepalive {
         None => {
-
             *last_keepalive = Some(now);
             false
-
         }
         Some(last) if now.duration_since(*last) >= keepalive_duration => {
-
             *last_keepalive = Some(now);
             true
-
         }
         Some(_) => false,
     };
 
     // If keepalive is due, find a packet that matches direction and preserve it
     let keepalive_packet = if send_keepalive && !packets.is_empty() {
-
         packets.iter().position(|p| {
             (p.is_outbound && apply_outbound) || (!p.is_outbound && apply_inbound)
         }).map(|idx| packets.remove(idx))
-
     } else {
         None
     };
 
     // Buffer packets based on probability AND direction
     let mut i = 0;
+
     while i < packets.len() {
         let packet = &packets[i];
 
         // Check if this packet's direction should be buffered
         let should_buffer_direction =
+
             (packet.is_outbound && apply_outbound) ||
             (!packet.is_outbound && apply_inbound);
 
@@ -188,6 +179,7 @@ pub fn burst_packets<'a>(
 
         let packet = packets.remove(i);
         let static_packet: PacketData<'static> = unsafe { std::mem::transmute(packet) };
+
         buffer.push_back((static_packet, now));
         stats.record_buffer(1);
     }
@@ -230,6 +222,7 @@ pub fn burst_packets<'a>(
     }
 
     stats.set_buffered_count(buffer.len());
+
 }
 
 /// Flushes all buffered packets - called when module is disabled
@@ -268,6 +261,7 @@ pub fn flush_buffer<'a>(
     // This ensures proper replay order: old actions → new actions
     // We prepend by: taking new packets out, adding buffered, then adding new back
     let new_packets: Vec<_> = std::mem::take(packets);
+
     packets.extend(released_packets);
     packets.extend(new_packets);
 
@@ -291,14 +285,14 @@ mod tests {
 
     #[test]
     fn test_packet_buffering() {
-
         unsafe {
-
             // Create outbound packets for testing
             let mut packets = vec![
+
                 PacketData::new(WinDivertPacket::<NetworkLayer>::new(vec![1, 2, 3]), true),
                 PacketData::new(WinDivertPacket::<NetworkLayer>::new(vec![4, 5, 6]), true),
             ];
+
             let mut buffer = VecDeque::new();
             let mut cycle_start = None;
             let mut last_keepalive = None;
@@ -322,9 +316,7 @@ mod tests {
             // All packets should be buffered
             assert_eq!(packets.len(), 0);
             assert_eq!(buffer.len(), 2);
-
         }
-
     }
 
 }

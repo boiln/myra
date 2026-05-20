@@ -16,6 +16,7 @@ export default [
     js.configs.recommended,
     ...compat.extends("prettier"),
     {
+
         plugins: {
             import: await import("eslint-plugin-import"),
         },
@@ -27,6 +28,7 @@ export default [
             "import/order": [
                 "warn",
                 {
+
                     groups: [
                         "builtin",
                         "external",
@@ -40,24 +42,32 @@ export default [
                     "newlines-between": "always",
                     pathGroups: [
                         {
+
                             pattern: "react",
                             group: "builtin",
                             position: "before",
+
                         },
                         {
+
                             pattern: "src/**",
                             group: "builtin",
                             position: "before",
+
                         },
                         {
+
                             pattern: "@/**",
                             group: "internal",
                             position: "after",
+
                         },
                         {
+
                             pattern: "~/**",
                             group: "internal",
                             position: "after",
+
                         },
                     ],
                     pathGroupsExcludedImportTypes: ["react", "next"],
@@ -65,6 +75,7 @@ export default [
                         order: "asc",
                         caseInsensitive: true,
                     },
+
                 },
             ],
             "import/no-unresolved": "off",
@@ -82,8 +93,11 @@ export default [
                 },
             },
         },
+
     },
     {
+
         ignores: ["node_modules/", "dist/", ".git/"],
+
     },
 ];

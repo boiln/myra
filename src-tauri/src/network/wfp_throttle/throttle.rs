@@ -33,19 +33,21 @@ pub enum WfpError {
 
 /// Shared buffer between receiver and sender threads
 struct SharedBuffer {
+
     packets: VecDeque<(WinDivertPacket<'static, NetworkLayer>, Instant)>, // (packet, queued_time)
     total_bytes: usize,
+
 }
 
 impl SharedBuffer {
-    fn new() -> Self {
 
+    fn new() -> Self {
         Self {
             packets: VecDeque::new(),
             total_bytes: 0,
         }
-
     }
+
 }
 
 /// High-precision bandwidth throttle
@@ -78,6 +80,7 @@ impl WfpThrottle {
         if limit_kbps <= 0.0 {
             return Err(WfpError::InvalidParam("limit_kbps must be > 0".into()));
         }
+
         if !inbound && !outbound {
             return Err(WfpError::InvalidParam("must throttle inbound or outbound".into()));
         }
@@ -106,6 +109,7 @@ impl WfpThrottle {
         };
 
         let wd = WinDivert::network(&filter, -1000, WinDivertFlags::new())
+
             .map_err(|e| WfpError::OpenFailed(e.to_string()))?;
 
         info!("WFP Throttle: WinDivert opened with filter: {}", filter);
@@ -117,6 +121,7 @@ impl WfpThrottle {
         let wd_rx = wd.clone();
 
         let receiver_handle = thread::Builder::new()
+
             .name("wfp-throttle-rx".into())
             .spawn(move || {
                 run_receiver(wd_rx, buffer_rx, running_rx);
@@ -128,6 +133,7 @@ impl WfpThrottle {
         let wd_tx = wd.clone();
 
         let sender_handle = thread::Builder::new()
+
             .name("wfp-throttle-tx".into())
             .spawn(move || {
                 run_sender(wd_tx, buffer_tx, running_tx, limit_kbps);
@@ -147,15 +153,11 @@ impl WfpThrottle {
     }
 
     pub fn is_running(&self) -> bool {
-
         self.running.load(Ordering::SeqCst)
-
     }
 
     pub fn limit_kbps(&self) -> f64 {
-
         self.limit_kbps
-
     }
 
     pub fn stop(&mut self) {
@@ -173,6 +175,7 @@ impl WfpThrottle {
         if let Ok(mut guard) = self.wd_handle.lock() {
             if let Some(mut wd) = guard.take() {
                 info!("WFP Throttle: Closing WinDivert handle");
+
                 let _ = wd.close(CloseAction::Nothing);
             }
         }
@@ -188,11 +191,11 @@ impl WfpThrottle {
 }
 
 impl Drop for WfpThrottle {
+
     fn drop(&mut self) {
-
         self.stop();
-
     }
+
 }
 
 /// Receiver thread: captures packets and buffers them (or passes through small ones)
@@ -217,22 +220,22 @@ fn run_receiver(
 
         let recv_result = {
             let Ok(guard) = wd.lock() else { break };
-            match guard.as_ref() {
 
+            match guard.as_ref() {
                 Some(handle) => handle.recv(Some(&mut recv_buffer)),
                 None => break,
-
             }
         };
 
         match recv_result {
             Ok(packet) => {
-
                 packet_count += 1;
+
                 let packet_size = packet.data.len();
 
                 if packet_size <= MIN_PAYLOAD_THRESHOLD {
                     passthrough_count += 1;
+
                     if let Ok(guard) = wd.lock() {
                         if let Some(handle) = guard.as_ref() {
                             let _ = handle.send(&packet);
@@ -242,7 +245,9 @@ fn run_receiver(
                 }
 
                 buffered_count += 1;
+
                 let owned_packet = packet.into_owned();
+
                 if let Ok(mut buf) = buffer.lock() {
                     buf.total_bytes += packet_size;
                     buf.packets.push_back((owned_packet, Instant::now()));
@@ -253,12 +258,9 @@ fn run_receiver(
                           packet_count, buffered_count, passthrough_count);
                     last_log = Instant::now();
                 }
-
             }
             Err(_) => {
-
                 break;
-
             }
         }
     }
@@ -295,6 +297,7 @@ fn run_sender(
     while running.load(Ordering::SeqCst) {
         {
             let Ok(guard) = wd.lock() else { break };
+
             if guard.is_none() {
                 break;
             }
@@ -302,6 +305,7 @@ fn run_sender(
 
         let now = Instant::now();
         let elapsed_ms = now.duration_since(last_time).as_secs_f64() * 1000.0;
+
         bytes_credit += bytes_per_ms * elapsed_ms;
         last_time = now;
 
@@ -310,8 +314,8 @@ fn run_sender(
         }
 
         let mut released = false;
-        loop {
 
+        loop {
             let packet_to_send = {
                 let Ok(mut buf) = buffer.lock() else { break };
 
@@ -346,32 +350,32 @@ fn run_sender(
                 }
             }
             released = true;
-
         }
 
         let sleep_duration = if released { Duration::from_micros(100) } else { Duration::from_millis(1) };
+
         thread::sleep(sleep_duration);
     }
 
     let Ok(mut buf) = buffer.lock() else {
-
         warn!("WFP Throttle: Could not lock buffer for flush!");
         unsafe {
             windows::Win32::Media::timeEndPeriod(1);
         }
         info!("WFP Throttle: Sender thread exiting");
         return;
-
     };
 
     let remaining = buf.packets.len();
+
     if remaining > 0 {
         info!("WFP Throttle: FLUSHING {} buffered packets immediately", remaining);
+
         let mut sent = 0;
         let mut failed = 0;
+
         if let Ok(guard) = wd.lock() {
             let Some(handle) = guard.as_ref() else {
-
                 warn!("WFP Throttle: Handle already closed, {} packets LOST!", remaining);
                 buf.total_bytes = 0;
                 unsafe {
@@ -379,14 +383,12 @@ fn run_sender(
                 }
                 info!("WFP Throttle: Sender thread exiting");
                 return;
-
             };
+
             while let Some((packet, _)) = buf.packets.pop_front() {
                 match handle.send(&packet) {
-
                     Ok(_) => sent += 1,
                     Err(_) => failed += 1,
-
                 }
             }
         }

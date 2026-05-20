@@ -7,6 +7,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Info } from "lucide-react";
 
 interface ClassicModuleRowProps {
+
     module: ClassicModuleInfo;
     onModuleToggle: (module: ClassicModuleInfo) => Promise<void>;
     onDirectionToggle: (
@@ -14,87 +15,108 @@ interface ClassicModuleRowProps {
         direction: "inbound" | "outbound"
     ) => Promise<void>;
     onSettingChange: (module: ClassicModuleInfo, setting: string, value: number | boolean) => void;
+
 }
 
 // Module-specific parameter configurations
 const MODULE_PARAMS: Record<
+
     ClassicModuleName,
     Array<{
+
         key: string;
         label: string;
         min: number;
         max: number;
         isInteger?: boolean;
         tooltip?: string;
+
     }>
 > = {
+
     classic_latency: [
         {
+
             key: "delay_ms",
             label: "Delay(ms)",
             min: 0,
             max: 15000,
             isInteger: true,
             tooltip: "Fixed delay before packet release",
+
         },
     ],
     classic_drop: [],
     classic_throttle: [
         {
+
             key: "window_ms",
             label: "Window(ms)",
             min: 0,
             max: 1000,
             isInteger: true,
             tooltip: "Time window for buffering packets",
+
         },
     ],
     classic_reorder: [
         {
+
             key: "max_hold_cycles",
             label: "Hold Cycles",
             min: 1,
             max: 100,
             isInteger: true,
             tooltip: "Max cycles to hold a single packet",
+
         },
     ],
     classic_tamper: [],
     classic_bandwidth: [
         {
+
             key: "limit_kbps",
             label: "Limit(KB/s)",
             min: 0.1,
             max: 10000,
             isInteger: false,
             tooltip: "Bandwidth limit in kilobytes per second",
+
         },
     ],
+
 };
 
 // Boolean toggles for specific modules
 const MODULE_TOGGLES: Record<
+
     ClassicModuleName,
     Array<{ key: string; label: string; tooltip?: string }>
 > = {
+
     classic_latency: [],
     classic_drop: [],
     classic_throttle: [
         {
+
             key: "drop_on_release",
             label: "Drop",
             tooltip: "Drop buffered packets instead of releasing them",
+
         },
     ],
     classic_reorder: [],
     classic_tamper: [
         {
+
             key: "recalc_checksum",
             label: "Fix Checksum",
             tooltip: "Recalculate checksums after tampering",
+
         },
     ],
     classic_bandwidth: [],
+
 };
 
 export function ClassicModuleRow({
@@ -103,12 +125,14 @@ export function ClassicModuleRow({
     onDirectionToggle,
     onSettingChange,
 }: ClassicModuleRowProps) {
+
     const [inputValues, setInputValues] = React.useState<Record<string, string>>({});
 
     const params = MODULE_PARAMS[module.name] || [];
     const toggles = MODULE_TOGGLES[module.name] || [];
 
     const handleInputChange = (
+
         e: ChangeEvent<HTMLInputElement>,
         setting: string,
         _min: number,
@@ -116,6 +140,7 @@ export function ClassicModuleRow({
         isInteger = false
     ) => {
         const input = e.target.value;
+
         setInputValues((prev) => ({ ...prev, [setting]: input }));
 
         if (input === "") return;
@@ -123,6 +148,7 @@ export function ClassicModuleRow({
         if (input === "." || input === "-" || input === "-.") return;
 
         const parsed = isInteger ? parseInt(input, 10) : parseFloat(input);
+
         if (isNaN(parsed)) return;
 
         onSettingChange(module, setting, parsed);
@@ -146,6 +172,7 @@ export function ClassicModuleRow({
         }
 
         let clamped = parsed;
+
         if (parsed < min) clamped = min;
         if (parsed > max) clamped = max;
 
@@ -157,12 +184,16 @@ export function ClassicModuleRow({
 
     const getDisplayValue = (setting: string) => {
         if (setting in inputValues) return inputValues[setting];
+
         const value = module.config[setting as keyof typeof module.config];
+
         if (value !== undefined && value !== null) return value.toString();
+
         return "";
     };
 
     return (
+
         <div className="flex items-center gap-x-3 py-2 first:pt-0.5 last:pb-0.5">
             {/* Module Enable Checkbox */}
             <div className="flex shrink-0 items-center gap-1.5">
@@ -204,6 +235,7 @@ export function ClassicModuleRow({
                                     param.max,
                                     param.isInteger
                                 )
+
                             }
                             onBlur={() =>
                                 handleInputBlur(param.key, param.min, param.max, param.isInteger)

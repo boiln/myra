@@ -3,9 +3,11 @@ import { invoke } from "@tauri-apps/api/core";
 export type TcDirection = "inbound" | "outbound" | "both";
 
 export interface TcBandwidthStatus {
+
     active: boolean;
     limit_kbps: number;
     direction: string;
+
 }
 
 /**
@@ -19,10 +21,12 @@ export async function startTcBandwidth(
     limitKbps: number,
     direction: TcDirection = "inbound"
 ): Promise<string> {
+
     return await invoke<string>("start_tc_bandwidth", {
         limitKbps,
         direction,
     });
+
 }
 
 /**

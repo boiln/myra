@@ -17,10 +17,12 @@ export type ClassicModuleName =
     | "classic_bandwidth";
 
 export interface ClassicModuleBase {
+
     enabled: boolean;
     inbound: boolean;
     outbound: boolean;
     chance: number; // 0-100 (percentage with 0.01% precision internally)
+
 }
 
 /**
@@ -30,7 +32,9 @@ export interface ClassicModuleBase {
  * all matching packets and releases them after the delay expires.
  */
 export interface ClassicLatencyOptions extends ClassicModuleBase {
+
     delay_ms: number; // Fixed delay in milliseconds (0-15000)
+
 }
 
 /**
@@ -38,7 +42,9 @@ export interface ClassicLatencyOptions extends ClassicModuleBase {
  * Probabilistically drops packets immediately (no buffering).
  */
 export interface ClassicDropOptions extends ClassicModuleBase {
+
     // Uses base chance field for drop probability
+
 }
 
 /**
@@ -50,9 +56,11 @@ export interface ClassicDropOptions extends ClassicModuleBase {
  * where packets accumulate and release all at once.
  */
 export interface ClassicThrottleOptions extends ClassicModuleBase {
+
     window_ms: number; // Time window for buffering (0-1000ms)
     drop_on_release: boolean; // true = drop buffered packets, false = release as burst
     max_buffer: number; // Max packets to buffer (default: 1000)
+
 }
 
 /**
@@ -61,7 +69,9 @@ export interface ClassicThrottleOptions extends ClassicModuleBase {
  * Can hold a single packet for up to N cycles waiting for more packets.
  */
 export interface ClassicReorderOptions extends ClassicModuleBase {
+
     max_hold_cycles: number; // How many cycles to hold a lone packet (default: 10)
+
 }
 
 /**
@@ -70,7 +80,9 @@ export interface ClassicReorderOptions extends ClassicModuleBase {
  * Small packets get full payload tampered, larger packets get ~25% of middle section.
  */
 export interface ClassicTamperOptions extends ClassicModuleBase {
+
     recalc_checksum: boolean; // Whether to recalculate checksums after tampering
+
 }
 
 /**
@@ -79,8 +91,10 @@ export interface ClassicTamperOptions extends ClassicModuleBase {
  * Excess packets are buffered up to a limit, then dropped.
  */
 export interface ClassicBandwidthOptions extends ClassicModuleBase {
+
     limit_kbps: number; // Bandwidth limit in KB/s (0.1-420)
     max_buffer: number; // Max packets to buffer (default: 6000)
+
 }
 
 /**
@@ -88,29 +102,34 @@ export interface ClassicBandwidthOptions extends ClassicModuleBase {
  * All classic modules with their configurations
  */
 export interface ClassicModeSettings {
+
     latency?: ClassicLatencyOptions;
     drop?: ClassicDropOptions;
     throttle?: ClassicThrottleOptions;
     reorder?: ClassicReorderOptions;
     tamper?: ClassicTamperOptions;
     bandwidth?: ClassicBandwidthOptions;
+
 }
 
 /**
  * Classic Module Info for UI rendering
  */
 export interface ClassicModuleInfo {
+
     name: ClassicModuleName;
     display_name: string;
     description: string;
     enabled: boolean;
     config: ClassicModuleBase & Record<string, unknown>;
+
 }
 
 /**
  * Default configurations for Classic modules
  */
 export const CLASSIC_MODULE_DEFAULTS: Record<ClassicModuleName, ClassicModuleInfo> = {
+
     classic_latency: {
         name: "classic_latency",
         display_name: "Latency",
@@ -191,16 +210,19 @@ export const CLASSIC_MODULE_DEFAULTS: Record<ClassicModuleName, ClassicModuleInf
             max_buffer: 6000,
         },
     },
+
 };
 
 /**
  * Module buffer limits from reverse engineering
  */
 export const CLASSIC_BUFFER_LIMITS = {
+
     latency: 15000, // Emergency release on overflow
     bandwidth: 6000, // DROP on overflow
     throttle: 1000, // Release or drop (configurable)
     reorder: 1, // Single packet hold
+
 } as const;
 
 /**
@@ -208,6 +230,7 @@ export const CLASSIC_BUFFER_LIMITS = {
  * This matches the Rust ClassicSettings struct.
  */
 export interface ClassicBackendSettings {
+
     latency?: {
         enabled: boolean;
         inbound: boolean;
@@ -252,12 +275,14 @@ export interface ClassicBackendSettings {
         limit_kbps: number;
         max_buffer: number;
     };
+
 }
 
 /**
  * Convert frontend module array to backend settings format.
  */
 export function modulesToBackendSettings(modules: ClassicModuleInfo[]): ClassicBackendSettings {
+
     const settings: ClassicBackendSettings = {};
 
     for (const module of modules) {
@@ -324,17 +349,20 @@ export function modulesToBackendSettings(modules: ClassicModuleInfo[]): ClassicB
     }
 
     return settings;
+
 }
 
 /**
  * Convert backend settings to frontend module array.
  */
 export function backendSettingsToModules(settings: ClassicBackendSettings): ClassicModuleInfo[] {
+
     const modules: ClassicModuleInfo[] = [];
     const defaults = CLASSIC_MODULE_DEFAULTS;
 
     // Latency
     const latency = settings.latency;
+
     modules.push({
         ...defaults.classic_latency,
         enabled: latency?.enabled ?? false,
@@ -349,6 +377,7 @@ export function backendSettingsToModules(settings: ClassicBackendSettings): Clas
 
     // Drop
     const drop = settings.drop;
+
     modules.push({
         ...defaults.classic_drop,
         enabled: drop?.enabled ?? false,
@@ -362,6 +391,7 @@ export function backendSettingsToModules(settings: ClassicBackendSettings): Clas
 
     // Throttle
     const throttle = settings.throttle;
+
     modules.push({
         ...defaults.classic_throttle,
         enabled: throttle?.enabled ?? false,
@@ -378,6 +408,7 @@ export function backendSettingsToModules(settings: ClassicBackendSettings): Clas
 
     // Reorder
     const reorder = settings.reorder;
+
     modules.push({
         ...defaults.classic_reorder,
         enabled: reorder?.enabled ?? false,
@@ -392,6 +423,7 @@ export function backendSettingsToModules(settings: ClassicBackendSettings): Clas
 
     // Tamper
     const tamper = settings.tamper;
+
     modules.push({
         ...defaults.classic_tamper,
         enabled: tamper?.enabled ?? false,
@@ -406,6 +438,7 @@ export function backendSettingsToModules(settings: ClassicBackendSettings): Clas
 
     // Bandwidth
     const bandwidth = settings.bandwidth;
+
     modules.push({
         ...defaults.classic_bandwidth,
         enabled: bandwidth?.enabled ?? false,
@@ -420,4 +453,5 @@ export function backendSettingsToModules(settings: ClassicBackendSettings): Clas
     });
 
     return modules;
+
 }

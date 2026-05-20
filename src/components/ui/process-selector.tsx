@@ -6,12 +6,14 @@ import { ProcessIcon } from "@/components/ui/process-icon";
 import { Input } from "@/components/ui/input";
 
 interface ProcessSelectorProps {
+
     processes: ProcessInfo[];
     value: string;
     onValueChange: (value: string) => void;
     disabled?: boolean;
     placeholder?: string;
     className?: string;
+
 }
 
 export function ProcessSelector({
@@ -22,6 +24,7 @@ export function ProcessSelector({
     placeholder = "Select a process ..",
     className,
 }: ProcessSelectorProps) {
+
     const [isOpen, setIsOpen] = useState(false);
     const [search, setSearch] = useState("");
     const [highlightedIndex, setHighlightedIndex] = useState(0);
@@ -31,7 +34,9 @@ export function ProcessSelector({
 
     const filteredProcesses = useMemo(() => {
         const searchLower = search.toLowerCase();
+
         return processes.filter(
+
             (p) =>
                 p.name.toLowerCase().includes(searchLower) ||
                 p.path?.toLowerCase().includes(searchLower)
@@ -42,7 +47,9 @@ export function ProcessSelector({
         const games = filteredProcesses.filter((p) => {
             const name = p.name.toLowerCase();
             const path = p.path?.toLowerCase() || "";
+
             return (
+
                 path.includes("steam") ||
                 path.includes("steamapps") ||
                 path.includes("epic games") ||
@@ -68,6 +75,7 @@ export function ProcessSelector({
     const selectedProcess = processes.find((p) => p.pid.toString() === value);
 
     const handleKeyDown = useCallback(
+
         (e: React.KeyboardEvent) => {
             if (!isOpen) {
                 if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
@@ -88,6 +96,7 @@ export function ProcessSelector({
                     break;
                 case "Enter":
                     e.preventDefault();
+
                     if (allFiltered[highlightedIndex]) {
                         onValueChange(allFiltered[highlightedIndex].pid.toString());
                         closeDropdown();
@@ -106,6 +115,7 @@ export function ProcessSelector({
                     setHighlightedIndex(allFiltered.length - 1);
                     break;
                 default:
+
                     // Type-ahead: jump to first process starting with the typed letter
                     if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
                         const char = e.key.toLowerCase();
@@ -113,6 +123,7 @@ export function ProcessSelector({
 
                         // Find next process starting with this letter after current position
                         let foundIndex = allFiltered.findIndex(
+
                             (p, i) => i > currentIndex && p.name.toLowerCase().startsWith(char)
                         );
 
@@ -142,6 +153,7 @@ export function ProcessSelector({
     // Open the dropdown and prime the highlight to the currently selected item (event-driven, not effect-driven)
     const openDropdown = useCallback(() => {
         const selectedIndex = allFiltered.findIndex((p) => p.pid.toString() === value);
+
         setHighlightedIndex(selectedIndex >= 0 ? selectedIndex : 0);
         setIsOpen(true);
         setTimeout(() => inputRef.current?.focus(), 0);
@@ -156,6 +168,7 @@ export function ProcessSelector({
     useEffect(() => {
         if (isOpen && listRef.current) {
             const highlightedEl = listRef.current.querySelector(
+
                 `[data-index="${highlightedIndex}"]`
             );
             highlightedEl?.scrollIntoView({ block: "nearest" });
@@ -172,10 +185,12 @@ export function ProcessSelector({
         };
 
         document.addEventListener("mousedown", onMouseDown);
+
         return () => document.removeEventListener("mousedown", onMouseDown);
     }, []);
 
     return (
+
         <div ref={containerRef} className={cn("relative w-full", className)}>
             {/* Trigger Button */}
             <button
@@ -260,7 +275,9 @@ export function ProcessSelector({
                                         </div>
                                         {gameProcesses.map((p) => {
                                             const index = allFiltered.indexOf(p);
+
                                             return (
+
                                                 <ProcessItem
                                                     key={p.pid}
                                                     process={p}
@@ -287,7 +304,9 @@ export function ProcessSelector({
                                         </div>
                                         {otherProcesses.map((p) => {
                                             const index = allFiltered.indexOf(p);
+
                                             return (
+
                                                 <ProcessItem
                                                     key={p.pid}
                                                     process={p}
@@ -311,15 +330,18 @@ export function ProcessSelector({
             )}
         </div>
     );
+
 }
 
 interface ProcessItemProps {
+
     process: ProcessInfo;
     isSelected: boolean;
     isHighlighted: boolean;
     dataIndex: number;
     onClick: () => void;
     onMouseEnter: () => void;
+
 }
 
 function ProcessItem({
@@ -330,7 +352,9 @@ function ProcessItem({
     onClick,
     onMouseEnter,
 }: ProcessItemProps) {
+
     return (
+
         <button
             type="button"
             data-index={dataIndex}
@@ -350,4 +374,5 @@ function ProcessItem({
             {isSelected && <span className="flex-shrink-0 text-primary">✓</span>}
         </button>
     );
+
 }

@@ -21,6 +21,7 @@ pub fn process_throttle<'a>(
 
     // SAFETY: Storage outlives processing calls
     let buffer: &mut std::collections::VecDeque<PacketData<'a>> =
+
         unsafe { std::mem::transmute(&mut state.buffer) };
 
     // Check if we should start a new throttle window
@@ -46,6 +47,7 @@ pub fn process_throttle<'a>(
     // Buffer matching packets during throttle window
     for packet in packets.drain(..) {
         let matches_direction = (packet.is_outbound && options.outbound)
+
             || (!packet.is_outbound && options.inbound);
 
         if !matches_direction {
@@ -75,6 +77,7 @@ pub fn process_throttle<'a>(
         } else {
             // RELEASE all buffered packets as a burst
             log::debug!("Classic throttle: releasing {} packets as burst", buffer.len());
+
             while let Some(packet) = buffer.pop_front() {
                 passthrough.push(packet);
             }
@@ -85,4 +88,5 @@ pub fn process_throttle<'a>(
     }
 
     packets.extend(passthrough);
+
 }

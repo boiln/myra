@@ -47,10 +47,9 @@ pub struct CorruptionOptions {
 }
 
 impl Default for CorruptionOptions {
+
     fn default() -> Self {
-
         Self {
-
             enabled: false,
             inbound: true,
             outbound: true,
@@ -58,8 +57,7 @@ impl Default for CorruptionOptions {
             amount: Probability::new(0.1).unwrap(),
             duration_ms: 0,
             recalculate_checksums: Some(true),
-
         }
-
     }
+
 }

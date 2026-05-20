@@ -19,7 +19,5 @@ pub use tc_bandwidth::{TcBandwidthOptions, TcDirection};
 /// Helper function for serde default values - returns true.
 /// Used across all settings modules for inbound/outbound defaults.
 pub fn default_true() -> bool {
-
     true
-
 }

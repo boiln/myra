@@ -59,7 +59,5 @@ pub struct BurstOptions {
 }
 
 fn default_release_delay() -> u64 {
-
     500
-
 }

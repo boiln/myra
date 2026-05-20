@@ -17,6 +17,7 @@ import { useTap } from "@/hooks/use-tap";
 import { useClassicTap } from "@/hooks/use-classic-tap";
 
 function App() {
+
     const mode = useModeStore((state) => state.mode);
     const setMode = useModeStore((state) => state.setMode);
 
@@ -48,6 +49,7 @@ function App() {
     }, [loadStatus, loadPresets, initializeDefaultPreset, initializeClassic]);
 
     return (
+
         <LazyMotion features={domAnimation}>
             <TooltipProvider>
                 <div className="flex h-screen min-h-[520px] min-w-[800px] flex-col bg-muted/30">
@@ -68,6 +70,7 @@ function App() {
             </TooltipProvider>
         </LazyMotion>
     );
+
 }
 
 export default App;

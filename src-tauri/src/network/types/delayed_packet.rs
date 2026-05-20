@@ -18,30 +18,30 @@ pub struct DelayedPacket<'a> {
 }
 
 impl PartialEq for DelayedPacket<'_> {
+
     fn eq(&self, other: &Self) -> bool {
-
         self.delay_until == other.delay_until
-
     }
+
 }
 
 impl Eq for DelayedPacket<'_> {}
 
 impl PartialOrd for DelayedPacket<'_> {
+
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-
         Some(self.cmp(other))
-
     }
+
 }
 
 impl Ord for DelayedPacket<'_> {
-    fn cmp(&self, other: &Self) -> Ordering {
 
+    fn cmp(&self, other: &Self) -> Ordering {
         // Note: We flip the ordering here to turn BinaryHeap into a min-heap based on delay_until
         other.delay_until.cmp(&self.delay_until)
-
     }
+
 }
 
 impl<'a> DelayedPacket<'a> {
@@ -57,12 +57,10 @@ impl<'a> DelayedPacket<'a> {
     ///
     /// A new `DelayedPacket` with delivery time set to now + delay
     pub fn new(packet: PacketData<'a>, delay: Duration) -> Self {
-
         Self {
             packet,
             delay_until: Instant::now() + delay,
         }
-
     }
 
 }

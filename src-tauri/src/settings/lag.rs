@@ -4,9 +4,7 @@ use clap::Parser;
 use serde::{Deserialize, Serialize};
 
 fn default_probability_100() -> Probability {
-
     Probability::new(1.0).unwrap()
-
 }
 
 /// Options for the Lag module.
@@ -50,18 +48,16 @@ pub struct LagOptions {
 }
 
 impl Default for LagOptions {
+
     fn default() -> Self {
-
         Self {
-
             enabled: false,
             inbound: true,
             outbound: true,
             delay_ms: 0,
             probability: default_probability_100(),
             duration_ms: 0,
-
         }
-
     }
+
 }

@@ -17,21 +17,25 @@ pub fn process_bandwidth<'a>(
 
     // Calculate byte budget based on elapsed time
     let elapsed_ms = state.last_tick.elapsed().as_millis() as f64;
+
     state.last_tick = now;
 
     // Convert: elapsed_ms * (limit_kbps KB/s) * (1024 bytes/KB) * (1s/1000ms)
     // = elapsed_ms * limit_kbps * 1.024
     let bytes_earned = elapsed_ms * options.limit_kbps * 1.024;
+
     state.byte_budget += bytes_earned;
 
     // Cap budget to prevent accumulation (max 1 second worth)
     let max_budget = options.limit_kbps * 1024.0;
+
     if state.byte_budget > max_budget {
         state.byte_budget = max_budget;
     }
 
     // SAFETY: Storage outlives processing calls
     let buffer: &mut std::collections::VecDeque<PacketData<'a>> =
+
         unsafe { std::mem::transmute(&mut state.buffer) };
 
     let mut output = Vec::new();
@@ -40,10 +44,13 @@ pub fn process_bandwidth<'a>(
     // First, release buffered packets within budget
     while let Some(packet) = buffer.front() {
         let packet_len = packet.packet.data.len() as f64;
+
         if bytes_used + packet_len > state.byte_budget {
             break; // Over budget
         }
+
         let packet = buffer.pop_front().unwrap();
+
         bytes_used += packet_len;
         output.push(packet);
     }
@@ -51,6 +58,7 @@ pub fn process_bandwidth<'a>(
     // Process new incoming packets
     for packet in packets.drain(..) {
         let matches_direction = (packet.is_outbound && options.outbound)
+
             || (!packet.is_outbound && options.inbound);
 
         if !matches_direction {
@@ -75,9 +83,11 @@ pub fn process_bandwidth<'a>(
 
     // Update remaining budget
     state.byte_budget -= bytes_used;
+
     if state.byte_budget < 0.0 {
         state.byte_budget = 0.0;
     }
 
     *packets = output;
+
 }

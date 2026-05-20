@@ -3,11 +3,14 @@ import { useHotkeyStore } from "@/lib/stores/hotkey-store";
 import { cn } from "@/lib/utils";
 
 interface HotkeyBadgeProps {
+
     action: string;
     className?: string;
+
 }
 
 export function HotkeyBadge({ action, className }: HotkeyBadgeProps) {
+
     const { bindings, isRecording, setBinding, startRecording, stopRecording } = useHotkeyStore();
     const binding = bindings[action];
     const isRecordingThis = isRecording === action;
@@ -59,6 +62,7 @@ export function HotkeyBadge({ action, className }: HotkeyBadgeProps) {
         if (!isRecordingThis) return;
 
         const target = e.target as HTMLElement;
+
         if (target.closest(`[data-hotkey-action="${action}"]`)) return;
 
         stopRecording();
@@ -95,6 +99,7 @@ export function HotkeyBadge({ action, className }: HotkeyBadgeProps) {
     const buttonClass = getButtonClass(isRecordingThis, binding?.shortcut);
 
     return (
+
         <button
             data-hotkey-action={action}
             onClick={toggleRecording}
@@ -108,23 +113,29 @@ export function HotkeyBadge({ action, className }: HotkeyBadgeProps) {
             {displayText}
         </button>
     );
+
 }
 
 function normalizeKey(key: string): string {
+
     if (key === " ") return "Space";
     if (key.startsWith("Arrow")) return key.replace("Arrow", "");
     if (key.length === 1) return key.toUpperCase();
+
     return key;
+
 }
 
 function getTitle(isRecording: boolean, shortcut?: string | null): string {
     if (isRecording) return "Press a key (Esc to cancel, Del to clear)";
     if (shortcut) return `Hotkey: ${shortcut} (click to change)`;
+
     return "Click to set hotkey";
 }
 
 function getButtonClass(isRecording: boolean, shortcut?: string | null): string {
     if (isRecording) return "animate-pulse bg-primary text-primary-foreground";
     if (shortcut) return "bg-muted/80 text-muted-foreground hover:bg-muted";
+
     return "bg-muted/50 text-muted-foreground/60 hover:bg-muted/80 hover:text-muted-foreground";
 }

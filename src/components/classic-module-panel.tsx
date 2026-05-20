@@ -5,7 +5,9 @@ import { ClassicModuleInfo } from "@/types/classic";
 import { Loader2 } from "lucide-react";
 
 export function ClassicModulePanel() {
+
     const { modules, isLoading, updateModuleConfig, toggleModule, toggleDirection } =
+
         useClassicStore();
 
     const handleModuleToggle = async (module: ClassicModuleInfo) => {
@@ -17,6 +19,7 @@ export function ClassicModulePanel() {
     };
 
     const handleDirectionToggle = async (
+
         module: ClassicModuleInfo,
         direction: "inbound" | "outbound"
     ) => {
@@ -28,6 +31,7 @@ export function ClassicModulePanel() {
     };
 
     const handleSettingChange = async (
+
         module: ClassicModuleInfo,
         setting: string,
         value: number | boolean
@@ -40,6 +44,7 @@ export function ClassicModulePanel() {
     };
 
     return (
+
         <div className="relative z-10 flex flex-col">
             <Card className="border-border bg-card/90">
                 <CardContent className="bg-card/90 px-3 py-2">
@@ -64,4 +69,5 @@ export function ClassicModulePanel() {
             </Card>
         </div>
     );
+
 }

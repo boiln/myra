@@ -9,7 +9,9 @@ import { cn } from "@/lib/utils";
 const Tabs = TabsPrimitive.Root;
 
 function TabsList({ className, ref, ...props }: React.ComponentProps<typeof TabsPrimitive.List>) {
+
     return (
+
         <TabsPrimitive.List
             ref={ref}
             className={cn(
@@ -19,6 +21,7 @@ function TabsList({ className, ref, ...props }: React.ComponentProps<typeof Tabs
             {...props}
         />
     );
+
 }
 
 function TabsTrigger({
@@ -26,7 +29,9 @@ function TabsTrigger({
     ref,
     ...props
 }: React.ComponentProps<typeof TabsPrimitive.Trigger>) {
+
     return (
+
         <TabsPrimitive.Trigger
             ref={ref}
             className={cn(
@@ -36,6 +41,7 @@ function TabsTrigger({
             {...props}
         />
     );
+
 }
 
 function TabsContent({
@@ -43,7 +49,9 @@ function TabsContent({
     ref,
     ...props
 }: React.ComponentProps<typeof TabsPrimitive.Content>) {
+
     return (
+
         <TabsPrimitive.Content
             ref={ref}
             className={cn(
@@ -53,6 +61,7 @@ function TabsContent({
             {...props}
         />
     );
+
 }
 
 export { Tabs, TabsList, TabsTrigger, TabsContent };

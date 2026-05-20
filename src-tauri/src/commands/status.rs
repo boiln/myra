@@ -35,7 +35,9 @@ pub async fn get_status(
     let modules = build_module_info_list(&settings);
 
     let statistics = if running {
+
         let stats = state.statistics.read().map_err(|e| e.to_string())?;
+
         Some(ProcessingStatisticsDto {
 
             burst_buffered: stats.burst_stats.buffered,
@@ -48,15 +50,19 @@ pub async fn get_status(
             reorder_delayed_packets: stats.reorder_stats.delayed_packets,
 
         })
+
     } else {
         None
     };
 
     Ok(ProcessingStatus {
+
         running,
         statistics,
         modules,
+
     })
+
 }
 
 /// Gets the current packet manipulation settings.
@@ -126,6 +132,7 @@ pub async fn update_filter(
         .filter
         .lock()
         .map_err(|e| format!("Failed to lock filter mutex: {}", e))? = filter.clone();
+
     if let Some(ref f) = filter {
         if validate_filter(f.clone()).unwrap_or(false) {
             let _ = add_to_history(f);
@@ -143,26 +150,22 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
     use crate::settings::lag::LagOptions;
 
     let module = |name: &str, display_name: &str, enabled: bool, config: ModuleConfig| ModuleInfo {
-
         name: name.to_string(),
         display_name: display_name.to_string(),
         enabled,
         config,
         params: None,
-
     };
 
     let lag = settings.lag.clone().unwrap_or_else(|| LagOptions {
-
         enabled: false,
         inbound: true,
         outbound: true,
         delay_ms: 1000,
         ..Default::default()
-
     });
-    let lag_info = ModuleInfo {
 
+    let lag_info = ModuleInfo {
         params: Some(ModuleParams {
             lag_time: Some(lag.delay_ms),
         }),
@@ -171,7 +174,6 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
             "Lag",
             lag.enabled,
             ModuleConfig {
-
                 inbound: lag.inbound,
                 outbound: lag.outbound,
                 chance: lag.probability.value() * 100.0,
@@ -179,36 +181,33 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
                 duration_ms: Some(lag.delay_ms),
                 throttle_ms: Some(lag.delay_ms),
                 ..Default::default()
-
             },
         )
-
     };
 
     let drop = settings.drop.clone().unwrap_or_default();
     let drop_info = module(
+
         "drop",
         "Drop",
         drop.enabled,
         ModuleConfig {
-
             inbound: drop.inbound,
             outbound: drop.outbound,
             chance: drop.probability.value() * 100.0,
             enabled: drop.enabled,
             duration_ms: Some(drop.duration_ms),
             ..Default::default()
-
         },
     );
 
     let throttle = settings.throttle.clone().unwrap_or_default();
     let throttle_info = module(
+
         "throttle",
         "Throttle",
         throttle.enabled,
         ModuleConfig {
-
             inbound: throttle.inbound,
             outbound: throttle.outbound,
             chance: throttle.probability.value() * 100.0,
@@ -219,17 +218,16 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
             max_buffer: Some(throttle.max_buffer),
             freeze_mode: Some(throttle.freeze_mode),
             ..Default::default()
-
         },
     );
 
     let duplicate = settings.duplicate.clone().unwrap_or_default();
     let duplicate_info = module(
+
         "duplicate",
         "Duplicate",
         duplicate.enabled,
         ModuleConfig {
-
             inbound: duplicate.inbound,
             outbound: duplicate.outbound,
             chance: duplicate.probability.value() * 100.0,
@@ -237,17 +235,16 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
             duration_ms: Some(duplicate.duration_ms),
             count: Some(duplicate.count),
             ..Default::default()
-
         },
     );
 
     let bandwidth = settings.bandwidth.clone().unwrap_or_default();
     let bandwidth_info = module(
+
         "bandwidth",
         "Bandwidth",
         bandwidth.enabled,
         ModuleConfig {
-
             inbound: bandwidth.inbound,
             outbound: bandwidth.outbound,
             chance: bandwidth.probability.value() * 100.0,
@@ -257,34 +254,32 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
             passthrough_threshold: Some(bandwidth.passthrough_threshold),
             use_wfp: Some(bandwidth.use_wfp),
             ..Default::default()
-
         },
     );
 
     let corruption = settings.corruption.clone().unwrap_or_default();
     let corruption_info = module(
+
         "corruption",
         "Corruption",
         corruption.enabled,
         ModuleConfig {
-
             inbound: corruption.inbound,
             outbound: corruption.outbound,
             chance: corruption.probability.value() * 100.0,
             enabled: corruption.enabled,
             duration_ms: Some(corruption.duration_ms),
             ..Default::default()
-
         },
     );
 
     let reorder = settings.reorder.clone().unwrap_or_default();
     let reorder_info = module(
+
         "reorder",
         "Reorder",
         reorder.enabled,
         ModuleConfig {
-
             inbound: reorder.inbound,
             outbound: reorder.outbound,
             chance: reorder.probability.value() * 100.0,
@@ -292,17 +287,16 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
             duration_ms: Some(reorder.duration_ms),
             throttle_ms: Some(reorder.max_delay),
             ..Default::default()
-
         },
     );
 
     let burst = settings.burst.clone().unwrap_or_default();
     let burst_info = module(
+
         "burst",
         "Burst",
         burst.enabled,
         ModuleConfig {
-
             inbound: burst.inbound,
             outbound: burst.outbound,
             chance: burst.probability.value() * 100.0,
@@ -314,7 +308,6 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
             lag_bypass: Some(settings.lag_bypass),
             reverse: Some(burst.reverse),
             ..Default::default()
-
         },
     );
 

@@ -15,6 +15,7 @@ export const createCoreSlice: StateCreator<
     loadStatus: async () => {
         try {
             const [status, currentFilter, settings] = await Promise.all([
+
                 ManipulationService.getStatus(),
                 ManipulationService.getFilter(),
                 ManipulationService.getSettings(),
@@ -27,6 +28,7 @@ export const createCoreSlice: StateCreator<
             // Helper to get existing direction settings for a module
             const getExistingDirections = (moduleName: string) => {
                 const existing = existingModules.find((m) => m.name === moduleName);
+
                 return {
                     inbound: existing?.config.inbound ?? true,
                     outbound: existing?.config.outbound ?? true,
@@ -36,11 +38,13 @@ export const createCoreSlice: StateCreator<
             // Helper to get existing config value - preserves UI state when backend returns undefined
             const getExistingConfig = <T>(moduleName: string, key: string, defaultValue: T): T => {
                 const existing = existingModules.find((m) => m.name === moduleName);
+
                 return (existing?.config[key as keyof typeof existing.config] as T) ?? defaultValue;
             };
 
             // Create modules array from settings, preserving direction settings
             const modules: ModuleInfo[] = [
+
                 {
                     name: "lag",
                     display_name: "Lag",
@@ -225,6 +229,7 @@ export const createCoreSlice: StateCreator<
     },
 
     toggleActive: async () => {
+
         const { isActive, filter, buildSettings } = get();
         const mode = useModeStore.getState().mode;
         const classicStore = useClassicStore.getState();
@@ -248,6 +253,7 @@ export const createCoreSlice: StateCreator<
                 } else {
                     // Start Standard mode processing
                     const settings = buildSettings();
+
                     await ManipulationService.startProcessing(settings, filter);
                 }
             } else {
@@ -261,9 +267,11 @@ export const createCoreSlice: StateCreator<
         } finally {
             set({ isTogglingActive: false });
         }
+
     },
 
     updateFilter: async (newFilter: string) => {
+
         const { isActive } = get();
 
         try {
@@ -278,6 +286,7 @@ export const createCoreSlice: StateCreator<
             }
 
             const [settings] = await Promise.all([
+
                 ManipulationService.getSettings(),
                 ManipulationService.stopProcessing(),
             ]);
@@ -289,6 +298,7 @@ export const createCoreSlice: StateCreator<
         } finally {
             set({ isUpdatingFilter: false });
         }
+
     },
 
     setFilterTarget: (target: FilterTarget) => {
