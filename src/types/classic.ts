@@ -17,12 +17,10 @@ export type ClassicModuleName =
     | "classic_bandwidth";
 
 export interface ClassicModuleBase {
-
     enabled: boolean;
     inbound: boolean;
     outbound: boolean;
     chance: number; // 0-100 (percentage with 0.01% precision internally)
-
 }
 
 /**
@@ -90,27 +88,23 @@ export interface ClassicBandwidthOptions extends ClassicModuleBase {
  * All classic modules with their configurations
  */
 export interface ClassicModeSettings {
-
     latency?: ClassicLatencyOptions;
     drop?: ClassicDropOptions;
     throttle?: ClassicThrottleOptions;
     reorder?: ClassicReorderOptions;
     tamper?: ClassicTamperOptions;
     bandwidth?: ClassicBandwidthOptions;
-
 }
 
 /**
  * Classic Module Info for UI rendering
  */
 export interface ClassicModuleInfo {
-
     name: ClassicModuleName;
     display_name: string;
     description: string;
     enabled: boolean;
     config: ClassicModuleBase & Record<string, unknown>;
-
 }
 
 /**
@@ -214,7 +208,6 @@ export const CLASSIC_BUFFER_LIMITS = {
  * This matches the Rust ClassicSettings struct.
  */
 export interface ClassicBackendSettings {
-
     latency?: {
         enabled: boolean;
         inbound: boolean;
@@ -259,14 +252,12 @@ export interface ClassicBackendSettings {
         limit_kbps: number;
         max_buffer: number;
     };
-
 }
 
 /**
  * Convert frontend module array to backend settings format.
  */
 export function modulesToBackendSettings(modules: ClassicModuleInfo[]): ClassicBackendSettings {
-
     const settings: ClassicBackendSettings = {};
 
     for (const module of modules) {
@@ -333,14 +324,12 @@ export function modulesToBackendSettings(modules: ClassicModuleInfo[]): ClassicB
     }
 
     return settings;
-
 }
 
 /**
  * Convert backend settings to frontend module array.
  */
 export function backendSettingsToModules(settings: ClassicBackendSettings): ClassicModuleInfo[] {
-
     const modules: ClassicModuleInfo[] = [];
     const defaults = CLASSIC_MODULE_DEFAULTS;
 
@@ -431,5 +420,4 @@ export function backendSettingsToModules(settings: ClassicBackendSettings): Clas
     });
 
     return modules;
-
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { Monitor } from "lucide-react";
 
 interface ProcessIconProps {
@@ -10,37 +10,23 @@ interface ProcessIconProps {
 /**
  * Renders a process icon from base64 data or falls back to a default icon
  */
-export function ProcessIcon({ icon, name, className = "h-4 w-4" }: ProcessIconProps) {
-
+export function ProcessIcon({ icon, name, className = "size-4" }: ProcessIconProps) {
     const [imageError, setImageError] = useState(false);
-    const [imageUrl, setImageUrl] = useState<string | null>(null);
 
-    // Parse the raw RGBA data and create an image URL
-    useEffect(() => {
-
-        if (!icon || imageError) {
-            setImageUrl(null);
-            return;
-        }
+    // Compute the image URL from the raw icon data. Pure derivation -> useMemo
+    // avoids the cascading setState pattern that useEffect required.
+    const imageUrl = useMemo<string | null>(() => {
+        if (!icon) return null;
 
         // Already a PNG data URL
-        if (icon.startsWith("data:image/png")) {
-            setImageUrl(icon);
-            return;
-        }
+        if (icon.startsWith("data:image/png")) return icon;
 
-        // Check if it's our raw format: data:image/raw;width=32;height=32;base64,...
-        if (!icon.startsWith("data:image/raw;")) {
-            setImageUrl(null);
-            return;
-        }
+        // Check if it's our raw format: data:image/raw;width=32;height=32;base64, ..
+        if (!icon.startsWith("data:image/raw;")) return null;
 
         try {
             const base64Part = icon.split("base64,")[1];
-            if (!base64Part) {
-                setImageUrl(null);
-                return;
-            }
+            if (!base64Part) return null;
 
             // Decode base64 to binary
             const binaryString = atob(base64Part);
@@ -54,23 +40,19 @@ export function ProcessIcon({ icon, name, className = "h-4 w-4" }: ProcessIconPr
             canvas.width = 32;
             canvas.height = 32;
             const ctx = canvas.getContext("2d");
-            if (!ctx) {
-                setImageUrl(null);
-                return;
-            }
+            if (!ctx) return null;
 
             const imageData = ctx.createImageData(32, 32);
             imageData.data.set(bytes);
             ctx.putImageData(imageData, 0, 0);
 
-            // Convert to data URL
-            setImageUrl(canvas.toDataURL("image/png"));
+            return canvas.toDataURL("image/png");
         } catch (e) {
             console.error("Failed to process icon:", e);
-            setImageUrl(null);
-        }
 
-    }, [icon, imageError]);
+            return null;
+        }
+    }, [icon]);
 
     if (!imageUrl || imageError) {
         return <Monitor className={className} />;

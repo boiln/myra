@@ -9,7 +9,6 @@ interface ModeSelectorProps {
 }
 
 export function ModeSelector({ mode, onModeChange, disabled }: ModeSelectorProps) {
-
     return (
         <Tabs
             value={mode}
@@ -52,5 +51,4 @@ export function ModeSelector({ mode, onModeChange, disabled }: ModeSelectorProps
             </TabsList>
         </Tabs>
     );
-
 }

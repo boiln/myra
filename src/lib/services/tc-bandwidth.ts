@@ -31,9 +31,7 @@ export async function startTcBandwidth(
  * @returns Promise resolving to success message
  */
 export async function stopTcBandwidth(): Promise<string> {
-
     return await invoke<string>("stop_tc_bandwidth");
-
 }
 
 /**
@@ -42,7 +40,5 @@ export async function stopTcBandwidth(): Promise<string> {
  * @returns Promise resolving to current status
  */
 export async function getTcBandwidthStatus(): Promise<TcBandwidthStatus> {
-
     return await invoke<TcBandwidthStatus>("get_tc_bandwidth_status");
-
 }

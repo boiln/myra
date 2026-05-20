@@ -6,14 +6,12 @@ import { ProcessIcon } from "@/components/ui/process-icon";
 import { Input } from "@/components/ui/input";
 
 interface ProcessSelectorProps {
-
     processes: ProcessInfo[];
     value: string;
     onValueChange: (value: string) => void;
     disabled?: boolean;
     placeholder?: string;
     className?: string;
-
 }
 
 export function ProcessSelector({
@@ -32,20 +30,16 @@ export function ProcessSelector({
     const inputRef = useRef<HTMLInputElement>(null);
 
     const filteredProcesses = useMemo(() => {
-
         const searchLower = search.toLowerCase();
         return processes.filter(
             (p) =>
                 p.name.toLowerCase().includes(searchLower) ||
                 p.path?.toLowerCase().includes(searchLower)
         );
-
     }, [processes, search]);
 
     const { gameProcesses, otherProcesses, allFiltered } = useMemo(() => {
-
         const games = filteredProcesses.filter((p) => {
-
             const name = p.name.toLowerCase();
             const path = p.path?.toLowerCase() || "";
             return (
@@ -62,7 +56,6 @@ export function ProcessSelector({
                 name.endsWith("-win64-shipping.exe") ||
                 name.endsWith("-win32-shipping.exe")
             );
-
         });
 
         const others = filteredProcesses.filter((p) => !games.includes(p));
@@ -70,19 +63,16 @@ export function ProcessSelector({
         const all = [...games, ...others];
 
         return { gameProcesses: games, otherProcesses: others, allFiltered: all };
-
     }, [filteredProcesses]);
 
     const selectedProcess = processes.find((p) => p.pid.toString() === value);
 
     const handleKeyDown = useCallback(
         (e: React.KeyboardEvent) => {
-
             if (!isOpen) {
                 if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
                     e.preventDefault();
-                    setIsOpen(true);
-                    setTimeout(() => inputRef.current?.focus(), 0);
+                    openDropdown();
                 }
                 return;
             }
@@ -100,14 +90,12 @@ export function ProcessSelector({
                     e.preventDefault();
                     if (allFiltered[highlightedIndex]) {
                         onValueChange(allFiltered[highlightedIndex].pid.toString());
-                        setIsOpen(false);
-                        setSearch("");
+                        closeDropdown();
                     }
                     break;
                 case "Escape":
                     e.preventDefault();
-                    setIsOpen(false);
-                    setSearch("");
+                    closeDropdown();
                     break;
                 case "Home":
                     e.preventDefault();
@@ -141,57 +129,51 @@ export function ProcessSelector({
                     }
                     break;
             }
-
         },
         [isOpen, highlightedIndex, allFiltered, onValueChange]
     );
 
-    // Scroll highlighted item into view
-    useEffect(() => {
+    // Reset highlight when search changes (write inside the setter site to avoid an effect-chain)
+    const handleSearchChange = (next: string) => {
+        setSearch(next);
+        setHighlightedIndex(0);
+    };
 
+    // Open the dropdown and prime the highlight to the currently selected item (event-driven, not effect-driven)
+    const openDropdown = useCallback(() => {
+        const selectedIndex = allFiltered.findIndex((p) => p.pid.toString() === value);
+        setHighlightedIndex(selectedIndex >= 0 ? selectedIndex : 0);
+        setIsOpen(true);
+        setTimeout(() => inputRef.current?.focus(), 0);
+    }, [allFiltered, value]);
+
+    const closeDropdown = () => {
+        setIsOpen(false);
+        setSearch("");
+    };
+
+    // Scroll highlighted item into view (legitimate DOM sync effect)
+    useEffect(() => {
         if (isOpen && listRef.current) {
             const highlightedEl = listRef.current.querySelector(
                 `[data-index="${highlightedIndex}"]`
             );
             highlightedEl?.scrollIntoView({ block: "nearest" });
         }
-
     }, [highlightedIndex, isOpen]);
 
     // Close on outside click
     useEffect(() => {
-
-        const handleClickOutside = (e: MouseEvent) => {
-
+        const onMouseDown = (e: MouseEvent) => {
             if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
                 setIsOpen(false);
                 setSearch("");
             }
-
         };
 
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-
+        document.addEventListener("mousedown", onMouseDown);
+        return () => document.removeEventListener("mousedown", onMouseDown);
     }, []);
-
-    // Reset highlight when search changes
-    useEffect(() => {
-
-        setHighlightedIndex(0);
-
-    }, [search]);
-
-    // Reset highlight when opening
-    useEffect(() => {
-
-        if (isOpen) {
-            // Try to highlight the currently selected item
-            const selectedIndex = allFiltered.findIndex((p) => p.pid.toString() === value);
-            setHighlightedIndex(selectedIndex >= 0 ? selectedIndex : 0);
-        }
-
-    }, [isOpen, value, allFiltered]);
 
     return (
         <div ref={containerRef} className={cn("relative w-full", className)}>
@@ -199,14 +181,12 @@ export function ProcessSelector({
             <button
                 type="button"
                 onClick={() => {
-
-                    if (!disabled) {
-                        setIsOpen(!isOpen);
-                        if (!isOpen) {
-                            setTimeout(() => inputRef.current?.focus(), 0);
-                        }
+                    if (disabled) return;
+                    if (isOpen) {
+                        closeDropdown();
+                    } else {
+                        openDropdown();
                     }
-
                 }}
                 onKeyDown={handleKeyDown}
                 disabled={disabled}
@@ -223,7 +203,7 @@ export function ProcessSelector({
                             <ProcessIcon
                                 icon={selectedProcess.icon}
                                 name={selectedProcess.name}
-                                className="h-4 w-4 flex-shrink-0"
+                                className="size-4 flex-shrink-0"
                             />
                             <span className="truncate">{selectedProcess.name}</span>
                         </>
@@ -231,7 +211,7 @@ export function ProcessSelector({
                         <span className="text-muted-foreground">{placeholder}</span>
                     )}
                 </div>
-                <ChevronDown className="h-4 w-4 opacity-50" />
+                <ChevronDown className="size-4 opacity-50" />
             </button>
 
             {/* Dropdown */}
@@ -245,15 +225,14 @@ export function ProcessSelector({
                     {/* Search Input */}
                     <div className="border-b border-border bg-background p-2">
                         <div className="relative">
-                            <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                            <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
                             <Input
                                 ref={inputRef}
                                 value={search}
-                                onChange={(e) => setSearch(e.target.value)}
+                                onChange={(e) => handleSearchChange(e.target.value)}
                                 onKeyDown={handleKeyDown}
                                 placeholder="Search or type letter to jump .."
                                 className="h-8 pl-8 text-sm"
-                                autoFocus
                             />
                         </div>
                         <p className="mt-1.5 text-[10px] text-muted-foreground">
@@ -265,7 +244,6 @@ export function ProcessSelector({
                     <div
                         ref={listRef}
                         className="max-h-[200px] overflow-y-auto rounded-b-md bg-background p-1"
-                        onKeyDown={handleKeyDown}
                     >
                         {allFiltered.length === 0 ? (
                             <div className="px-2 py-4 text-center text-sm text-muted-foreground">
@@ -277,11 +255,10 @@ export function ProcessSelector({
                                 {gameProcesses.length > 0 && (
                                     <>
                                         <div className="flex items-center gap-1 px-2 py-1.5 text-xs font-semibold text-muted-foreground">
-                                            <Gamepad2 className="h-3 w-3" />
+                                            <Gamepad2 className="size-3" />
                                             Games & Launchers
                                         </div>
                                         {gameProcesses.map((p) => {
-
                                             const index = allFiltered.indexOf(p);
                                             return (
                                                 <ProcessItem
@@ -291,16 +268,12 @@ export function ProcessSelector({
                                                     isHighlighted={index === highlightedIndex}
                                                     dataIndex={index}
                                                     onClick={() => {
-
                                                         onValueChange(p.pid.toString());
-                                                        setIsOpen(false);
-                                                        setSearch("");
-
+                                                        closeDropdown();
                                                     }}
                                                     onMouseEnter={() => setHighlightedIndex(index)}
                                                 />
                                             );
-
                                         })}
                                     </>
                                 )}
@@ -309,11 +282,10 @@ export function ProcessSelector({
                                 {otherProcesses.length > 0 && (
                                     <>
                                         <div className="flex items-center gap-1 px-2 py-1.5 text-xs font-semibold text-muted-foreground">
-                                            <Monitor className="h-3 w-3" />
+                                            <Monitor className="size-3" />
                                             All Processes
                                         </div>
                                         {otherProcesses.map((p) => {
-
                                             const index = allFiltered.indexOf(p);
                                             return (
                                                 <ProcessItem
@@ -323,16 +295,12 @@ export function ProcessSelector({
                                                     isHighlighted={index === highlightedIndex}
                                                     dataIndex={index}
                                                     onClick={() => {
-
                                                         onValueChange(p.pid.toString());
-                                                        setIsOpen(false);
-                                                        setSearch("");
-
+                                                        closeDropdown();
                                                     }}
                                                     onMouseEnter={() => setHighlightedIndex(index)}
                                                 />
                                             );
-
                                         })}
                                     </>
                                 )}
@@ -346,14 +314,12 @@ export function ProcessSelector({
 }
 
 interface ProcessItemProps {
-
     process: ProcessInfo;
     isSelected: boolean;
     isHighlighted: boolean;
     dataIndex: number;
     onClick: () => void;
     onMouseEnter: () => void;
-
 }
 
 function ProcessItem({
@@ -376,11 +342,7 @@ function ProcessItem({
                 isSelected && "font-medium"
             )}
         >
-            <ProcessIcon
-                icon={process.icon}
-                name={process.name}
-                className="h-4 w-4 flex-shrink-0"
-            />
+            <ProcessIcon icon={process.icon} name={process.name} className="size-4 flex-shrink-0" />
             <span className="min-w-0 flex-1 truncate text-left">{process.name}</span>
             <span className="flex-shrink-0 font-mono text-[10px] text-muted-foreground">
                 {process.pid}

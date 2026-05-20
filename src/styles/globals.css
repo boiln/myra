@@ -3,6 +3,17 @@
 @tailwind utilities;
 
 @layer base {
+    /* Respect user preference for reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+        }
+    }
     :root {
         --background: 220 15% 9%;
         --foreground: 0 0% 98%;

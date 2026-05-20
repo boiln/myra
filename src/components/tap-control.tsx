@@ -5,9 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 
 export function TapControl() {
-
     const {
-
         settings,
         setEnabled,
         setIntervalMs,
@@ -15,17 +13,14 @@ export function TapControl() {
         setAutoEnabled,
         setMinBufferForTap,
         setCooldownMs,
-
     } = useTapStore();
 
     // Local, lenient input state (matches module inputs behavior)
     const [inputValues, setInputValues] = useState<Record<string, string>>({});
 
     const getDisplayValue = (key: string, fallback: number) => {
-
         if (key in inputValues) return inputValues[key];
         return (fallback ?? 0).toString();
-
     };
 
     const handleInputChange = (
@@ -33,7 +28,6 @@ export function TapControl() {
         key: "intervalMs" | "durationMs" | "minBufferForTap" | "cooldownMs",
         isInteger = true
     ) => {
-
         const input = e.target.value;
         setInputValues((prev) => ({ ...prev, [key]: input }));
 
@@ -60,7 +54,6 @@ export function TapControl() {
                 setCooldownMs(parsed);
                 break;
         }
-
     };
 
     const handleInputBlur = (
@@ -69,7 +62,6 @@ export function TapControl() {
         max: number,
         isInteger = true
     ) => {
-
         const input = inputValues[key];
         const parsed = isInteger ? parseInt(input ?? "", 10) : parseFloat(input ?? "");
 
@@ -96,19 +88,16 @@ export function TapControl() {
                 setCooldownMs(clamped);
                 break;
         }
-
     };
 
     // Sync UI inputs when TAP settings change (e.g., after loading a preset)
     useEffect(() => {
-
         setInputValues({
             intervalMs: (settings.intervalMs ?? 0).toString(),
             durationMs: (settings.durationMs ?? 0).toString(),
             minBufferForTap: (settings.minBufferForTap ?? 200).toString(),
             cooldownMs: (settings.cooldownMs ?? 1200).toString(),
         });
-
     }, [settings.intervalMs, settings.durationMs, settings.minBufferForTap, settings.cooldownMs]);
 
     return (

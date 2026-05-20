@@ -15,7 +15,6 @@ import { ManipulationService } from "@/lib/services/manipulation";
  * Uses updateSettings instead of startProcessing for lighter updates.
  */
 export function useTap() {
-
     const { settings, isTapping, setIsTapping } = useTapStore();
     const { isActive, manipulationStatus, buildSettings } = useNetworkStore();
 
@@ -28,14 +27,16 @@ export function useTap() {
 
     // Get list of currently enabled modules
     const getEnabledModules = useCallback(() => {
+        const names: string[] = [];
+        for (const m of manipulationStatus.modules) {
+            if (m.enabled) names.push(m.name);
+        }
 
-        return manipulationStatus.modules.filter((m) => m.enabled).map((m) => m.name);
-
+        return names;
     }, [manipulationStatus.modules]);
 
     // Disable all enabled modules temporarily
     const startTap = useCallback(async () => {
-
         if (isRunningRef.current) return;
 
         const enabledModules = getEnabledModules();
@@ -71,7 +72,6 @@ export function useTap() {
 
     // Re-enable modules after tap duration
     const endTap = useCallback(async () => {
-
         const modulesToRestore = savedModulesRef.current;
         if (modulesToRestore.length === 0) {
             setIsTapping(false);
@@ -104,7 +104,6 @@ export function useTap() {
 
     // Main tap cycle
     const runTapCycle = useCallback(async () => {
-
         // Don't tap if already tapping or if an operation is running
         if (isTapping || isRunningRef.current) return;
 
@@ -112,16 +111,12 @@ export function useTap() {
 
         // Schedule end of tap
         tapTimeoutRef.current = setTimeout(async () => {
-
             await endTap();
-
         }, settings.durationMs);
-
     }, [isTapping, startTap, endTap, settings.durationMs]);
 
     // Setup/cleanup interval(s)
     useEffect(() => {
-
         // Clear existing intervals
         if (intervalRef.current) {
             clearInterval(intervalRef.current);
@@ -156,9 +151,7 @@ export function useTap() {
         // Manual interval mode
         if (!settings.autoEnabled) {
             intervalRef.current = setInterval(() => {
-
                 runTapCycle();
-
             }, settings.intervalMs);
         }
 
@@ -169,7 +162,6 @@ export function useTap() {
                 Math.min(1000, Math.floor(settings.intervalMs / 3) || 250)
             );
             autoPollRef.current = setInterval(async () => {
-
                 if (isTapping || isRunningRef.current) return;
 
                 // Respect cooldown between taps
@@ -206,13 +198,11 @@ export function useTap() {
                 } catch (e) {
                     console.error("AutoTap poll error:", e);
                 }
-
             }, pollMs);
         }
 
         // Cleanup on unmount or when dependencies change
         return () => {
-
             if (intervalRef.current) {
                 clearInterval(intervalRef.current);
                 intervalRef.current = null;
@@ -225,7 +215,6 @@ export function useTap() {
                 clearInterval(autoPollRef.current);
                 autoPollRef.current = null;
             }
-
         };
     }, [
         settings.enabled,

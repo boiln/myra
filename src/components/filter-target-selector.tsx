@@ -11,14 +11,12 @@ import { ProcessInfo } from "@/types";
 import { ProcessSelector } from "@/components/ui/process-selector";
 import { MyraCheckbox } from "@/components/ui/myra-checkbox";
 import {
-
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
     DropdownMenuLabel,
     DropdownMenuSeparator,
-
 } from "@/components/ui/dropdown-menu";
 import { ManipulationService } from "@/lib/services/manipulation";
 
@@ -27,25 +25,39 @@ interface FilterTargetSelectorProps {
 }
 
 export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
-
     const { isActive, filter, updateFilter, filterTarget, setFilterTarget, isInitialized } =
         useNetworkStore();
 
-    // Local filter state - syncs with store
-    const [localFilter, setLocalFilter] = useState(filter || "outbound");
-    const [filterError, setFilterError] = useState<string | null>(null);
-    const [previousFilters, setPreviousFilters] = useState<string[]>([]);
+    // Grouped UI state for the filter input field
+    const [filterUi, setFilterUi] = useState<{
+        localFilter: string;
+        error: string | null;
+        history: string[];
+    }>({
+        localFilter: filter || "outbound",
+        error: null,
+        history: [],
+    });
+    const { localFilter, error: filterError, history: previousFilters } = filterUi;
 
-    // Process selection state
-    const [processes, setProcesses] = useState<ProcessInfo[]>([]);
-    const [loadingProcesses, setLoadingProcesses] = useState(false);
-    const [selectedProcess, setSelectedProcess] = useState<string>(
-        filterTarget?.processId?.toString() || ""
-    );
+    // Grouped process-list state
+    const [processList, setProcessList] = useState<{
+        list: ProcessInfo[];
+        loading: boolean;
+    }>({ list: [], loading: false });
+    const { list: processes, loading: loadingProcesses } = processList;
 
-    // Direction toggles
-    const [includeInbound, setIncludeInbound] = useState(filterTarget?.includeInbound ?? false);
-    const [includeOutbound, setIncludeOutbound] = useState(filterTarget?.includeOutbound ?? true);
+    // Grouped filter-target state
+    const [target, setTarget] = useState<{
+        selectedProcess: string;
+        includeInbound: boolean;
+        includeOutbound: boolean;
+    }>({
+        selectedProcess: filterTarget?.processId?.toString() || "",
+        includeInbound: filterTarget?.includeInbound ?? false,
+        includeOutbound: filterTarget?.includeOutbound ?? true,
+    });
+    const { selectedProcess, includeInbound, includeOutbound } = target;
 
     // Debounce timer for auto-apply
     const filterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -58,82 +70,71 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
 
     // Sync local filter with store filter
     useEffect(() => {
-
         if (filter && filter !== localFilter) {
-            setLocalFilter(filter);
+            setFilterUi((s) => ({ ...s, localFilter: filter }));
         }
-
     }, [filter]);
 
     // Sync state when filterTarget changes (e.g., from loading preset)
     useEffect(() => {
-
         if (filterTarget) {
             // Skip auto-apply when syncing from preset - the filter was already set
             skipAutoApplyRef.current = true;
 
-            if (filterTarget.processId) {
-                setSelectedProcess(filterTarget.processId.toString());
-            } else {
-                setSelectedProcess("");
-            }
-            setIncludeInbound(filterTarget.includeInbound ?? false);
-            setIncludeOutbound(filterTarget.includeOutbound ?? true);
+            setTarget({
+                selectedProcess: filterTarget.processId ? filterTarget.processId.toString() : "",
+                includeInbound: filterTarget.includeInbound ?? false,
+                includeOutbound: filterTarget.includeOutbound ?? true,
+            });
 
             // Reset the skip flag after state updates propagate
-            setTimeout(() => {
-
+            const t = setTimeout(() => {
                 skipAutoApplyRef.current = false;
-
             }, 200);
-        }
 
+            return () => clearTimeout(t);
+        }
     }, [filterTarget]);
 
     // Load processes
     const loadProcesses = useCallback(async () => {
-
-        setLoadingProcesses(true);
+        setProcessList((s) => ({ ...s, loading: true }));
         try {
             const result = await invoke<ProcessInfo[]>("list_processes");
-            setProcesses(result);
+            setProcessList({ list: result, loading: false });
         } catch (error) {
             console.error("Failed to load processes:", error);
-        } finally {
-            setLoadingProcesses(false);
+            setProcessList((s) => ({ ...s, loading: false }));
         }
     }, []);
 
     // Load processes on mount
     useEffect(() => {
-
         loadProcesses();
         // Load filter history
         ManipulationService.getFilterHistory()
-            .then((list) => setPreviousFilters(list ?? []))
-            .catch(() => setPreviousFilters([]));
-
+            .then((list) => setFilterUi((s) => ({ ...s, history: list ?? [] })))
+            .catch(() => setFilterUi((s) => ({ ...s, history: [] })));
     }, [loadProcesses]);
 
     // Validate filter with backend
     const validateFilter = useCallback(async (filterStr: string): Promise<boolean> => {
-
         try {
             const isValid = await invoke<boolean>("validate_filter", { filter: filterStr });
             if (isValid) {
-                setFilterError(null);
+                setFilterUi((s) => ({ ...s, error: null }));
                 return true;
             }
+
             return false;
         } catch (error) {
-            setFilterError(error as string);
+            setFilterUi((s) => ({ ...s, error: error as string }));
             return false;
         }
     }, []);
 
     // Build filter string from current state
     const buildFilterString = useCallback(async (): Promise<string> => {
-
         let baseFilter = "";
 
         // Build direction part
@@ -197,12 +198,10 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
 
     // Auto-apply filter when dependencies change
     useEffect(() => {
-
         // Skip if filtering is active, syncing from preset, or app not yet initialized
         if (isActive || skipAutoApplyRef.current || !isInitialized) return;
 
         const applyFilter = async () => {
-
             const newFilter = await buildFilterString();
 
             // If a specific filter is already set in store and differs,
@@ -211,14 +210,13 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                 return;
             }
 
-            setLocalFilter(newFilter);
+            setFilterUi((s) => ({ ...s, localFilter: newFilter }));
 
             // Validate before applying
             const isValid = await validateFilter(newFilter);
             if (isValid) {
                 await updateFilter(newFilter);
             }
-
         };
 
         // Debounce the filter application
@@ -228,37 +226,20 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
         filterTimeoutRef.current = setTimeout(applyFilter, 150);
 
         return () => {
-
             if (filterTimeoutRef.current) {
                 clearTimeout(filterTimeoutRef.current);
             }
-
         };
-
-    }, [
-        selectedProcess,
-        includeInbound,
-        includeOutbound,
-        isActive,
-        isInitialized,
-        buildFilterString,
-        validateFilter,
-        updateFilter,
-        filter,
-    ]);
+    }, [selectedProcess, includeInbound, includeOutbound, isActive, isInitialized, filter]);
 
     // Handle manual filter input change
     const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-
         const newFilter = e.target.value;
-        setLocalFilter(newFilter);
-        setFilterError(null);
-
+        setFilterUi((s) => ({ ...s, localFilter: newFilter, error: null }));
     };
 
     // Handle filter blur - validate and apply
     const handleFilterBlur = async () => {
-
         if (isActive || localFilter === filter) return;
 
         const isValid = await validateFilter(localFilter);
@@ -267,15 +248,13 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
             // Refresh history after successful update
             try {
                 const list = await ManipulationService.getFilterHistory();
-                setPreviousFilters(list ?? []);
+                setFilterUi((s) => ({ ...s, history: list ?? [] }));
             } catch {}
         }
-
     };
 
     // Handle filter keydown
     const handleFilterKeyDown = async (e: React.KeyboardEvent) => {
-
         if (e.key === "Enter" && !isActive) {
             e.preventDefault();
             const isValid = await validateFilter(localFilter);
@@ -283,46 +262,42 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                 await updateFilter(localFilter);
             }
         }
-
     };
 
     // Handle direction change
     const handleDirectionChange = (direction: "inbound" | "outbound", checked: boolean) => {
-
         if (direction === "inbound") {
-            // Ensure at least one is selected
-            if (!checked && !includeOutbound) {
-                setIncludeOutbound(true);
-            }
-            setIncludeInbound(checked);
+            setTarget((s) => ({
+                ...s,
+                includeInbound: checked,
+                // Ensure at least one is selected
+                includeOutbound: !checked && !s.includeOutbound ? true : s.includeOutbound,
+            }));
         } else {
-            // Ensure at least one is selected
-            if (!checked && !includeInbound) {
-                setIncludeInbound(true);
-            }
-            setIncludeOutbound(checked);
+            setTarget((s) => ({
+                ...s,
+                includeOutbound: checked,
+                // Ensure at least one is selected
+                includeInbound: !checked && !s.includeInbound ? true : s.includeInbound,
+            }));
         }
     };
 
     // Handle process change
     const handleProcessChange = (value: string) => {
-
-        setSelectedProcess(value);
-
+        setTarget((s) => ({ ...s, selectedProcess: value }));
     };
 
     const applyPreviousFilter = async (value: string) => {
-
         if (isActive) return; // Do not change while active
         const ok = await validateFilter(value);
         if (!ok) return;
-        setLocalFilter(value);
+        setFilterUi((s) => ({ ...s, localFilter: value }));
         await updateFilter(value);
         try {
             const list = await ManipulationService.getFilterHistory();
-            setPreviousFilters(list ?? []);
+            setFilterUi((s) => ({ ...s, history: list ?? [] }));
         } catch {}
-
     };
 
     return (
@@ -366,11 +341,11 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                             <Button
                                 variant="outline"
                                 size="icon"
-                                className="h-8 w-8"
+                                className="size-8"
                                 disabled={disabled || isActive}
                                 title="Previous filters"
                             >
-                                <ChevronDown className="h-4 w-4" />
+                                <ChevronDown className="size-4" />
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="start" className="min-w-[240px]">
@@ -392,13 +367,11 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
                                 onClick={async () => {
-
                                     if (disabled || isActive) return;
                                     try {
                                         await ManipulationService.clearFilterHistory();
-                                        setPreviousFilters([]);
+                                        setFilterUi((s) => ({ ...s, history: [] }));
                                     } catch {}
-
                                 }}
                                 className="text-xs text-muted-foreground"
                                 disabled={disabled || isActive || previousFilters.length === 0}
@@ -436,7 +409,7 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                 <div className="flex items-center gap-1.5">
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Monitor className="h-4 w-4 shrink-0 text-muted-foreground" />
+                            <Monitor className="size-4 shrink-0 text-muted-foreground" />
                         </TooltipTrigger>
                         <TooltipContent>
                             <p>Target a specific process</p>
@@ -453,13 +426,11 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8"
+                        className="size-8"
                         onClick={loadProcesses}
                         disabled={loadingProcesses || isActive}
                     >
-                        <RefreshCw
-                            className={cn("h-3.5 w-3.5", loadingProcesses && "animate-spin")}
-                        />
+                        <RefreshCw className={cn("size-3.5", loadingProcesses && "animate-spin")} />
                     </Button>
                 </div>
             </div>

@@ -7,7 +7,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Info } from "lucide-react";
 
 interface ClassicModuleRowProps {
-
     module: ClassicModuleInfo;
     onModuleToggle: (module: ClassicModuleInfo) => Promise<void>;
     onDirectionToggle: (
@@ -15,71 +14,60 @@ interface ClassicModuleRowProps {
         direction: "inbound" | "outbound"
     ) => Promise<void>;
     onSettingChange: (module: ClassicModuleInfo, setting: string, value: number | boolean) => void;
-
 }
 
 // Module-specific parameter configurations
 const MODULE_PARAMS: Record<
     ClassicModuleName,
     Array<{
-
         key: string;
         label: string;
         min: number;
         max: number;
         isInteger?: boolean;
         tooltip?: string;
-
     }>
 > = {
     classic_latency: [
         {
-
             key: "delay_ms",
             label: "Delay(ms)",
             min: 0,
             max: 15000,
             isInteger: true,
             tooltip: "Fixed delay before packet release",
-
         },
     ],
     classic_drop: [],
     classic_throttle: [
         {
-
             key: "window_ms",
             label: "Window(ms)",
             min: 0,
             max: 1000,
             isInteger: true,
             tooltip: "Time window for buffering packets",
-
         },
     ],
     classic_reorder: [
         {
-
             key: "max_hold_cycles",
             label: "Hold Cycles",
             min: 1,
             max: 100,
             isInteger: true,
             tooltip: "Max cycles to hold a single packet",
-
         },
     ],
     classic_tamper: [],
     classic_bandwidth: [
         {
-
             key: "limit_kbps",
             label: "Limit(KB/s)",
             min: 0.1,
             max: 10000,
             isInteger: false,
             tooltip: "Bandwidth limit in kilobytes per second",
-
         },
     ],
 };
@@ -127,7 +115,6 @@ export function ClassicModuleRow({
         _max: number,
         isInteger = false
     ) => {
-
         const input = e.target.value;
         setInputValues((prev) => ({ ...prev, [setting]: input }));
 
@@ -139,11 +126,9 @@ export function ClassicModuleRow({
         if (isNaN(parsed)) return;
 
         onSettingChange(module, setting, parsed);
-
     };
 
     const handleInputBlur = (setting: string, min: number, max: number, isInteger = false) => {
-
         const input = inputValues[setting];
 
         if (input === undefined || input === "") {
@@ -168,16 +153,13 @@ export function ClassicModuleRow({
             setInputValues((prev) => ({ ...prev, [setting]: clamped.toString() }));
             onSettingChange(module, setting, clamped);
         }
-
     };
 
     const getDisplayValue = (setting: string) => {
-
         if (setting in inputValues) return inputValues[setting];
         const value = module.config[setting as keyof typeof module.config];
         if (value !== undefined && value !== null) return value.toString();
         return "";
-
     };
 
     return (
@@ -193,7 +175,7 @@ export function ClassicModuleRow({
                 />
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Info className="h-3.5 w-3.5 text-muted-foreground/60 hover:text-muted-foreground" />
+                        <Info className="size-3.5 text-muted-foreground/60 hover:text-muted-foreground" />
                     </TooltipTrigger>
                     <TooltipContent side="top" className="max-w-xs">
                         <p className="text-xs">{module.description}</p>

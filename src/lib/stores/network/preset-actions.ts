@@ -16,7 +16,6 @@ export const createPresetSlice: StateCreator<
     >
 > = (set, get) => ({
     loadPresets: async () => {
-
         try {
             set({ loadingPresets: true });
             const presets = await ManipulationService.listConfigs();
@@ -29,11 +28,12 @@ export const createPresetSlice: StateCreator<
     },
 
     savePreset: async (name: string, mode?: "standard" | "classic") => {
-
         try {
-            const settings = await ManipulationService.getSettings();
+            const [settings, backendFilter] = await Promise.all([
+                ManipulationService.getSettings(),
+                ManipulationService.getFilter(),
+            ]);
             // Use store filter as fallback - backend may return null if not set
-            const backendFilter = await ManipulationService.getFilter();
             const filter = backendFilter || get().filter || "outbound";
             const filterTarget = get().filterTarget;
 
@@ -56,16 +56,18 @@ export const createPresetSlice: StateCreator<
             // Get classic settings
             const classicSettings = useClassicStore.getState().getBackendSettings();
 
-            await ManipulationService.updateSettings(settings, get().isActive);
-            await ManipulationService.updateFilter(filter);
-            await ManipulationService.saveConfig(
-                name,
-                filterTarget || undefined,
-                hotkeys,
-                tap,
-                classicSettings,
-                mode
-            );
+            await Promise.all([
+                ManipulationService.updateSettings(settings, get().isActive),
+                ManipulationService.updateFilter(filter),
+                ManipulationService.saveConfig(
+                    name,
+                    filterTarget || undefined,
+                    hotkeys,
+                    tap,
+                    classicSettings,
+                    mode
+                ),
+            ]);
             await get().loadPresets();
             set({ currentPreset: name });
         } catch (error) {
@@ -74,7 +76,6 @@ export const createPresetSlice: StateCreator<
     },
 
     loadPreset: async (name: string) => {
-
         try {
             const response = await ManipulationService.loadConfig(name);
 
@@ -149,23 +150,21 @@ export const createPresetSlice: StateCreator<
     },
 
     deletePreset: async (name: string) => {
-
         if (name === DEFAULT_PRESET_NAME) return;
 
         try {
             await ManipulationService.deleteConfig(name);
             await get().loadPresets();
 
-            if (get().currentPreset !== name) return;
-
-            set({ currentPreset: null });
+            if (get().currentPreset === name) {
+                set({ currentPreset: null });
+            }
         } catch (error) {
             console.error("Failed to delete preset:", error);
         }
     },
 
     initializeDefaultPreset: async () => {
-
         try {
             const configs = await ManipulationService.listConfigs();
 
@@ -177,8 +176,10 @@ export const createPresetSlice: StateCreator<
             }
 
             // No default config exists - create one from current settings
-            const settings = await ManipulationService.getSettings();
-            const filter = await ManipulationService.getFilter();
+            const [settings, filter] = await Promise.all([
+                ManipulationService.getSettings(),
+                ManipulationService.getFilter(),
+            ]);
             const filterTarget = get().filterTarget;
 
             // Get tap settings (always save with enabled: false by default)
@@ -189,14 +190,16 @@ export const createPresetSlice: StateCreator<
                 duration_ms: tapSettings.durationMs,
             };
 
-            await ManipulationService.updateSettings(settings, get().isActive);
-            await ManipulationService.updateFilter(filter);
-            await ManipulationService.saveConfig(
-                DEFAULT_PRESET_NAME,
-                filterTarget || undefined,
-                undefined,
-                tap
-            );
+            await Promise.all([
+                ManipulationService.updateSettings(settings, get().isActive),
+                ManipulationService.updateFilter(filter),
+                ManipulationService.saveConfig(
+                    DEFAULT_PRESET_NAME,
+                    filterTarget || undefined,
+                    undefined,
+                    tap
+                ),
+            ]);
 
             await get().loadPresets();
             set({ isInitialized: true });

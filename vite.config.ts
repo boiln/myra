@@ -4,7 +4,6 @@ import path from "node:path";
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => {
-
     const host = process.env.TAURI_DEV_HOST as string | undefined;
 
     return {
@@ -37,5 +36,4 @@ export default defineConfig(async () => {
             },
         },
     };
-
 });

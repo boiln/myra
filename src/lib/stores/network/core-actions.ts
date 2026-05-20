@@ -13,11 +13,12 @@ export const createCoreSlice: StateCreator<
     Pick<NetworkStore, "toggleActive" | "updateFilter" | "setFilterTarget" | "loadStatus">
 > = (set, get) => ({
     loadStatus: async () => {
-
         try {
-            const status = await ManipulationService.getStatus();
-            const currentFilter = await ManipulationService.getFilter();
-            const settings = await ManipulationService.getSettings();
+            const [status, currentFilter, settings] = await Promise.all([
+                ManipulationService.getStatus(),
+                ManipulationService.getFilter(),
+                ManipulationService.getSettings(),
+            ]);
 
             // Get existing modules to preserve inbound/outbound settings
             const { manipulationStatus: existingStatus } = get();
@@ -25,27 +26,22 @@ export const createCoreSlice: StateCreator<
 
             // Helper to get existing direction settings for a module
             const getExistingDirections = (moduleName: string) => {
-
                 const existing = existingModules.find((m) => m.name === moduleName);
                 return {
                     inbound: existing?.config.inbound ?? true,
                     outbound: existing?.config.outbound ?? true,
                 };
-
             };
 
             // Helper to get existing config value - preserves UI state when backend returns undefined
             const getExistingConfig = <T>(moduleName: string, key: string, defaultValue: T): T => {
-
                 const existing = existingModules.find((m) => m.name === moduleName);
                 return (existing?.config[key as keyof typeof existing.config] as T) ?? defaultValue;
-
             };
 
             // Create modules array from settings, preserving direction settings
             const modules: ModuleInfo[] = [
                 {
-
                     name: "lag",
                     display_name: "Lag",
                     enabled: settings.lag?.enabled ?? false,
@@ -59,10 +55,8 @@ export const createCoreSlice: StateCreator<
                         duration_ms:
                             settings.lag?.delay_ms || getExistingConfig("lag", "duration_ms", 1000),
                     },
-
                 },
                 {
-
                     name: "drop",
                     display_name: "Drop",
                     enabled: settings.drop?.enabled ?? false,
@@ -75,10 +69,8 @@ export const createCoreSlice: StateCreator<
                         enabled: settings.drop?.enabled ?? false,
                         duration_ms: 0, // 0 = infinite effect duration
                     },
-
                 },
                 {
-
                     name: "throttle",
                     display_name: "Throttle",
                     enabled: settings.throttle?.enabled ?? false,
@@ -100,10 +92,8 @@ export const createCoreSlice: StateCreator<
                             getExistingConfig("throttle", "freeze_mode", false),
                         duration_ms: 0, // 0 = infinite effect duration
                     },
-
                 },
                 {
-
                     name: "duplicate",
                     display_name: "Duplicate",
                     enabled: settings.duplicate?.enabled ?? false,
@@ -122,10 +112,8 @@ export const createCoreSlice: StateCreator<
                             settings.duplicate?.count || getExistingConfig("duplicate", "count", 2),
                         duration_ms: 0, // 0 = infinite effect duration
                     },
-
                 },
                 {
-
                     name: "bandwidth",
                     display_name: "Bandwidth",
                     enabled: settings.bandwidth?.enabled ?? false,
@@ -148,10 +136,8 @@ export const createCoreSlice: StateCreator<
                             getExistingConfig("bandwidth", "use_wfp", false),
                         duration_ms: 0, // 0 = infinite effect duration
                     },
-
                 },
                 {
-
                     name: "corruption",
                     display_name: "Corruption",
                     enabled: settings.corruption?.enabled ?? false,
@@ -168,10 +154,8 @@ export const createCoreSlice: StateCreator<
                         enabled: settings.corruption?.enabled ?? false,
                         duration_ms: 0, // 0 = infinite effect duration
                     },
-
                 },
                 {
-
                     name: "reorder",
                     display_name: "Reorder",
                     enabled: settings.reorder?.enabled ?? false,
@@ -189,10 +173,8 @@ export const createCoreSlice: StateCreator<
                             getExistingConfig("reorder", "throttle_ms", 100),
                         duration_ms: 0, // 0 = infinite effect duration
                     },
-
                 },
                 {
-
                     name: "burst",
                     display_name: "Burst",
                     enabled: settings.burst?.enabled ?? false,
@@ -216,7 +198,6 @@ export const createCoreSlice: StateCreator<
                             settings.burst?.reverse ?? getExistingConfig("burst", "reverse", false),
                         duration_ms: 0, // 0 = infinite effect duration
                     },
-
                 },
             ];
 
@@ -244,7 +225,6 @@ export const createCoreSlice: StateCreator<
     },
 
     toggleActive: async () => {
-
         const { isActive, filter, buildSettings } = get();
         const mode = useModeStore.getState().mode;
         const classicStore = useClassicStore.getState();
@@ -284,7 +264,6 @@ export const createCoreSlice: StateCreator<
     },
 
     updateFilter: async (newFilter: string) => {
-
         const { isActive } = get();
 
         try {
@@ -298,8 +277,10 @@ export const createCoreSlice: StateCreator<
                 return;
             }
 
-            const settings = await ManipulationService.getSettings();
-            await ManipulationService.stopProcessing();
+            const [settings] = await Promise.all([
+                ManipulationService.getSettings(),
+                ManipulationService.stopProcessing(),
+            ]);
             await ManipulationService.startProcessing(settings, newFilter);
 
             await get().loadStatus();
@@ -311,8 +292,6 @@ export const createCoreSlice: StateCreator<
     },
 
     setFilterTarget: (target: FilterTarget) => {
-
         set({ filterTarget: target });
-
     },
 });

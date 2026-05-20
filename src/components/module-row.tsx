@@ -19,14 +19,12 @@ const MODULE_HOTKEY_ACTIONS: Record<string, string> = {
 };
 
 interface ModuleRowProps {
-
     module: ModuleInfo;
     isActive: boolean;
     onModuleToggle: (module: ModuleInfo) => Promise<void>;
     onDirectionToggle: (module: ModuleInfo, direction: "inbound" | "outbound") => Promise<void>;
     onSettingChange: (module: ModuleInfo, setting: string, value: number) => void;
     onBooleanSettingChange?: (module: ModuleInfo, setting: string, value: boolean) => void;
-
 }
 
 export function ModuleRow({
@@ -46,7 +44,6 @@ export function ModuleRow({
         _max: number,
         isInteger = false
     ) => {
-
         const input = e.target.value;
 
         // Always update the display value
@@ -68,12 +65,10 @@ export function ModuleRow({
         // Don't clamp during typing - just update with parsed value
         // Clamping happens on blur
         onSettingChange(module, setting, parsed);
-
     };
 
     // Handle blur - clamp value to valid range
     const handleInputBlur = (setting: string, min: number, max: number, isInteger = false) => {
-
         const input = inputValues[setting];
 
         if (input === undefined || input === "") {
@@ -101,11 +96,9 @@ export function ModuleRow({
             setInputValues((prev) => ({ ...prev, [setting]: clamped.toString() }));
             onSettingChange(module, setting, clamped);
         }
-
     };
 
     const getDisplayValue = (setting: string) => {
-
         if (setting in inputValues) return inputValues[setting];
 
         const value = module.config[setting as keyof typeof module.config];
@@ -124,7 +117,6 @@ export function ModuleRow({
         };
 
         return defaults[setting] ?? "";
-
     };
 
     return (

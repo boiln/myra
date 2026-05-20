@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { motion, HTMLMotionProps } from "framer-motion";
+import { LazyMotion, domAnimation, m, HTMLMotionProps } from "framer-motion";
 import React, { useState } from "react";
 
 interface NetworkCardProps extends Omit<
@@ -9,15 +9,22 @@ interface NetworkCardProps extends Omit<
     isActive?: boolean;
     isFeatured?: boolean;
     children: React.ReactNode;
+    ref?: React.Ref<HTMLDivElement>;
 }
 
-export const NetworkCard = React.forwardRef<HTMLDivElement, NetworkCardProps>(
-    ({ isActive = false, isFeatured = false, children, className, ...props }, ref) => {
+export function NetworkCard({
+    isActive = false,
+    isFeatured = false,
+    children,
+    className,
+    ref,
+    ...props
+}: NetworkCardProps) {
+    const [isHovered, setIsHovered] = useState(false);
 
-        const [isHovered, setIsHovered] = useState(false);
-
-        return (
-            <motion.div
+    return (
+        <LazyMotion features={domAnimation}>
+            <m.div
                 ref={ref}
                 className={cn(
                     "relative rounded-lg border border-border/30 bg-background/60 p-3",
@@ -36,7 +43,7 @@ export const NetworkCard = React.forwardRef<HTMLDivElement, NetworkCardProps>(
                 {...props}
             >
                 {isActive && (
-                    <motion.div
+                    <m.div
                         className="absolute inset-0 rounded-lg"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -44,13 +51,10 @@ export const NetworkCard = React.forwardRef<HTMLDivElement, NetworkCardProps>(
                     >
                         <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-primary/10 to-transparent opacity-30" />
                         <div className="absolute inset-0 rounded-lg shadow-[inset_0_0_0_1px] shadow-primary/20" />
-                    </motion.div>
+                    </m.div>
                 )}
                 {children}
-            </motion.div>
-        );
-
-    }
-);
-
-NetworkCard.displayName = "NetworkCard";
+            </m.div>
+        </LazyMotion>
+    );
+}

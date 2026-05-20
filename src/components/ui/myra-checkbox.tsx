@@ -3,7 +3,6 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 interface MyraCheckboxProps {
-
     id?: string;
     label?: string;
     checked?: boolean;
@@ -12,7 +11,6 @@ interface MyraCheckboxProps {
     className?: string;
     labelClassName?: string;
     isHighlighted?: boolean;
-
 }
 
 export function MyraCheckbox({
@@ -45,7 +43,7 @@ export function MyraCheckbox({
                 <label
                     htmlFor={checkboxId}
                     className={cn(
-                        "flex h-4 w-4 items-center justify-center rounded-[3px] border-2 border-border",
+                        "flex size-4 items-center justify-center rounded-[3px] border-2 border-border",
                         "transition-all duration-200 ease-in-out",
                         checked && "bg-primary",
                         disabled && "cursor-not-allowed opacity-50",
@@ -57,7 +55,7 @@ export function MyraCheckbox({
                     {/* SVG Checkmark - much more reliable than CSS */}
                     <svg
                         className={cn(
-                            "h-3 w-3 text-primary-foreground",
+                            "size-3 text-primary-foreground",
                             "transition-transform duration-200 ease-in-out",
                             checked ? "scale-100" : "scale-0"
                         )}

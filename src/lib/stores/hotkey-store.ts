@@ -14,7 +14,6 @@ export interface HotkeyState {
 }
 
 export interface HotkeyActions {
-
     setBinding: (action: string, shortcut: string | null) => Promise<void>;
     toggleBinding: (action: string) => Promise<void>;
     startRecording: (action: string) => void;
@@ -24,7 +23,6 @@ export interface HotkeyActions {
     restoreBindings: (
         bindings: { action: string; shortcut: string | null; enabled: boolean }[]
     ) => Promise<void>;
-
 }
 
 const DEFAULT_BINDINGS: Record<string, HotkeyBinding> = {
@@ -88,7 +86,6 @@ export const useHotkeyStore = create<HotkeyState & HotkeyActions>()(
             isRecording: null,
 
             setBinding: async (action: string, shortcut: string | null) => {
-
                 const { bindings } = get();
                 const oldBinding = bindings[action];
 
@@ -129,7 +126,6 @@ export const useHotkeyStore = create<HotkeyState & HotkeyActions>()(
             },
 
             toggleBinding: async (action: string) => {
-
                 const { bindings } = get();
                 const binding = bindings[action];
                 if (!binding || !binding.shortcut) return;
@@ -167,24 +163,18 @@ export const useHotkeyStore = create<HotkeyState & HotkeyActions>()(
             },
 
             startRecording: (action: string) => {
-
                 set({ isRecording: action });
-
             },
 
             stopRecording: () => {
-
                 set({ isRecording: null });
-
             },
 
             registerAllHotkeys: async (handlers: Record<string, () => void>) => {
-
                 // Wrap handlers with debounce and recording check
                 const wrappedHandlers: Record<string, () => void> = {};
                 for (const [action, handler] of Object.entries(handlers)) {
                     wrappedHandlers[action] = () => {
-
                         // Don't fire hotkeys while recording
                         if (get().isRecording) {
                             console.log(`Hotkey ${action} blocked - recording mode`);
@@ -197,61 +187,64 @@ export const useHotkeyStore = create<HotkeyState & HotkeyActions>()(
                             lastTriggerTime[action] &&
                             now - lastTriggerTime[action] < DEBOUNCE_MS
                         ) {
-
                             console.log(`Hotkey ${action} debounced`);
                             return;
-
                         }
                         lastTriggerTime[action] = now;
 
                         handler();
-
                     };
                 }
 
                 currentHandlers = wrappedHandlers;
                 const { bindings } = get();
 
-                for (const [action, binding] of Object.entries(bindings)) {
-                    if (binding.shortcut && binding.enabled && wrappedHandlers[action]) {
-                        try {
-                            const alreadyRegistered = await isRegistered(binding.shortcut);
-                            if (!alreadyRegistered) {
-                                await register(binding.shortcut, wrappedHandlers[action]);
-                                registeredShortcuts.add(binding.shortcut);
-                                console.log(`Registered hotkey: ${binding.shortcut} for ${action}`);
+                await Promise.all(
+                    Object.entries(bindings).map(async ([action, binding]) => {
+                        if (binding.shortcut && binding.enabled && wrappedHandlers[action]) {
+                            try {
+                                const alreadyRegistered = await isRegistered(binding.shortcut);
+                                if (!alreadyRegistered) {
+                                    await register(binding.shortcut, wrappedHandlers[action]);
+                                    registeredShortcuts.add(binding.shortcut);
+                                    console.log(
+                                        `Registered hotkey: ${binding.shortcut} for ${action}`
+                                    );
+                                }
+                            } catch (e) {
+                                console.error(`Failed to register ${binding.shortcut}:`, e);
                             }
-                        } catch (e) {
-                            console.error(`Failed to register ${binding.shortcut}:`, e);
                         }
-                    }
-                }
+                    })
+                );
             },
 
             unregisterAllHotkeys: async () => {
-
-                for (const shortcut of registeredShortcuts) {
-                    try {
-                        await unregister(shortcut);
-                    } catch (e) {
-                        console.error(`Failed to unregister ${shortcut}:`, e);
-                    }
-                }
+                await Promise.all(
+                    Array.from(registeredShortcuts).map(async (shortcut) => {
+                        try {
+                            await unregister(shortcut);
+                        } catch (e) {
+                            console.error(`Failed to unregister ${shortcut}:`, e);
+                        }
+                    })
+                );
                 registeredShortcuts.clear();
             },
 
             restoreBindings: async (
                 bindings: { action: string; shortcut: string | null; enabled: boolean }[]
             ) => {
-
                 // Unregister all current hotkeys first
-                for (const shortcut of registeredShortcuts) {
-                    try {
-                        await unregister(shortcut);
-                    } catch (e) {
-                        console.error(`Failed to unregister ${shortcut}:`, e);
-                    }
-                }
+                await Promise.all(
+                    Array.from(registeredShortcuts).map(async (shortcut) => {
+                        try {
+                            await unregister(shortcut);
+                        } catch (e) {
+                            console.error(`Failed to unregister ${shortcut}:`, e);
+                        }
+                    })
+                );
                 registeredShortcuts.clear();
 
                 // Build new bindings record
@@ -267,22 +260,31 @@ export const useHotkeyStore = create<HotkeyState & HotkeyActions>()(
                 set({ bindings: newBindings });
 
                 // Re-register enabled hotkeys
-                for (const binding of Object.values(newBindings)) {
-                    if (binding.shortcut && binding.enabled && currentHandlers[binding.action]) {
-                        try {
-                            const alreadyRegistered = await isRegistered(binding.shortcut);
-                            if (!alreadyRegistered) {
-                                await register(binding.shortcut, currentHandlers[binding.action]);
-                                registeredShortcuts.add(binding.shortcut);
-                                console.log(
-                                    `Restored hotkey: ${binding.shortcut} for ${binding.action}`
-                                );
+                await Promise.all(
+                    Object.values(newBindings).map(async (binding) => {
+                        if (
+                            binding.shortcut &&
+                            binding.enabled &&
+                            currentHandlers[binding.action]
+                        ) {
+                            try {
+                                const alreadyRegistered = await isRegistered(binding.shortcut);
+                                if (!alreadyRegistered) {
+                                    await register(
+                                        binding.shortcut,
+                                        currentHandlers[binding.action]
+                                    );
+                                    registeredShortcuts.add(binding.shortcut);
+                                    console.log(
+                                        `Restored hotkey: ${binding.shortcut} for ${binding.action}`
+                                    );
+                                }
+                            } catch (e) {
+                                console.error(`Failed to register ${binding.shortcut}:`, e);
                             }
-                        } catch (e) {
-                            console.error(`Failed to register ${binding.shortcut}:`, e);
                         }
-                    }
-                }
+                    })
+                );
             },
         }),
         {

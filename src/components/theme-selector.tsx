@@ -2,19 +2,16 @@ import { Palette } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
-
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/providers/theme-provider";
 import { themes } from "@/types/theme";
 
 export function ThemeSelector() {
-
     const { theme, setTheme } = useTheme();
 
     return (
@@ -23,9 +20,9 @@ export function ThemeSelector() {
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 rounded-full hover:bg-accent/20 focus-visible:ring-0 focus-visible:ring-offset-0"
+                    className="size-8 rounded-full hover:bg-accent/20 focus-visible:ring-0 focus-visible:ring-offset-0"
                 >
-                    <Palette className="h-4 w-4 text-accent" />
+                    <Palette className="size-4 text-accent" />
                     <span className="sr-only">Toggle theme</span>
                 </Button>
             </DropdownMenuTrigger>
@@ -41,7 +38,7 @@ export function ThemeSelector() {
                     >
                         <div
                             className={cn(
-                                "h-3 w-3 rounded-full transition-all duration-300",
+                                "size-3 rounded-full transition-all duration-300",
                                 theme === t.id
                                     ? "scale-110 shadow-[0_0_8px_var(--glow-color)]"
                                     : "group-hover:scale-105 group-hover:shadow-[0_0_5px_var(--glow-color)]"
@@ -61,5 +58,4 @@ export function ThemeSelector() {
             </DropdownMenuContent>
         </DropdownMenu>
     );
-
 }

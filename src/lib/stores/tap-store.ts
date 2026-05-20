@@ -2,14 +2,12 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 export interface TapSettings {
-
     enabled: boolean;
     intervalMs: number; // How often to tap (every X ms)
     durationMs: number; // How long to keep modules off (X ms)
     autoEnabled?: boolean; // Auto mode: trigger taps based on buffer pressure
     minBufferForTap?: number; // Threshold of buffered/lagged packets to trigger
     cooldownMs?: number; // Minimum quiet period between auto taps
-
 }
 
 interface TapState {
@@ -18,7 +16,6 @@ interface TapState {
 }
 
 interface TapActions {
-
     setEnabled: (enabled: boolean) => void;
     setIntervalMs: (ms: number) => void;
     setDurationMs: (ms: number) => void;
@@ -27,7 +24,6 @@ interface TapActions {
     setAutoEnabled: (enabled: boolean) => void;
     setMinBufferForTap: (n: number) => void;
     setCooldownMs: (ms: number) => void;
-
 }
 
 type TapStore = TapState & TapActions;

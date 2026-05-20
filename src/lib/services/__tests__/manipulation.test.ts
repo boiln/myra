@@ -6,18 +6,13 @@ import type { PacketManipulationSettings } from "@/types";
 vi.mock("@tauri-apps/api/core");
 
 describe("ManipulationService", () => {
-
     beforeEach(() => {
-
         vi.clearAllMocks();
         vi.mocked(invoke).mockResolvedValue(undefined);
-
     });
 
     describe("createModulesFromSettings", () => {
-
         it("should create lag module with correct defaults", () => {
-
             const settings: PacketManipulationSettings = {
                 lag: {
                     enabled: true,
@@ -38,11 +33,9 @@ describe("ManipulationService", () => {
             expect(lagModule?.config.outbound).toBe(false);
             expect(lagModule?.config.chance).toBe(50); // probability * 100
             expect(lagModule?.config.duration_ms).toBe(500); // delay_ms maps to duration_ms
-
         });
 
         it("should create drop module with correct config", () => {
-
             const settings: PacketManipulationSettings = {
                 drop: {
                     enabled: true,
@@ -62,11 +55,9 @@ describe("ManipulationService", () => {
             expect(dropModule?.config.outbound).toBe(true);
             expect(dropModule?.config.chance).toBe(25);
             expect(dropModule?.config.duration_ms).toBe(1000);
-
         });
 
         it("should create throttle module with freeze_mode preserved", () => {
-
             const settings: PacketManipulationSettings = {
                 throttle: {
                     enabled: true,
@@ -85,11 +76,9 @@ describe("ManipulationService", () => {
             expect(throttleModule).toBeDefined();
             expect(throttleModule?.config.freeze_mode).toBe(true);
             expect(throttleModule?.config.throttle_ms).toBe(500);
-
         });
 
         it("should default freeze_mode to false when not specified", () => {
-
             const settings: PacketManipulationSettings = {
                 throttle: {
                     enabled: true,
@@ -105,11 +94,9 @@ describe("ManipulationService", () => {
             const throttleModule = modules.find((m) => m.name === "throttle");
 
             expect(throttleModule?.config.freeze_mode).toBe(false);
-
         });
 
         it("should create duplicate module with count parameter", () => {
-
             const settings: PacketManipulationSettings = {
                 duplicate: {
                     enabled: true,
@@ -126,11 +113,9 @@ describe("ManipulationService", () => {
 
             expect(duplicateModule).toBeDefined();
             expect(duplicateModule?.config.count).toBe(5);
-
         });
 
         it("should create burst module with reverse option preserved", () => {
-
             const settings: PacketManipulationSettings = {
                 burst: {
                     enabled: true,
@@ -153,11 +138,9 @@ describe("ManipulationService", () => {
             expect(burstModule?.config.buffer_ms).toBe(1000);
             expect(burstModule?.config.keepalive_ms).toBe(500);
             expect(burstModule?.config.release_delay_us).toBe(1000);
-
         });
 
         it("should default reverse to false when not specified", () => {
-
             const settings: PacketManipulationSettings = {
                 burst: {
                     enabled: true,
@@ -175,11 +158,9 @@ describe("ManipulationService", () => {
             const burstModule = modules.find((m) => m.name === "burst");
 
             expect(burstModule?.config.reverse).toBe(false);
-
         });
 
         it("should create bandwidth module with WFP option", () => {
-
             const settings: PacketManipulationSettings = {
                 bandwidth: {
                     enabled: true,
@@ -198,11 +179,9 @@ describe("ManipulationService", () => {
             expect(bandwidthModule).toBeDefined();
             expect(bandwidthModule?.config.limit_kbps).toBe(100);
             expect(bandwidthModule?.config.use_wfp).toBe(true);
-
         });
 
         it("should create all 8 modules even with empty settings", () => {
-
             const settings: PacketManipulationSettings = {};
 
             const modules = ManipulationService.createModulesFromSettings(settings);
@@ -218,26 +197,20 @@ describe("ManipulationService", () => {
                 "reorder",
                 "burst",
             ]);
-
         });
 
         it("should set all modules as disabled by default", () => {
-
             const settings: PacketManipulationSettings = {};
 
             const modules = ManipulationService.createModulesFromSettings(settings);
 
             modules.forEach((module) => {
-
                 expect(module.enabled).toBe(false);
                 expect(module.config.enabled).toBe(false);
-
             });
-
         });
 
         it("should include lag_bypass in burst module from root settings", () => {
-
             const settings: PacketManipulationSettings = {
                 lag_bypass: true,
                 burst: {
@@ -256,15 +229,11 @@ describe("ManipulationService", () => {
             const burstModule = modules.find((m) => m.name === "burst");
 
             expect(burstModule?.config.lag_bypass).toBe(true);
-
         });
-
     });
 
     describe("startProcessing", () => {
-
         it("should call invoke with correct parameters", async () => {
-
             const settings: PacketManipulationSettings = {
                 drop: {
                     enabled: true,
@@ -279,11 +248,9 @@ describe("ManipulationService", () => {
             await ManipulationService.startProcessing(settings, filter);
 
             expect(invoke).toHaveBeenCalledWith("start_processing", { settings, filter });
-
         });
 
         it("should handle WFP throttle when bandwidth with WFP is enabled", async () => {
-
             const settings: PacketManipulationSettings = {
                 bandwidth: {
                     enabled: true,
@@ -303,47 +270,33 @@ describe("ManipulationService", () => {
                 limitKbps: 100,
                 direction: "both",
             });
-
         });
-
     });
 
     describe("stopProcessing", () => {
-
         it("should call invoke to stop processing", async () => {
-
             await ManipulationService.stopProcessing();
 
             expect(invoke).toHaveBeenCalledWith("stop_processing");
-
         });
-
     });
 
     describe("updateFilter", () => {
-
         it("should call invoke with the filter", async () => {
-
             await ManipulationService.updateFilter("tcp.DstPort == 80");
 
             expect(invoke).toHaveBeenCalledWith("update_filter", { filter: "tcp.DstPort == 80" });
-
         });
 
         it("should handle null filter", async () => {
-
             await ManipulationService.updateFilter(null);
 
             expect(invoke).toHaveBeenCalledWith("update_filter", { filter: null });
-
         });
-
     });
 
     describe("config operations", () => {
-
         it("should save config with correct parameters", async () => {
-
             const filterTarget = {
                 mode: "process" as const,
                 processId: 1234,
@@ -371,11 +324,9 @@ describe("ManipulationService", () => {
                 hotkeys,
                 tap,
             });
-
         });
 
         it("should load config by name", async () => {
-
             vi.mocked(invoke).mockResolvedValue({
                 settings: {},
                 filter: "outbound",
@@ -385,28 +336,21 @@ describe("ManipulationService", () => {
 
             expect(invoke).toHaveBeenCalledWith("load_config", { name: "test-config" });
             expect(result.filter).toBe("outbound");
-
         });
 
         it("should list configs", async () => {
-
             vi.mocked(invoke).mockResolvedValue(["config1", "config2"]);
 
             const result = await ManipulationService.listConfigs();
 
             expect(invoke).toHaveBeenCalledWith("list_configs");
             expect(result).toEqual(["config1", "config2"]);
-
         });
 
         it("should delete config by name", async () => {
-
             await ManipulationService.deleteConfig("test-config");
 
             expect(invoke).toHaveBeenCalledWith("delete_config", { name: "test-config" });
-
         });
-
     });
-
 });

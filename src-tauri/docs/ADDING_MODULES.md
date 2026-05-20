@@ -6,13 +6,13 @@ This guide explains how to add a new packet manipulation module to Myra.
 
 With the module registry pattern, adding a new module requires changes in **5-6 files** instead of 10+:
 
-| File | What to add |
-|------|-------------|
-| `settings/<module>.rs` | Options struct |
-| `settings/mod.rs` | `pub mod <module>` |
-| `settings/manipulation.rs` | Field in `Settings` |
-| `network/modules/<module>.rs` | Module implementation |
-| `network/modules/mod.rs` | Export the module |
+| File                          | What to add                   |
+| ----------------------------- | ----------------------------- |
+| `settings/<module>.rs`        | Options struct                |
+| `settings/mod.rs`             | `pub mod <module>`            |
+| `settings/manipulation.rs`    | Field in `Settings`           |
+| `network/modules/<module>.rs` | Module implementation         |
+| `network/modules/mod.rs`      | Export the module             |
 | `network/modules/registry.rs` | Register + wire up processing |
 
 Stats are optional - only add if you need module-specific statistics.
@@ -52,7 +52,7 @@ pub struct JitterOptions {
     pub duration_ms: u64,
 
     // === Module-specific fields below ===
-    
+
     #[serde(default = "default_max_jitter")]
     pub max_jitter_ms: u64,
 
@@ -94,7 +94,7 @@ use crate::settings::jitter::JitterOptions;  // Add import
 
 pub struct Settings {
     // ... existing fields ...
-    
+
     #[serde(serialize_with = "serialize_option")]
     pub jitter: Option<JitterOptions>,  // Add field
 }
@@ -151,21 +151,24 @@ pub use jitter::JitterModule;
 ### 6. Register in Registry (`network/modules/registry.rs`)
 
 **Add to `MODULES` const:**
+
 ```rust
 ModuleEntry {
     name: "jitter",
-    display_name: "Packet Jitter", 
+    display_name: "Packet Jitter",
     order: 25,  // Between lag (20) and throttle (30)
     needs_special_handling: false,
 },
 ```
 
 **Add to `is_module_enabled()`:**
+
 ```rust
 "jitter" => settings.jitter.as_ref().is_some_and(|o| o.enabled),
 ```
 
 **Add to `process_all_modules()`:**
+
 ```rust
 process_module(
     &JitterModule,
@@ -202,8 +205,9 @@ impl Default for ModuleEffectStartTimes {
 ## Done! ✅
 
 The registry pattern provides these utilities automatically:
+
 - `is_module_enabled(settings, "jitter")` - Check if enabled
-- `get_enabled_modules(settings)` - List all enabled modules  
+- `get_enabled_modules(settings)` - List all enabled modules
 - `has_any_enabled(settings)` - Check if anything is active
 - `find_module("jitter")` - Get module metadata
 - `module_names()` - Iterate all module names
