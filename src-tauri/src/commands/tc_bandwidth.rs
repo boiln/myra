@@ -10,14 +10,16 @@ pub struct TcLimiterState {
 
 impl Default for TcLimiterState {
     fn default() -> Self {
+
         Self {
             throttle: Mutex::new(None),
         }
+
     }
 }
 
 /// Start the bandwidth limiter
-/// 
+///
 /// This provides bandwidth limiting using `WinDivert` with precise timing.
 /// Supports both inbound and outbound direction control.
 #[tauri::command]
@@ -26,58 +28,73 @@ pub fn start_tc_bandwidth(
     limit_kbps: f64,
     direction: String,
 ) -> Result<String, String> {
+
     let mut limiter_guard = state.throttle.lock().map_err(|e| e.to_string())?;
-    
+
     if let Some(mut existing) = limiter_guard.take() {
         existing.stop();
     }
-    
+
     let (inbound, outbound) = match direction.to_lowercase().as_str() {
+
         "inbound" | "download" | "in" => (true, false),
         "outbound" | "upload" | "out" => (false, true),
         "both" | "all" => (true, true),
         _ => (true, false),
+
     };
-    
-    info!("Starting bandwidth limiter: {:.2} KB/s, direction: {} (in={}, out={})", 
+
+    info!("Starting bandwidth limiter: {:.2} KB/s, direction: {} (in={}, out={})",
           limit_kbps, direction, inbound, outbound);
-    
+
     match WfpThrottle::new(limit_kbps, "all", inbound, outbound) {
+
         Ok(throttle) => {
+
             *limiter_guard = Some(throttle);
             let dir_str = match (inbound, outbound) {
+
                 (true, true) => "both",
                 (true, false) => "inbound",
                 _ => "outbound",
+
             };
             Ok(format!("Bandwidth limiter started: {:.2} KB/s ({})", limit_kbps, dir_str))
+
         }
         Err(e) => {
+
             error!("Failed to start bandwidth limiter: {:?}", e);
             Err(format!("Failed to start: {}", e))
+
         }
+
     }
+
 }
 
 /// Stop the bandwidth limiter
 #[tauri::command]
 pub fn stop_tc_bandwidth(state: State<'_, TcLimiterState>) -> Result<String, String> {
+
     let mut limiter_guard = state.throttle.lock().map_err(|e| e.to_string())?;
-    
+
     let Some(mut throttle) = limiter_guard.take() else {
         return Ok("Bandwidth limiter was not running".to_string());
     };
-    
+
     throttle.stop();
     info!("Bandwidth limiter stopped");
     Ok("Bandwidth limiter stopped".to_string())
+
 }
 
 /// Get the current status of the bandwidth limiter
 #[tauri::command]
 pub fn get_tc_bandwidth_status(state: State<'_, TcLimiterState>) -> Result<TcBandwidthStatus, String> {
+
     let limiter_guard = state.throttle.lock().map_err(|e| e.to_string())?;
-    
+
     let Some(ref throttle) = *limiter_guard else {
         return Ok(TcBandwidthStatus {
             active: false,
@@ -85,12 +102,13 @@ pub fn get_tc_bandwidth_status(state: State<'_, TcLimiterState>) -> Result<TcBan
             direction: "none".to_string(),
         });
     };
-    
+
     Ok(TcBandwidthStatus {
         active: throttle.is_running(),
         limit_kbps: throttle.limit_kbps(),
         direction: "active".to_string(),
     })
+
 }
 
 /// Status response for bandwidth limiter

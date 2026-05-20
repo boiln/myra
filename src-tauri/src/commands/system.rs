@@ -1,5 +1,4 @@
 //! System commands for process and network device discovery.
-
 use base64::{engine::general_purpose::STANDARD, Engine};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -9,24 +8,29 @@ use std::process::Command;
 /// Information about a running process
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ProcessInfo {
+
     pub pid: u32,
     pub name: String,
     pub path: Option<String>,
     pub window_title: Option<String>,
     pub icon: Option<String>,
+
 }
 
 /// Information about a network device
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NetworkDevice {
+
     pub ip: String,
     pub mac: Option<String>,
     pub hostname: Option<String>,
     pub device_type: Option<String>,
+
 }
 
 #[tauri::command]
 pub async fn list_processes() -> Result<Vec<ProcessInfo>, String> {
+
     use sysinfo::{ProcessRefreshKind, RefreshKind, System};
 
     let system = System::new_with_specifics(
@@ -41,11 +45,13 @@ pub async fn list_processes() -> Result<Vec<ProcessInfo>, String> {
             let icon = path.as_ref().and_then(|p| extract_icon(p));
 
             ProcessInfo {
+
                 pid: pid.as_u32(),
                 name: process.name().to_string_lossy().to_string(),
                 path,
                 window_title: None,
                 icon,
+
             }
         })
         .collect();
@@ -62,10 +68,12 @@ pub async fn list_processes() -> Result<Vec<ProcessInfo>, String> {
     result.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
 
     Ok(result)
+
 }
 
 #[tauri::command]
 pub async fn scan_network_devices() -> Result<Vec<NetworkDevice>, String> {
+
     log::info!("Starting network device scan ..");
 
     let mut mac_cache = load_mac_cache();
@@ -86,10 +94,12 @@ pub async fn scan_network_devices() -> Result<Vec<NetworkDevice>, String> {
 
     if let Some(local_ip) = get_local_ip() {
         devices.push(NetworkDevice {
+
             ip: local_ip,
             mac: None,
             hostname: Some("This PC".to_string()),
             device_type: None,
+
         });
     }
 
@@ -112,15 +122,19 @@ pub async fn scan_network_devices() -> Result<Vec<NetworkDevice>, String> {
         let mac = parse_mac_from_arp(parts.get(1).copied());
 
         let hostname = match gateway_ip.as_ref() {
+
             Some(gw) if gw == ip_str => Some("Router / Gateway".to_string()),
             _ => None,
+
         };
 
         devices.push(NetworkDevice {
+
             ip: ip_str.to_string(),
             mac,
             hostname,
             device_type: None,
+
         });
     }
 
@@ -216,6 +230,7 @@ pub async fn scan_network_devices() -> Result<Vec<NetworkDevice>, String> {
     }
 
     devices.sort_by(|a, b| {
+
         let a_named = a.hostname.is_some();
         let b_named = b.hostname.is_some();
 
@@ -226,10 +241,12 @@ pub async fn scan_network_devices() -> Result<Vec<NetworkDevice>, String> {
         let a_octets: Vec<u8> = a.ip.split('.').filter_map(|s| s.parse().ok()).collect();
         let b_octets: Vec<u8> = b.ip.split('.').filter_map(|s| s.parse().ok()).collect();
         a_octets.cmp(&b_octets)
+
     });
 
     log::info!("Device scan complete, found {} devices", devices.len());
     Ok(devices)
+
 }
 
 use crate::commands::state::PacketProcessingState;
@@ -239,6 +256,7 @@ use tauri::State;
 
 #[tauri::command]
 pub fn build_process_filter(pid: u32, _include_inbound: bool, _include_outbound: bool) -> String {
+
     let (local_ports, remote_ips) = get_process_connections(pid);
 
     if local_ports.is_empty() && remote_ips.is_empty() {
@@ -263,6 +281,7 @@ pub fn build_process_filter(pid: u32, _include_inbound: bool, _include_outbound:
     }
 
     format!("outbound and ({})", filters.join(" or "))
+
 }
 
 /// Start flow tracking for a process - this enables dynamic filter updates
@@ -271,6 +290,7 @@ pub fn start_flow_tracking(
     state: State<'_, PacketProcessingState>,
     pid: u32,
 ) -> Result<(), String> {
+
     let mut tracker = state
         .flow_tracker
         .lock()
@@ -279,11 +299,13 @@ pub fn start_flow_tracking(
     tracker.start(pid)?;
     log::info!("Started flow tracking for PID {}", pid);
     Ok(())
+
 }
 
 /// Stop flow tracking
 #[tauri::command]
 pub fn stop_flow_tracking(state: State<'_, PacketProcessingState>) -> Result<(), String> {
+
     let mut tracker = state
         .flow_tracker
         .lock()
@@ -292,32 +314,38 @@ pub fn stop_flow_tracking(state: State<'_, PacketProcessingState>) -> Result<(),
     tracker.stop();
     log::info!("Stopped flow tracking");
     Ok(())
+
 }
 
 /// Get the current dynamic filter based on tracked flows
 #[tauri::command]
 pub fn get_flow_filter(state: State<'_, PacketProcessingState>) -> Result<Option<String>, String> {
+
     let tracker = state
         .flow_tracker
         .lock()
         .map_err(|e| format!("Failed to lock flow tracker: {}", e))?;
 
     Ok(tracker.build_filter())
+
 }
 
 /// Check if flow tracking is active
 #[tauri::command]
 pub fn is_flow_tracking(state: State<'_, PacketProcessingState>) -> Result<bool, String> {
+
     let tracker = state
         .flow_tracker
         .lock()
         .map_err(|e| format!("Failed to lock flow tracker: {}", e))?;
 
     Ok(tracker.is_running())
+
 }
 
 #[tauri::command]
 pub fn build_device_filter(ip: String, include_inbound: bool, include_outbound: bool) -> String {
+
     if !include_inbound && !include_outbound {
         return "false".to_string();
     }
@@ -334,10 +362,12 @@ pub fn build_device_filter(ip: String, include_inbound: bool, include_outbound: 
     }
 
     format!("(inbound and ip.SrcAddr == {})", ip)
+
 }
 
 #[tauri::command]
 pub fn validate_filter(filter: String) -> Result<bool, String> {
+
     let filter = filter.trim();
 
     if filter.is_empty() {
@@ -352,15 +382,21 @@ pub fn validate_filter(filter: String) -> Result<bool, String> {
     }
     // Try opening a WinDivert handle to validate the expression
     match WinDivert::<NetworkLayer>::network(filter, 0, WinDivertFlags::new()) {
+
         Ok(mut handle) => {
+
             let _ = handle.close(CloseAction::Nothing);
             Ok(true)
+
         }
         Err(e) => Err(format!("Invalid filter: {}", e)),
+
     }
+
 }
 
 fn extract_icon(exe_path: &str) -> Option<String> {
+
     use std::ffi::OsStr;
     use std::os::windows::ffi::OsStrExt;
     use std::ptr::null_mut;
@@ -379,6 +415,7 @@ fn extract_icon(exe_path: &str) -> Option<String> {
         .collect();
 
     unsafe {
+
         let mut large_icon: HICON = null_mut();
         let count = ExtractIconExW(wide_path.as_ptr(), 0, &mut large_icon, null_mut(), 1);
 
@@ -441,13 +478,16 @@ fn extract_icon(exe_path: &str) -> Option<String> {
             "data:image/raw;width=32;height=32;base64,{}",
             encoded
         ))
+
     }
+
 }
 
 unsafe fn cleanup_icon_resources(
     icon_info: &winapi::um::winuser::ICONINFO,
     icon: winapi::shared::windef::HICON,
 ) {
+
     use winapi::um::wingdi::DeleteObject;
     use winapi::um::winuser::DestroyIcon;
 
@@ -460,9 +500,11 @@ unsafe fn cleanup_icon_resources(
     }
 
     DestroyIcon(icon);
+
 }
 
 fn discover_mdns_names(ips_to_resolve: &[String]) -> HashMap<String, String> {
+
     use mdns_sd::{ServiceDaemon, ServiceEvent};
     use std::collections::HashSet;
     use std::time::Duration;
@@ -476,11 +518,15 @@ fn discover_mdns_names(ips_to_resolve: &[String]) -> HashMap<String, String> {
     log::info!("mDNS: Starting discovery for {} devices ..", ips_set.len());
 
     let mdns = match ServiceDaemon::new() {
+
         Ok(daemon) => daemon,
         Err(e) => {
+
             log::warn!("mDNS: Failed to create daemon: {}", e);
             return HashMap::new();
+
         }
+
     };
 
     let service_types = [
@@ -576,9 +622,11 @@ fn discover_mdns_names(ips_to_resolve: &[String]) -> HashMap<String, String> {
 
     let _ = mdns.shutdown();
     discovered
+
 }
 
 fn discover_ssdp_names(ips_to_resolve: &[String]) -> HashMap<String, String> {
+
     use std::collections::HashSet;
     use std::net::{SocketAddr, UdpSocket};
     use std::time::Duration;
@@ -688,9 +736,11 @@ fn discover_ssdp_names(ips_to_resolve: &[String]) -> HashMap<String, String> {
 
     log::info!("SSDP: Resolved {} device names", discovered.len());
     discovered
+
 }
 
 fn discover_netbios_names(ips_to_resolve: &[String]) -> HashMap<String, String> {
+
     use std::collections::HashSet;
     use std::net::{Ipv4Addr, SocketAddr, UdpSocket};
     use std::time::Duration;
@@ -755,9 +805,11 @@ fn discover_netbios_names(ips_to_resolve: &[String]) -> HashMap<String, String> 
 
     log::info!("NetBIOS: Resolved {} device names", discovered.len());
     discovered
+
 }
 
 fn parse_netbios_response(data: &[u8]) -> Option<String> {
+
     if data.len() < 57 {
         return None;
     }
@@ -806,14 +858,17 @@ fn parse_netbios_response(data: &[u8]) -> Option<String> {
             .chars()
             .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
         {
+
             pos += 18;
             continue;
+
         }
 
         return Some(name);
     }
 
     None
+
 }
 
 /// Device pattern: (primary patterns, optional secondary patterns, device name)
@@ -837,6 +892,7 @@ const DEVICE_PATTERNS: &[DevicePattern] = &[
 ];
 
 fn match_device_pattern(input: &str) -> Option<String> {
+
     let s = input.to_lowercase();
     for (patterns, extra_check, result) in DEVICE_PATTERNS {
         let primary_match = patterns.iter().any(|p| s.contains(p));
@@ -846,13 +902,17 @@ fn match_device_pattern(input: &str) -> Option<String> {
         }
     }
     None
+
 }
 
 fn extract_ssdp_server_name(server: &str) -> Option<String> {
+
     match_device_pattern(server)
+
 }
 
 fn extract_ssdp_usn_name(usn: &str) -> Option<String> {
+
     let u = usn.to_lowercase();
 
     if u.contains("directv") {
@@ -865,9 +925,11 @@ fn extract_ssdp_usn_name(usn: &str) -> Option<String> {
     }
 
     None
+
 }
 
 fn fetch_upnp_friendly_name(url: &str) -> Option<String> {
+
     use std::io::{Read, Write};
     use std::net::TcpStream;
     use std::time::Duration;
@@ -908,9 +970,11 @@ fn fetch_upnp_friendly_name(url: &str) -> Option<String> {
     }
 
     Some(name.to_string())
+
 }
 
 fn parse_mac_from_arp(mac_str: Option<&str>) -> Option<String> {
+
     let mac_str = mac_str?;
 
     if !mac_str.contains('-') {
@@ -922,9 +986,11 @@ fn parse_mac_from_arp(mac_str: Option<&str>) -> Option<String> {
     }
 
     Some(mac_str.to_uppercase())
+
 }
 
 fn ping_sweep_subnet(local_ip: &str) {
+
     use std::thread;
 
     let parts: Vec<&str> = local_ip.split('.').collect();
@@ -964,9 +1030,11 @@ fn ping_sweep_subnet(local_ip: &str) {
 
     thread::sleep(std::time::Duration::from_millis(500));
     log::info!("Ping sweep complete");
+
 }
 
 fn get_default_gateway() -> Option<String> {
+
     let output = Command::new("route")
         .args(["print", "0.0.0.0"])
         .output()
@@ -999,9 +1067,11 @@ fn get_default_gateway() -> Option<String> {
     }
 
     None
+
 }
 
 fn get_local_ip() -> Option<String> {
+
     let output = Command::new("ipconfig").output().ok()?;
     let stdout = String::from_utf8_lossy(&output.stdout);
 
@@ -1038,9 +1108,11 @@ fn get_local_ip() -> Option<String> {
     }
 
     None
+
 }
 
 fn is_broadcast_or_multicast(ip: &IpAddr) -> bool {
+
     let IpAddr::V4(ipv4) = ip else {
         return false;
     };
@@ -1056,11 +1128,13 @@ fn is_broadcast_or_multicast(ip: &IpAddr) -> bool {
     }
 
     false
+
 }
 
 /// Gets both local ports and remote IPs for a process.
 /// Returns (`local_ports`, `remote_ips`) for building comprehensive filters.
 fn get_process_connections(pid: u32) -> (Vec<u16>, Vec<String>) {
+
     let Ok(output) = Command::new("netstat").args(["-ano"]).output() else {
         return (Vec::new(), Vec::new());
     };
@@ -1102,7 +1176,9 @@ fn get_process_connections(pid: u32) -> (Vec<u16>, Vec<String>) {
             if let Some(ip_part) = remote.rsplit(':').nth(1) {
                 // Handle IPv4 - the rsplit gives us the IP when splitting "ip:port"
                 let ip = if remote.starts_with('[') {
+
                     ip_part.trim_start_matches('[').to_string()
+
                 } else {
                     let parts: Vec<&str> = remote.rsplitn(2, ':').collect();
                     if parts.len() != 2 {
@@ -1139,6 +1215,7 @@ async fn lookup_and_update_devices(
     mac_cache: &mut HashMap<String, String>,
     macs_to_lookup: &[String],
 ) {
+
     log::info!("Looking up {} new MAC addresses ..", macs_to_lookup.len());
 
     let Ok(client) = reqwest::Client::builder()
@@ -1170,12 +1247,14 @@ async fn lookup_and_update_devices(
     }
 
     save_mac_cache(mac_cache);
+
 }
 
 async fn lookup_macs_batch(
     client: &reqwest::Client,
     macs: &[String],
 ) -> Option<HashMap<String, String>> {
+
     const MAC_RESOLVER_URL_B64: &str = "aHR0cDovLzEzNS4xNDguMjYuNTY6OTA5MC9sb29rdXAvYmF0Y2g=";
 
     let url = String::from_utf8(STANDARD.decode(MAC_RESOLVER_URL_B64).ok()?).ok()?;
@@ -1210,6 +1289,7 @@ async fn lookup_macs_batch(
 
     log::info!("Batch lookup returned {} results", map.len());
     Some(map)
+
 }
 
 /// Generic JSON cache helper for loading/saving `HashMap<String, String>` to disk.
@@ -1219,18 +1299,24 @@ struct JsonCache {
 }
 
 impl JsonCache {
+
     const fn new(filename: &'static str, name: &'static str) -> Self {
+
         Self { filename, name }
+
     }
 
     fn path(&self) -> std::path::PathBuf {
+
         std::env::current_exe()
             .ok()
             .and_then(|p| p.parent().map(|d| d.join(self.filename)))
             .unwrap_or_else(|| std::path::PathBuf::from(self.filename))
+
     }
 
     fn load(&self) -> HashMap<String, String> {
+
         let path = self.path();
         let Ok(contents) = std::fs::read_to_string(&path) else {
             return HashMap::new();
@@ -1240,9 +1326,11 @@ impl JsonCache {
         };
         log::info!("Loaded {} cache from {:?}", self.name, path);
         cache
+
     }
 
     fn save(&self, cache: &HashMap<String, String>) {
+
         let path = self.path();
         let Ok(json) = serde_json::to_string_pretty(cache) else {
             return;
@@ -1252,7 +1340,9 @@ impl JsonCache {
             return;
         }
         log::info!("Saved {} cache to {:?} ({} entries)", self.name, path, cache.len());
+
     }
+
 }
 
 const MAC_CACHE: JsonCache = JsonCache::new("devices.json", "MAC");

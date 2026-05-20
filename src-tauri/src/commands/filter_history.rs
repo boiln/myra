@@ -11,6 +11,7 @@ struct FilterHistory {
 }
 
 fn get_history_dir() -> Result<PathBuf, String> {
+
     if let Ok(appdata) = std::env::var("APPDATA") {
         let dir = PathBuf::from(appdata).join("Myra");
         if !dir.exists() {
@@ -28,13 +29,17 @@ fn get_history_dir() -> Result<PathBuf, String> {
         fs::create_dir_all(&dir).map_err(|e| format!("Failed creating fallback dir: {}", e))?;
     }
     Ok(dir)
+
 }
 
 fn get_history_path() -> Result<PathBuf, String> {
+
     Ok(get_history_dir()?.join("filters.json"))
+
 }
 
 fn load_history() -> Result<FilterHistory, String> {
+
     let path = get_history_path()?;
     if !path.exists() {
         return Ok(FilterHistory::default());
@@ -44,9 +49,11 @@ fn load_history() -> Result<FilterHistory, String> {
     let parsed: FilterHistory = serde_json::from_str(&content)
         .map_err(|e| format!("Failed parsing filter history: {}", e))?;
     Ok(parsed)
+
 }
 
 fn save_history(history: &FilterHistory) -> Result<(), String> {
+
     let path = get_history_path()?;
     let json = serde_json::to_string_pretty(history)
         .map_err(|e| format!("Failed serializing filter history: {}", e))?;
@@ -56,9 +63,11 @@ fn save_history(history: &FilterHistory) -> Result<(), String> {
         .map_err(|e| format!("Failed writing filter history: {}", e))?
         ;
     Ok(())
+
 }
 
 pub fn add_to_history(filter: &str) -> Result<(), String> {
+
     if filter.trim().is_empty() { return Ok(()); }
     let mut history = load_history()?;
     if history.entries.first().map(|f| f == filter).unwrap_or(false) {
@@ -70,14 +79,19 @@ pub fn add_to_history(filter: &str) -> Result<(), String> {
         history.entries.truncate(MAX_HISTORY);
     }
     save_history(&history)
+
 }
 
 #[tauri::command]
 pub async fn get_filter_history() -> Result<Vec<String>, String> {
+
     Ok(load_history()?.entries)
+
 }
 
 #[tauri::command]
 pub async fn clear_filter_history() -> Result<(), String> {
+
     save_history(&FilterHistory::default())
+
 }

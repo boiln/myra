@@ -21,43 +21,58 @@ pub struct BandwidthModule;
 /// State maintained by the bandwidth module between processing calls.
 #[derive(Debug)]
 pub struct BandwidthState {
+
     pub buffer: VecDeque<PacketData<'static>>,
     pub total_buffer_size: usize,
     pub last_send_time: Instant,
     /// For packet pacing mode: tracks when the next packet can be released
     pub next_release_time: Instant,
+
 }
 
 impl Default for BandwidthState {
     fn default() -> Self {
+
         Self {
+
             buffer: VecDeque::new(),
             total_buffer_size: 0,
             last_send_time: Instant::now(),
             next_release_time: Instant::now(),
+
         }
+
     }
 }
 
 impl PacketModule for BandwidthModule {
+
     type Options = BandwidthOptions;
     type State = BandwidthState;
 
     fn name(&self) -> &'static str {
+
         "bandwidth"
+
     }
 
     fn display_name(&self) -> &'static str {
+
         "Bandwidth Limit"
+
     }
 
     fn get_duration_ms(&self, options: &Self::Options) -> u64 {
+
         options.duration_ms
+
     }
 
     fn should_skip(&self, options: &Self::Options) -> bool {
+
         // Skip if limit is 0 OR if using WFP mode (external throttle handles it)
         options.limit == 0 || options.use_wfp
+
     }
 
     fn process<'a>(
@@ -67,6 +82,7 @@ impl PacketModule for BandwidthModule {
         state: &mut Self::State,
         ctx: &mut ModuleContext,
     ) -> Result<()> {
+
         let mut stats = ctx.write_stats(self.name())?;
 
         // Safety: We need to transmute lifetimes here because the buffer persists
@@ -86,7 +102,9 @@ impl PacketModule for BandwidthModule {
             &mut stats.bandwidth_stats,
         );
         Ok(())
+
     }
+
 }
 
 /// Limits network bandwidth by controlling the rate at which packets are released
@@ -137,6 +155,7 @@ pub fn bandwidth_limiter<'a>(
     passthrough_threshold: usize,
     stats: &mut BandwidthStats,
 ) {
+
     bandwidth_limiter_paced(
         packets,
         buffer,
@@ -148,6 +167,7 @@ pub fn bandwidth_limiter<'a>(
         passthrough_threshold,
         stats,
     );
+
 }
 
 /// Releases packets one at a time at smooth intervals based on rate limit
@@ -162,22 +182,23 @@ fn bandwidth_limiter_paced<'a>(
     passthrough_threshold: usize,
     stats: &mut BandwidthStats,
 ) {
+
     let mut passthrough = Vec::new();
     let mut to_buffer = Vec::new();
-    
+
     for packet in packets.drain(..) {
         let packet_size = packet.packet.data.len();
-        let matches_direction = (packet.is_outbound && apply_outbound) 
+        let matches_direction = (packet.is_outbound && apply_outbound)
             || (!packet.is_outbound && apply_inbound);
         let is_small = passthrough_threshold > 0 && packet_size <= passthrough_threshold;
-        
+
         if !matches_direction || is_small {
             passthrough.push(packet);
             continue;
         }
         to_buffer.push(packet);
     }
-    
+
     stats.storage_packet_count += to_buffer.len();
 
     add_packets_to_buffer(buffer, &mut to_buffer, total_buffer_size);
@@ -186,18 +207,18 @@ fn bandwidth_limiter_paced<'a>(
     let now = Instant::now();
     let mut to_send = Vec::new();
     let mut bytes_sent = 0;
-    
+
     if now >= *next_release_time {
         if let Some(packet) = remove_packet_from_buffer(buffer, total_buffer_size, stats) {
             let packet_size = packet.packet.data.len();
             bytes_sent = packet_size;
-            
+
             let bytes_per_sec = (bandwidth_limit_kbps as f64) * 1024.0;
             let transmission_time_secs = if bytes_per_sec > 0.0 { packet_size as f64 / bytes_per_sec } else { 1.0 };
-            
+
             let transmission_duration = std::time::Duration::from_secs_f64(transmission_time_secs);
             *next_release_time = now + transmission_duration;
-            
+
             to_send.push(packet);
         }
     }
@@ -208,6 +229,7 @@ fn bandwidth_limiter_paced<'a>(
     if bytes_sent > 0 {
         stats.record(bytes_sent);
     }
+
 }
 
 /// Adds a single packet to the buffer and updates the total buffer size
@@ -222,8 +244,10 @@ fn add_packet_to_buffer<'a>(
     packet: PacketData<'a>,
     total_size: &mut usize,
 ) {
+
     *total_size += packet.packet.data.len();
     buffer.push_back(packet);
+
 }
 
 /// Moves all packets from the input vector to the buffer
@@ -241,9 +265,11 @@ fn add_packets_to_buffer<'a>(
     packets: &mut Vec<PacketData<'a>>,
     total_size: &mut usize,
 ) {
+
     while let Some(packet) = packets.pop() {
         add_packet_to_buffer(buffer, packet, total_size);
     }
+
 }
 
 /// Removes a packet from the front of the buffer and updates the total buffer size
@@ -262,12 +288,14 @@ fn remove_packet_from_buffer<'a>(
     total_size: &mut usize,
     stats: &mut BandwidthStats,
 ) -> Option<PacketData<'a>> {
+
     let packet = buffer.pop_front()?;
 
     *total_size -= packet.packet.data.len();
     stats.storage_packet_count = stats.storage_packet_count.saturating_sub(1);
 
     Some(packet)
+
 }
 
 /// Ensures the buffer doesn't exceed the maximum size by removing packets if necessary
@@ -282,15 +310,18 @@ fn maintain_buffer_size(
     total_size: &mut usize,
     stats: &mut BandwidthStats,
 ) {
+
     while *total_size > MAX_BUFFER_SIZE {
         if remove_packet_from_buffer(buffer, total_size, stats).is_none() {
             break;
         }
     }
+
 }
 
 #[cfg(test)]
 mod tests {
+
     use super::*;
     use crate::network::core::packet::PacketData;
     use crate::network::modules::bandwidth::{
@@ -305,12 +336,15 @@ mod tests {
     /// Safely creates a dummy packet with a specified length.
     /// Assumes the vector created with the specified length is valid for packet creation.
     fn create_dummy_packet<'a>(length: usize) -> WinDivertPacket<'a, NetworkLayer> {
+
         let data = vec![1; length];
         unsafe { WinDivertPacket::<NetworkLayer>::new(data) }
+
     }
 
     #[test]
     fn test_basic_bandwidth_limiting() {
+
         let mut packets = vec![
             PacketData::from(create_dummy_packet(1000)),
             PacketData::from(create_dummy_packet(1000)),
@@ -334,10 +368,12 @@ mod tests {
         );
 
         assert!(packets.len() <= 1);
+
     }
 
     #[test]
     fn test_exceeding_buffer_size() {
+
         let mut packets = Vec::new();
         let mut buffer = VecDeque::new();
         let mut total_buffer_size = 0;
@@ -366,10 +402,12 @@ mod tests {
 
         let actual_total_size: usize = buffer.iter().map(|p| p.packet.data.len()).sum();
         assert!(actual_total_size <= MAX_BUFFER_SIZE);
+
     }
 
     #[test]
     fn test_no_bandwidth_limiting() {
+
         let mut packets = vec![
             PacketData::from(create_dummy_packet(1000)),
             PacketData::from(create_dummy_packet(1000)),
@@ -393,10 +431,12 @@ mod tests {
         );
 
         assert_eq!(packets.len(), 2);
+
     }
 
     #[test]
     fn test_zero_bandwidth() {
+
         let mut packets = vec![
             PacketData::from(create_dummy_packet(1000)),
             PacketData::from(create_dummy_packet(1000)),
@@ -421,10 +461,12 @@ mod tests {
 
         assert!(packets.is_empty());
         assert_eq!(buffer.len(), 2);
+
     }
 
     #[test]
     fn test_empty_packet_vector() {
+
         let mut packets = Vec::new();
         let mut buffer = VecDeque::new();
         let mut total_buffer_size = 0;
@@ -447,10 +489,12 @@ mod tests {
         // Since the packets vector was empty, buffer should remain empty and nothing should be sent
         assert!(packets.is_empty());
         assert!(buffer.is_empty());
+
     }
 
     #[test]
     fn test_add_packet_to_buffer() {
+
         let mut buffer = VecDeque::new();
         let mut total_size = 0;
         let packet = PacketData::from(create_dummy_packet(1000));
@@ -460,10 +504,12 @@ mod tests {
         assert_eq!(buffer.len(), 1);
         assert_eq!(total_size, 1000);
         assert_eq!(buffer.front().unwrap().packet.data.len(), 1000);
+
     }
 
     #[test]
     fn test_add_packets_to_buffer() {
+
         let mut buffer = VecDeque::new();
         let mut total_size = 0;
         let mut packets = vec![
@@ -477,10 +523,12 @@ mod tests {
         assert_eq!(total_size, 3000);
         assert_eq!(buffer.pop_front().unwrap().packet.data.len(), 2000);
         assert_eq!(buffer.pop_front().unwrap().packet.data.len(), 1000);
+
     }
 
     #[test]
     fn test_remove_packet_from_buffer() {
+
         let mut buffer = VecDeque::new();
         let mut total_size = 0;
         let packet = PacketData::from(create_dummy_packet(1000));
@@ -492,10 +540,12 @@ mod tests {
         assert_eq!(removed_packet.unwrap().packet.data.len(), 1000);
         assert_eq!(buffer.len(), 0);
         assert_eq!(total_size, 0);
+
     }
 
     #[test]
     fn test_remove_packet_from_empty_buffer() {
+
         let mut buffer = VecDeque::new();
         let mut total_size = 0;
         let mut stats = BandwidthStats::new(0.5);
@@ -505,5 +555,7 @@ mod tests {
         assert!(removed_packet.is_none());
         assert_eq!(buffer.len(), 0);
         assert_eq!(total_size, 0);
+
     }
+
 }

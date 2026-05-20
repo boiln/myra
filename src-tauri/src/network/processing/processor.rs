@@ -18,42 +18,48 @@ use windivert_sys::WinDivertFlags;
 /// This is called when `WinDivertSend` fails - swapping IPs and retrying can bypass
 /// certain game anti-lag detection mechanisms.
 fn swap_ip_addresses(packet_data: &mut PacketData) -> bool {
+
     let data = packet_data.packet.data.to_mut();
-    
+
     if data.len() < 20 {
         return false;
     }
-    
+
     let version = (data[0] >> 4) & 0x0F;
-    
+
     match version {
         4 => {
+
             if data.len() < 20 {
                 return false;
             }
-            
+
             for i in 0..4 {
                 data.swap(12 + i, 16 + i);
             }
-            
+
             data[10] = 0;
             data[11] = 0;
-            
+
             true
+
         }
         6 => {
+
             if data.len() < 40 {
                 return false;
             }
-            
+
             for i in 0..16 {
                 data.swap(8 + i, 24 + i);
             }
-            
+
             true
+
         }
         _ => false,
     }
+
 }
 
 /// If the initial send fails, swap source/destination IPs and retry.
@@ -63,34 +69,44 @@ fn send_with_bypass(
     enable_bypass: bool,
 ) -> std::result::Result<(), windivert::error::WinDivertError> {
     match wd.send(&packet_data.packet) {
+
         Ok(_bytes_sent) => Ok(()),
         Err(e) => {
+
             if !enable_bypass {
                 return Err(e);
             }
-            
+
             warn!("Send failed, attempting IP swap bypass: {}", e);
-            
+
             if !swap_ip_addresses(packet_data) {
                 return Err(e);
             }
-            
+
             let current = packet_data.packet.address.outbound();
             packet_data.packet.address.set_outbound(!current);
-            
+
             match wd.send(&packet_data.packet) {
+
                 Ok(_bytes_sent) => {
+
                     debug!("IP swap bypass successful");
                     Ok(())
+
                 }
                 Err(e2) => {
+
                     swap_ip_addresses(packet_data);
                     let current = packet_data.packet.address.outbound();
                     packet_data.packet.address.set_outbound(!current);
                     Err(e2)
+
                 }
+
             }
+
         }
+
     }
 }
 
@@ -120,6 +136,7 @@ pub fn start_packet_processing(
     running: Arc<AtomicBool>,
     statistics: Arc<RwLock<PacketProcessingStatistics>>,
 ) -> Result<()> {
+
     let mut wd = WinDivert::<NetworkLayer>::network(
         "false",
         0,
@@ -142,6 +159,7 @@ pub fn start_packet_processing(
     info!("Starting packet interception.");
 
     fn sleep_precise(duration: Duration) {
+
         if duration.is_zero() {
             return;
         }
@@ -160,12 +178,13 @@ pub fn start_packet_processing(
         while Instant::now() < target {
             std::hint::spin_loop();
         }
+
     }
 
     let mut enable_bypass = false;
-    
+
     const CYCLE_TIME_MS: u64 = 40;
-    
+
     while running.load(Ordering::SeqCst) {
         let cycle_start = Instant::now();
         let mut packets = Vec::new();
@@ -176,20 +195,26 @@ pub fn start_packet_processing(
         }
 
         match settings.lock() {
+
             Ok(settings) => {
+
                 state.burst_release_delay_us = settings.burst_release_delay_us;
                 enable_bypass = settings.lag_bypass;
-                
+
                 if let Err(e) = process_packets(&settings, &mut packets, &mut state, &statistics) {
                     error!("Error processing packets: {}", e);
                 }
+
             }
             Err(e) => {
+
                 error!(
                     "Failed to acquire lock on packet manipulation settings: {}",
                     e
                 );
+
             }
+
         }
 
         let pacing_needed = packets.len() > 20;
@@ -204,7 +229,7 @@ pub fn start_packet_processing(
             }
 
             sent_packet_count += 1;
-            
+
             if pacing_needed && release_delay > 0 {
                 sleep_precise(Duration::from_micros(release_delay));
             }
@@ -216,7 +241,7 @@ pub fn start_packet_processing(
             sent_packet_count = 0;
             last_log_time = Instant::now();
         }
-        
+
         let elapsed = cycle_start.elapsed();
         if elapsed < Duration::from_millis(CYCLE_TIME_MS) {
             std::thread::sleep(Duration::from_millis(CYCLE_TIME_MS).checked_sub(elapsed).unwrap());
@@ -248,16 +273,23 @@ pub fn start_packet_processing(
         0,
         WinDivertFlags::new(),
     ) {
+
         Ok(mut flush_handle) => {
+
             let _ = flush_handle.close(CloseAction::Nothing);
             debug!("Successfully flushed WFP cache");
+
         }
         Err(e) => {
+
             error!("Failed to flush WFP cache: {}", e);
+
         }
+
     }
 
     Ok(())
+
 }
 
 /// Processes packets according to the current manipulation settings.
