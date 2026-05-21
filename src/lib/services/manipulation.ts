@@ -57,7 +57,6 @@ export const ManipulationService = {
         if (shouldBeActive && !wfpThrottleActive) {
             // Start WFP throttle
             const direction =
-
                 bandwidth.inbound && bandwidth.outbound
                     ? "both"
                     : bandwidth.inbound
@@ -76,7 +75,6 @@ export const ManipulationService = {
         if (shouldBeActive && wfpThrottleActive) {
             // Update: restart with new settings
             const direction =
-
                 bandwidth!.inbound && bandwidth!.outbound
                     ? "both"
                     : bandwidth!.inbound

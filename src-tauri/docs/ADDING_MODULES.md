@@ -52,7 +52,6 @@ pub struct JitterOptions {
     pub duration_ms: u64,
 
     // === Module-specific fields below ===
-
     #[serde(default = "default_max_jitter")]
     pub max_jitter_ms: u64,
 

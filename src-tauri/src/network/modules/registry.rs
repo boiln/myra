@@ -298,7 +298,6 @@ pub fn process_all_modules(
         );
 
         let buffer: &mut VecDeque<(PacketData<'_>, Instant)> =
-
             unsafe { std::mem::transmute(&mut state.burst.buffer) };
         flush_buffer(packets, buffer, &mut state.burst.cycle_start, reverse);
     }

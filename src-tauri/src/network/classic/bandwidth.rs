@@ -35,7 +35,6 @@ pub fn process_bandwidth<'a>(
 
     // SAFETY: Storage outlives processing calls
     let buffer: &mut std::collections::VecDeque<PacketData<'a>> =
-
         unsafe { std::mem::transmute(&mut state.buffer) };
 
     let mut output = Vec::new();

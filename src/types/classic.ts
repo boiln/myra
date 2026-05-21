@@ -258,7 +258,6 @@ export interface ClassicBackendSettings {
  * Convert frontend module array to backend settings format.
  */
 export function modulesToBackendSettings(modules: ClassicModuleInfo[]): ClassicBackendSettings {
-
     const settings: ClassicBackendSettings = {};
 
     for (const module of modules) {
@@ -325,14 +324,12 @@ export function modulesToBackendSettings(modules: ClassicModuleInfo[]): ClassicB
     }
 
     return settings;
-
 }
 
 /**
  * Convert backend settings to frontend module array.
  */
 export function backendSettingsToModules(settings: ClassicBackendSettings): ClassicModuleInfo[] {
-
     const modules: ClassicModuleInfo[] = [];
     const defaults = CLASSIC_MODULE_DEFAULTS;
 
@@ -429,5 +426,4 @@ export function backendSettingsToModules(settings: ClassicBackendSettings): Clas
     });
 
     return modules;
-
 }

@@ -59,7 +59,6 @@ impl PacketModule for ThrottleModule {
         let mut stats = ctx.write_stats(self.name())?;
 
         let buffer: &mut VecDeque<PacketData<'a>> =
-
             unsafe { std::mem::transmute(&mut state.buffer) };
 
         throttle_packets(

@@ -149,7 +149,6 @@ fn is_admin() -> bool {
 
         let mut is_member = 0;
         let is_admin =
-
             CheckTokenMembership(std::ptr::null_mut(), sid, &mut is_member) != 0 && is_member != 0;
 
         FreeSid(sid);

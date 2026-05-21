@@ -219,7 +219,6 @@ pub async fn load_config(
         .map_err(|e| format!("Failed to read config file: {}", e))?;
 
     let config: ConfigFile =
-
         toml::from_str(&content).map_err(|e| format!("Failed to deserialize config: {}", e))?;
 
     *state

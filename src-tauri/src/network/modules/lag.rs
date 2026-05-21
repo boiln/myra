@@ -165,7 +165,6 @@ mod tests {
         unsafe {
             // Create test packet with an arrival time in the past
             let mut old_packet =
-
                 PacketData::from(WinDivertPacket::<NetworkLayer>::new(vec![1, 2, 3]));
 
             // Manually set arrival time to be in the past by enough to bypass lag

@@ -21,7 +21,6 @@ pub fn process_throttle<'a>(
 
     // SAFETY: Storage outlives processing calls
     let buffer: &mut std::collections::VecDeque<PacketData<'a>> =
-
         unsafe { std::mem::transmute(&mut state.buffer) };
 
     // Check if we should start a new throttle window

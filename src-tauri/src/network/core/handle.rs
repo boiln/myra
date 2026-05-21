@@ -15,8 +15,7 @@ extern "system" {
 }
 
 /// Timer resolution tracker for high-precision timing
-static TIMER_RESOLUTION_SET: std::sync::atomic::AtomicBool =
-    std::sync::atomic::AtomicBool::new(false);
+static TIMER_RESOLUTION_SET: std::sync::atomic::AtomicBool =    std::sync::atomic::AtomicBool::new(false);
 
 /// Set Windows timer resolution to 4ms for high-precision timing
 /// This helps bypass lag detection in games
@@ -290,7 +289,6 @@ pub fn flush_wfp_cache() {
 
     for priority in [0, 1000, -1000] {
         if let Ok(mut handle) =
-
             WinDivert::<NetworkLayer>::network("false", priority, WinDivertFlags::new())
         {
             let _ = handle.close(CloseAction::Nothing);

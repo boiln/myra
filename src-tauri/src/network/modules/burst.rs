@@ -60,7 +60,6 @@ impl PacketModule for BurstModule {
         // extends the lifetime to 'static for storage, but packets are always consumed
         // or released before the buffer is dropped.
         let buffer: &mut VecDeque<(PacketData<'a>, Instant)> =
-
             unsafe { std::mem::transmute(&mut state.buffer) };
 
         burst_packets(
@@ -156,7 +155,6 @@ pub fn burst_packets<'a>(
 
         // Check if this packet's direction should be buffered
         let should_buffer_direction =
-
             (packet.is_outbound && apply_outbound) ||
             (!packet.is_outbound && apply_inbound);
 

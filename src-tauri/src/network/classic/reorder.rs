@@ -18,7 +18,6 @@ pub fn process_reorder<'a>(
 
     // SAFETY: Storage outlives processing calls
     let held_packet: &mut Option<PacketData<'a>> =
-
         unsafe { std::mem::transmute(&mut state.held_packet) };
 
     // If we're holding a packet, check if we should release it

@@ -34,26 +34,20 @@ const initialState: State = {
 };
 
 function reducer(state: State, action: Action): State {
-
     switch (action.type) {
         case "setLimit":
-
             return { ...state, limitKbps: action.value };
 
         case "setDirection":
-
             return { ...state, direction: action.value };
 
         case "statusFetched":
-
             return { ...state, status: action.status, enabled: action.status.active };
 
         case "operationStart":
-
             return { ...state, loading: true, error: null };
 
         case "operationEnd":
-
             return {
                 ...state,
                 loading: false,
@@ -61,38 +55,30 @@ function reducer(state: State, action: Action): State {
                 ...(action.error !== undefined ? { error: action.error } : {}),
             };
         default:
-
             return state;
     }
-
 }
 
 export function TcBandwidthControl() {
-
     const [state, dispatch] = useReducer(reducer, initialState);
     const { enabled, limitKbps, direction, status, error, loading } = state;
 
     useEffect(() => {
-
         const fetchStatus = async () => {
-
             try {
                 const s = await getTcBandwidthStatus();
                 dispatch({ type: "statusFetched", status: s });
             } catch (e) {
                 console.error("Failed to get TC status:", e);
             }
-
         };
         fetchStatus();
         const interval = setInterval(fetchStatus, 2000);
 
         return () => clearInterval(interval);
-
     }, []);
 
     const handleToggle = async (checked: boolean) => {
-
         dispatch({ type: "operationStart" });
 
         try {
@@ -107,11 +93,9 @@ export function TcBandwidthControl() {
         } catch (e: any) {
             dispatch({ type: "operationEnd", error: e.toString() });
         }
-
     };
 
     const handleApply = async () => {
-
         if (!enabled) return;
 
         dispatch({ type: "operationStart" });
@@ -124,7 +108,6 @@ export function TcBandwidthControl() {
         } catch (e: any) {
             dispatch({ type: "operationEnd", error: e.toString() });
         }
-
     };
 
     return (

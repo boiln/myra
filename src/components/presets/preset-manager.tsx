@@ -55,9 +55,7 @@ const usePresetUIStore = create<PresetUIState>((set) => ({
 }));
 
 export function PresetManager() {
-
     const { loadPresets, presets, currentPreset, loadPreset, deletePreset, savePreset } =
-
         useNetworkStore();
 
     const { mode, setMode } = useModeStore();
@@ -80,16 +78,13 @@ export function PresetManager() {
     };
 
     const handleKeyDown = async (e: React.KeyboardEvent) => {
-
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
             await handleSavePreset();
         }
-
     };
 
     const handleSavePreset = async () => {
-
         if (!presetName.trim()) {
             toast.error("Please enter a preset name", { dismissible: true });
             return;
@@ -112,11 +107,9 @@ export function PresetManager() {
         } finally {
             setIsLoading(false);
         }
-
     };
 
     const handleLoadPreset = async (name: string) => {
-
         setIsLoading(true);
 
         try {
@@ -132,15 +125,12 @@ export function PresetManager() {
         } finally {
             setIsLoading(false);
         }
-
     };
 
     const handleDeletePreset = async (name: string) => {
-
         if (!name) return;
 
         if (!confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`))
-
             return;
 
         setIsLoading(true);
@@ -154,7 +144,6 @@ export function PresetManager() {
         } finally {
             setIsLoading(false);
         }
-
     };
 
     return (
@@ -244,5 +233,4 @@ export function PresetManager() {
             </CardContent>
         </Card>
     );
-
 }

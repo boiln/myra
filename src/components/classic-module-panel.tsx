@@ -5,32 +5,26 @@ import { ClassicModuleInfo } from "@/types/classic";
 import { Loader2 } from "lucide-react";
 
 export function ClassicModulePanel() {
-
     const { modules, isLoading, updateModuleConfig, toggleModule, toggleDirection } =
-
         useClassicStore();
 
     const handleModuleToggle = async (module: ClassicModuleInfo) => {
-
         try {
             await toggleModule(module.name);
         } catch (error) {
             console.error("Error toggling classic module:", error);
         }
-
     };
 
     const handleDirectionToggle = async (
         module: ClassicModuleInfo,
         direction: "inbound" | "outbound"
     ) => {
-
         try {
             await toggleDirection(module.name, direction);
         } catch (error) {
             console.error("Error toggling direction:", error);
         }
-
     };
 
     const handleSettingChange = async (
@@ -38,13 +32,11 @@ export function ClassicModulePanel() {
         setting: string,
         value: number | boolean
     ) => {
-
         try {
             await updateModuleConfig(module.name, { [setting]: value });
         } catch (error) {
             console.error("Error updating classic setting:", error);
         }
-
     };
 
     return (
@@ -72,5 +64,4 @@ export function ClassicModulePanel() {
             </Card>
         </div>
     );
-
 }

@@ -75,7 +75,6 @@ impl PacketModule for BandwidthModule {
         // Safety: We need to transmute lifetimes here because the buffer persists
         // across processing calls.
         let buffer: &mut VecDeque<PacketData<'a>> =
-
             unsafe { std::mem::transmute(&mut state.buffer) };
 
         bandwidth_limiter(

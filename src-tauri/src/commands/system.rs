@@ -756,6 +756,7 @@ fn discover_netbios_names(ips_to_resolve: &[String]) -> HashMap<String, String> 
     ];
 
     let Ok(socket) = UdpSocket::bind("0.0.0.0:0") else {
+
         log::warn!("NetBIOS: Failed to bind UDP socket");
         return HashMap::new();
     };
@@ -801,10 +802,8 @@ fn discover_netbios_names(ips_to_resolve: &[String]) -> HashMap<String, String> 
 fn parse_netbios_response(data: &[u8]) -> Option<String> {
 
     if data.len() < 57 {
-
         return None;
     }
-
     let mut pos = 12;
 
     while pos < data.len() && data[pos] != 0x00 {
@@ -927,7 +926,6 @@ fn fetch_upnp_friendly_name(url: &str) -> Option<String> {
     let (host_port, path) = url.split_once('/').unwrap_or((url, ""));
 
     let stream =
-
         TcpStream::connect_timeout(&host_port.parse().ok()?, Duration::from_millis(500)).ok()?;
 
     stream
@@ -1007,6 +1005,7 @@ fn ping_sweep_subnet(local_ip: &str) {
                     .stdout(std::process::Stdio::null())
                     .stderr(std::process::Stdio::null())
                     .spawn();
+
             }
         });
         handles.push(handle);
@@ -1034,7 +1033,6 @@ fn get_default_gateway() -> Option<String> {
         if parts.len() < 4 {
             continue;
         }
-
         if parts[0] != "0.0.0.0" {
             continue;
         }
@@ -1057,12 +1055,9 @@ fn get_local_ip() -> Option<String> {
 
     let output = Command::new("ipconfig").output().ok()?;
     let stdout = String::from_utf8_lossy(&output.stdout);
-
     let mut in_ethernet_section = false;
-
     for line in stdout.lines() {
         let line_lower = line.to_lowercase();
-
         if line_lower.contains("ethernet adapter") && !line_lower.contains("virtual") {
             in_ethernet_section = true;
             continue;
@@ -1082,11 +1077,12 @@ fn get_local_ip() -> Option<String> {
         let ip = line.split(':').nth(1)?.trim();
         if ip.starts_with("169.254") {
             continue;
+
         }
 
         return Some(ip.to_string());
-    }
 
+    }
     None
 }
 fn is_broadcast_or_multicast(ip: &IpAddr) -> bool {
@@ -1190,14 +1186,13 @@ async fn lookup_and_update_devices(
     mac_cache: &mut HashMap<String, String>,
     macs_to_lookup: &[String],
 ) {
-
     log::info!("Looking up {} new MAC addresses ..", macs_to_lookup.len());
     let Ok(client) = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(10))
         .build()
     else {
-        return;
 
+        return;
     };
     let Some(results) = lookup_macs_batch(&client, macs_to_lookup).await else {
         return;
@@ -1237,10 +1232,8 @@ async fn lookup_macs_batch(
 
     if !response.status().is_success() {
         log::warn!("MAC resolver returned status: {}", response.status());
-
         return None;
     }
-
     #[derive(Deserialize)]
     struct MacResult {
 
@@ -1261,13 +1254,11 @@ async fn lookup_macs_batch(
         map.insert(mac_normalized, vendor);
 
     }
-
     log::info!("Batch lookup returned {} results", map.len());
     Some(map)
 }
 /// Generic JSON cache helper for loading/saving `HashMap<String, String>` to disk.
 struct JsonCache {
-
     filename: &'static str,
     name: &'static str,
 }

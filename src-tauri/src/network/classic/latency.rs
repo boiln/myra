@@ -24,7 +24,6 @@ pub fn process_latency<'a>(
 
     // SAFETY: Storage outlives processing calls
     let buffer: &mut std::collections::VecDeque<(PacketData<'a>, Instant)> =
-
         unsafe { std::mem::transmute(&mut state.buffer) };
 
     let mut passthrough = Vec::new();

@@ -13,7 +13,6 @@ export const createModuleSlice: StateCreator<
     >
 > = (set, get) => ({
     updateModuleConfig: async (moduleName: string, config: Record<string, any>) => {
-
         const newSettings: PacketManipulationSettings = {
             ...(await ManipulationService.getSettings()),
         };
@@ -90,10 +89,8 @@ export const createModuleSlice: StateCreator<
         } catch (error) {
             console.error("Failed to update module config:", error);
         }
-
     },
     updateModuleSettings: async (moduleName: string, config: ModuleConfig) => {
-
         const { manipulationStatus } = get();
         const moduleIndex = manipulationStatus.modules.findIndex((m) => m.name === moduleName);
 
@@ -118,10 +115,8 @@ export const createModuleSlice: StateCreator<
         } catch (error) {
             console.error("Failed to update module settings:", error);
         }
-
     },
     toggleDirection: async (moduleName: string, direction: "inbound" | "outbound") => {
-
         const { manipulationStatus } = get();
         const moduleIndex = manipulationStatus.modules.findIndex((m) => m.name === moduleName);
 
@@ -132,10 +127,8 @@ export const createModuleSlice: StateCreator<
             [direction]: !module.config[direction],
         };
         await get().updateModuleSettings(moduleName, newConfig);
-
     },
     applyModuleSettings: async (moduleName: string, enabled: boolean) => {
-
         const { manipulationStatus } = get();
         const moduleIndex = manipulationStatus.modules.findIndex((m) => m.name === moduleName);
 
@@ -161,6 +154,5 @@ export const createModuleSlice: StateCreator<
         } catch (error) {
             console.error("Failed to apply module settings:", error);
         }
-
     },
 });
