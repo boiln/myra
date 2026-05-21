@@ -1,10 +1,10 @@
 use crate::settings::bandwidth::BandwidthOptions;
 use crate::settings::burst::BurstOptions;
-use crate::settings::lag::LagOptions;
+use crate::settings::corruption::CorruptionOptions;
 use crate::settings::drop::DropOptions;
 use crate::settings::duplicate::DuplicateOptions;
+use crate::settings::lag::LagOptions;
 use crate::settings::reorder::ReorderOptions;
-use crate::settings::corruption::CorruptionOptions;
 use crate::settings::tc_bandwidth::TcBandwidthOptions;
 use crate::settings::throttle::ThrottleOptions;
 use serde::{Deserialize, Serialize, Serializer};
@@ -33,45 +33,35 @@ pub struct Settings {
     /// Controls random packet dropping
     #[serde(serialize_with = "serialize_option")]
     pub drop: Option<DropOptions>,
-
     /// Controls packet lag simulation
     #[serde(default, serialize_with = "serialize_option")]
     pub lag: Option<LagOptions>,
-
     /// Controls network throttling
     #[serde(serialize_with = "serialize_option")]
     pub throttle: Option<ThrottleOptions>,
-
     /// Controls packet reordering
     #[serde(serialize_with = "serialize_option")]
     pub reorder: Option<ReorderOptions>,
-
     /// Controls packet corruption/corruptioning
     #[serde(serialize_with = "serialize_option")]
     pub corruption: Option<CorruptionOptions>,
-
     /// Controls packet duplication
     #[serde(serialize_with = "serialize_option")]
     pub duplicate: Option<DuplicateOptions>,
-
     /// Controls bandwidth limitations
     #[serde(serialize_with = "serialize_option")]
     pub bandwidth: Option<BandwidthOptions>,
-
     /// Controls packet bursting (lag switch)
     #[serde(serialize_with = "serialize_option")]
     pub burst: Option<BurstOptions>,
-
     /// Burst release delay in microseconds - stored separately so it persists
     /// even when burst is disabled
     #[serde(default = "default_burst_release_delay")]
     pub burst_release_delay_us: u64,
-
     /// When send fails, swap IPs and retry
     /// This technique can bypass certain game anti-lag detection
     #[serde(default)]
     pub lag_bypass: bool,
-
     /// Works at OS socket layer for true rate limiting
     #[serde(default, serialize_with = "serialize_option")]
     pub tc_bandwidth: Option<TcBandwidthOptions>,

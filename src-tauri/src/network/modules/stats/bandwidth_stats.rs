@@ -13,19 +13,14 @@ use std::time::{Duration, Instant};
 pub struct BandwidthStats {
     /// Number of packets currently held in the bandwidth limiter's buffer
     pub(crate) storage_packet_count: usize,
-
     /// Total number of bytes sent since this stats tracker was created
     pub(crate) total_byte_count: usize,
-
     /// EWMA calculator for smoothing throughput measurements
     ewma: Ewma,
-
     /// Bytes sent since the last EWMA update
     recent_byte_sent: usize,
-
     /// Timer used to determine when to update the EWMA
     recent_timer: Instant,
-
     /// Interval at which to update the EWMA
     update_interval: Duration,
 }

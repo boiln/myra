@@ -18,8 +18,7 @@ use std::time::{Duration, Instant};
 pub struct BurstModule;
 
 /// State maintained by the burst module between processing calls.
-#[derive(Debug)]
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct BurstState {
     /// Queue of buffered packets with their capture time
     pub buffer: VecDeque<(PacketData<'static>, Instant)>,
@@ -126,23 +125,25 @@ pub fn burst_packets<'a>(
     }
 
     // Check if we need to send a keepalive (let one packet through)
-    let send_keepalive = keepalive_duration.as_millis() > 0 && match last_keepalive {
-        None => {
-            *last_keepalive = Some(now);
-            false
-        }
-        Some(last) if now.duration_since(*last) >= keepalive_duration => {
-            *last_keepalive = Some(now);
-            true
-        }
-        Some(_) => false,
-    };
+    let send_keepalive = keepalive_duration.as_millis() > 0
+        && match last_keepalive {
+            None => {
+                *last_keepalive = Some(now);
+                false
+            }
+            Some(last) if now.duration_since(*last) >= keepalive_duration => {
+                *last_keepalive = Some(now);
+                true
+            }
+            Some(_) => false,
+        };
 
     // If keepalive is due, find a packet that matches direction and preserve it
     let keepalive_packet = if send_keepalive && !packets.is_empty() {
-        packets.iter().position(|p| {
-            (p.is_outbound && apply_outbound) || (!p.is_outbound && apply_inbound)
-        }).map(|idx| packets.remove(idx))
+        packets
+            .iter()
+            .position(|p| (p.is_outbound && apply_outbound) || (!p.is_outbound && apply_inbound))
+            .map(|idx| packets.remove(idx))
     } else {
         None
     };
@@ -155,8 +156,7 @@ pub fn burst_packets<'a>(
 
         // Check if this packet's direction should be buffered
         let should_buffer_direction =
-            (packet.is_outbound && apply_outbound) ||
-            (!packet.is_outbound && apply_inbound);
+            (packet.is_outbound && apply_outbound) || (!packet.is_outbound && apply_inbound);
 
         if !should_buffer_direction {
             // Direction doesn't match - let packet through
@@ -204,7 +204,10 @@ pub fn burst_packets<'a>(
             // In reverse mode, reverse the order of released packets
             if reverse {
                 released_packets.reverse();
-                debug!("BURST: Reversed {} packets for rewind effect", released_packets.len());
+                debug!(
+                    "BURST: Reversed {} packets for rewind effect",
+                    released_packets.len()
+                );
             }
 
             packets.extend(released_packets);
@@ -247,7 +250,10 @@ pub fn flush_buffer<'a>(
     // Apply reverse if requested (for rewind effect)
     if reverse {
         released_packets.reverse();
-        debug!("BURST FLUSH: Reversed {} packets for rewind effect", buffer_count);
+        debug!(
+            "BURST FLUSH: Reversed {} packets for rewind effect",
+            buffer_count
+        );
     }
 
     // IMPORTANT: Buffered packets must be sent FIRST, before any new packets from this cycle
@@ -260,9 +266,7 @@ pub fn flush_buffer<'a>(
 
     debug!(
         "BURST FLUSH: Released {} buffered packets, {} new packets queued after (reverse={})",
-        buffer_count,
-        new_packet_count,
-        reverse
+        buffer_count, new_packet_count, reverse
     );
 
     *cycle_start = None;

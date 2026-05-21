@@ -15,7 +15,8 @@ extern "system" {
 }
 
 /// Timer resolution tracker for high-precision timing
-static TIMER_RESOLUTION_SET: std::sync::atomic::AtomicBool =    std::sync::atomic::AtomicBool::new(false);
+static TIMER_RESOLUTION_SET: std::sync::atomic::AtomicBool =
+    std::sync::atomic::AtomicBool::new(false);
 
 /// Set Windows timer resolution to 4ms for high-precision timing
 /// This helps bypass lag detection in games
@@ -325,7 +326,9 @@ pub fn construct_filter_with_exclusions(user_filter: &Option<String>) -> Option<
             let corrected_filter = if has_invalid_direction {
                 log::warn!("Filter '{}' is invalid: a packet cannot be both outbound AND inbound. Using 'true' to capture all traffic.", filter);
                 "true".to_string()
-            } else { filter.clone() };
+            } else {
+                filter.clone()
+            };
             format!("({}) and {}", corrected_filter, tauri_exclusion)
         }
         _ => tauri_exclusion,

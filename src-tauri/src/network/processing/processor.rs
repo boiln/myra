@@ -210,7 +210,11 @@ pub fn start_packet_processing(
         let release_delay = state.burst_release_delay_us;
 
         if pacing_needed {
-            info!("BURST REPLAY: Sending {} packets with {}us delay each", packets.len(), release_delay);
+            info!(
+                "BURST REPLAY: Sending {} packets with {}us delay each",
+                packets.len(),
+                release_delay
+            );
         }
 
         for mut packet_data in packets {
@@ -236,7 +240,11 @@ pub fn start_packet_processing(
         let elapsed = cycle_start.elapsed();
 
         if elapsed < Duration::from_millis(CYCLE_TIME_MS) {
-            std::thread::sleep(Duration::from_millis(CYCLE_TIME_MS).checked_sub(elapsed).unwrap());
+            std::thread::sleep(
+                Duration::from_millis(CYCLE_TIME_MS)
+                    .checked_sub(elapsed)
+                    .unwrap(),
+            );
         }
     }
 
@@ -261,11 +269,7 @@ pub fn start_packet_processing(
         debug!("Successfully closed packet processing WinDivert handle");
     }
 
-    match WinDivert::<NetworkLayer>::network(
-        "false",
-        0,
-        WinDivertFlags::new(),
-    ) {
+    match WinDivert::<NetworkLayer>::network("false", 0, WinDivertFlags::new()) {
         Ok(mut flush_handle) => {
             let _ = flush_handle.close(CloseAction::Nothing);
 

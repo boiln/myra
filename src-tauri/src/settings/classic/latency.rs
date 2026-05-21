@@ -25,19 +25,15 @@ pub struct ClassicLatencyOptions {
     /// Whether this module is enabled
     #[serde(default)]
     pub enabled: bool,
-
     /// Whether to apply to inbound traffic
     #[serde(default = "default_true")]
     pub inbound: bool,
-
     /// Whether to apply to outbound traffic
     #[serde(default = "default_true")]
     pub outbound: bool,
-
     /// Chance to affect each packet (0-100%)
     #[serde(default = "default_chance")]
     pub chance: f64,
-
     /// Fixed delay in milliseconds (0-15000)
     #[serde(default = "default_delay")]
     pub delay_ms: u64,

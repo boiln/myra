@@ -8,10 +8,8 @@
 pub struct ThrottleStats {
     /// Flag indicating whether throttling is currently active
     pub(crate) is_throttling: bool,
-
     /// Total number of packets dropped due to throttling
     pub(crate) dropped_count: usize,
-
     /// Current number of packets in the buffer
     pub(crate) buffered_count: usize,
 }

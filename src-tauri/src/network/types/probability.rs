@@ -10,7 +10,6 @@ pub enum ProbabilityError {
     /// Returned when a probability value is out of the valid range (0.0-1.0)
     #[error("{0} is not in the valid probability range of 0.0 to 1.0")]
     OutOfRange(f64),
-
     /// Returned when a string can't be parsed as a valid float
     #[error("'{0}' is not a valid number for a probability value")]
     ParseError(String),

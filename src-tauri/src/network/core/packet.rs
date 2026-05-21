@@ -11,10 +11,8 @@ use windivert::packet::WinDivertPacket;
 pub struct PacketData<'a> {
     /// The actual network packet from `WinDivert`
     pub packet: WinDivertPacket<'a, NetworkLayer>,
-
     /// Timestamp when the packet was captured
     pub arrival_time: Instant,
-
     /// Whether this packet is outbound (upload) or inbound (download)
     pub is_outbound: bool,
 }

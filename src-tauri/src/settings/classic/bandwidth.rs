@@ -28,23 +28,18 @@ pub struct ClassicBandwidthOptions {
     /// Whether this module is enabled
     #[serde(default)]
     pub enabled: bool,
-
     /// Whether to apply to inbound traffic
     #[serde(default = "default_true")]
     pub inbound: bool,
-
     /// Whether to apply to outbound traffic
     #[serde(default = "default_true")]
     pub outbound: bool,
-
     /// Chance (usually 100% for bandwidth limiting)
     #[serde(default = "default_chance")]
     pub chance: f64,
-
     /// Bandwidth limit in KB/s
     #[serde(default = "default_limit_kbps")]
     pub limit_kbps: f64,
-
     /// Maximum packets to buffer before dropping
     #[serde(default = "default_max_buffer")]
     pub max_buffer: usize,

@@ -41,11 +41,9 @@ impl ModuleContext<'_, '_> {
         &self,
         module_name: &str,
     ) -> Result<std::sync::RwLockWriteGuard<'_, PacketProcessingStatistics>> {
-
         self.statistics
             .write()
             .map_err(|_| MyraError::stats_lock(module_name))
-
     }
 }
 

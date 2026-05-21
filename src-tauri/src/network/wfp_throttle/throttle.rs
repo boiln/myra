@@ -1,12 +1,12 @@
+use log::{info, warn};
 use std::collections::VecDeque;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::thread::{self, JoinHandle};
 use std::time::{Duration, Instant};
-use log::{info, warn};
 use thiserror::Error;
-use windivert::prelude::*;
 use windivert::packet::WinDivertPacket;
+use windivert::prelude::*;
 use windivert::CloseAction;
 
 // Minimum packet size to be throttled - smaller packets pass through
@@ -21,10 +21,8 @@ const TAURI_PORT: u16 = 1420;
 pub enum WfpError {
     #[error("Failed to open WinDivert: {0}")]
     OpenFailed(String),
-
     #[error("Failed to start throttle thread: {0}")]
     ThreadFailed(String),
-
     #[error("Invalid parameter: {0}")]
     InvalidParam(String),
 }
@@ -75,14 +73,18 @@ impl WfpThrottle {
         }
 
         if !inbound && !outbound {
-            return Err(WfpError::InvalidParam("must throttle inbound or outbound".into()));
+            return Err(WfpError::InvalidParam(
+                "must throttle inbound or outbound".into(),
+            ));
         }
 
         let running = Arc::new(AtomicBool::new(true));
         let buffer = Arc::new(Mutex::new(SharedBuffer::new()));
 
-        info!("WFP Throttle: Starting {} KB/s throttle (in={}, out={})",
-              limit_kbps, inbound, outbound);
+        info!(
+            "WFP Throttle: Starting {} KB/s throttle (in={}, out={})",
+            limit_kbps, inbound, outbound
+        );
 
         let filter = match (inbound, outbound) {
             (true, true) => format!(
@@ -237,8 +239,10 @@ fn run_receiver(
                 }
 
                 if last_log.elapsed() > Duration::from_secs(5) {
-                    info!("WFP Throttle RX: {} total, {} buffered, {} passthrough",
-                          packet_count, buffered_count, passthrough_count);
+                    info!(
+                        "WFP Throttle RX: {} total, {} buffered, {} passthrough",
+                        packet_count, buffered_count, passthrough_count
+                    );
                     last_log = Instant::now();
                 }
             }
@@ -248,8 +252,10 @@ fn run_receiver(
         }
     }
 
-    info!("WFP Throttle: Receiver exiting. Total: {} packets ({} buffered, {} passthrough)",
-          packet_count, buffered_count, passthrough_count);
+    info!(
+        "WFP Throttle: Receiver exiting. Total: {} packets ({} buffered, {} passthrough)",
+        packet_count, buffered_count, passthrough_count
+    );
 
 }
 
@@ -261,7 +267,10 @@ fn run_sender(
     limit_kbps: f64,
 ) {
 
-    info!("WFP Throttle: Sender thread started ({:.2} KB/s)", limit_kbps);
+    info!(
+        "WFP Throttle: Sender thread started ({:.2} KB/s)",
+        limit_kbps
+    );
 
     unsafe {
         windows::Win32::Media::timeBeginPeriod(1);
@@ -335,7 +344,11 @@ fn run_sender(
             released = true;
         }
 
-        let sleep_duration = if released { Duration::from_micros(100) } else { Duration::from_millis(1) };
+        let sleep_duration = if released {
+            Duration::from_micros(100)
+        } else {
+            Duration::from_millis(1)
+        };
 
         thread::sleep(sleep_duration);
     }
@@ -352,14 +365,20 @@ fn run_sender(
     let remaining = buf.packets.len();
 
     if remaining > 0 {
-        info!("WFP Throttle: FLUSHING {} buffered packets immediately", remaining);
+        info!(
+            "WFP Throttle: FLUSHING {} buffered packets immediately",
+            remaining
+        );
 
         let mut sent = 0;
         let mut failed = 0;
 
         if let Ok(guard) = wd.lock() {
             let Some(handle) = guard.as_ref() else {
-                warn!("WFP Throttle: Handle already closed, {} packets LOST!", remaining);
+                warn!(
+                    "WFP Throttle: Handle already closed, {} packets LOST!",
+                    remaining
+                );
                 buf.total_bytes = 0;
                 unsafe {
                     windows::Win32::Media::timeEndPeriod(1);
@@ -375,7 +394,10 @@ fn run_sender(
                 }
             }
         }
-        info!("WFP Throttle: Flushed {} packets (sent={}, failed={})", remaining, sent, failed);
+        info!(
+            "WFP Throttle: Flushed {} packets (sent={}, failed={})",
+            remaining, sent, failed
+        );
         buf.total_bytes = 0;
     }
 

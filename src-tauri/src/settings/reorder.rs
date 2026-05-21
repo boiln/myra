@@ -9,17 +9,14 @@ pub struct ReorderOptions {
     #[arg(skip)]
     #[serde(default)]
     pub enabled: bool,
-
     /// Whether to apply to inbound (download) traffic
     #[arg(skip)]
     #[serde(default = "default_true")]
     pub inbound: bool,
-
     /// Whether to apply to outbound (upload) traffic
     #[arg(skip)]
     #[serde(default = "default_true")]
     pub outbound: bool,
-
     /// Probability of reordering packets, ranging from 0.0 to 1.0
     #[arg(long = "reorder-probability", id = "reorder-probability", default_value_t = Probability::default())]
     #[serde(default)]

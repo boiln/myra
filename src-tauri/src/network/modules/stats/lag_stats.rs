@@ -6,10 +6,8 @@
 pub struct LagStats {
     /// Number of packets currently being lagged
     lagged_package_count: usize,
-
     /// Maximum number of packets that have been lagged simultaneously
     max_lagged: usize,
-
     /// Total number of packets that have been processed by the lag module
     total_processed: usize,
 }

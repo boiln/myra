@@ -25,7 +25,6 @@ pub struct ModuleProcessingState {
     pub burst_was_enabled: bool,
     /// Release delay for burst packets in microseconds
     pub burst_release_delay_us: u64,
-
     /// Time when each module's effect was started
     pub effect_start_times: ModuleEffectStartTimes,
 }

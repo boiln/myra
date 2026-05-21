@@ -49,8 +49,8 @@ fn load_history() -> Result<FilterHistory, String> {
         return Ok(FilterHistory::default());
     }
 
-    let content = fs::read_to_string(&path)
-        .map_err(|e| format!("Failed reading filter history: {}", e))?;
+    let content =
+        fs::read_to_string(&path).map_err(|e| format!("Failed reading filter history: {}", e))?;
 
     let parsed: FilterHistory = serde_json::from_str(&content)
         .map_err(|e| format!("Failed parsing filter history: {}", e))?;
@@ -67,19 +67,25 @@ fn save_history(history: &FilterHistory) -> Result<(), String> {
     let mut file = fs::File::create(&path)
         .map_err(|e| format!("Failed creating filter history file: {}", e))?;
     file.write_all(json.as_bytes())
-        .map_err(|e| format!("Failed writing filter history: {}", e))?
-        ;
+        .map_err(|e| format!("Failed writing filter history: {}", e))?;
     Ok(())
 
 }
 
 pub fn add_to_history(filter: &str) -> Result<(), String> {
 
-    if filter.trim().is_empty() { return Ok(()); }
+    if filter.trim().is_empty() {
+        return Ok(());
+    }
 
     let mut history = load_history()?;
 
-    if history.entries.first().map(|f| f == filter).unwrap_or(false) {
+    if history
+        .entries
+        .first()
+        .map(|f| f == filter)
+        .unwrap_or(false)
+    {
         return Ok(());
     }
     history.entries.retain(|f| f != filter);

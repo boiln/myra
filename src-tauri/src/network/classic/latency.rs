@@ -30,8 +30,8 @@ pub fn process_latency<'a>(
 
     // Move matching packets to lag buffer
     for packet in packets.drain(..) {
-        let matches_direction = (packet.is_outbound && options.outbound)
-            || (!packet.is_outbound && options.inbound);
+        let matches_direction =
+            (packet.is_outbound && options.outbound) || (!packet.is_outbound && options.inbound);
 
         if !matches_direction {
             passthrough.push(packet);

@@ -19,12 +19,10 @@ pub struct TcBandwidthOptions {
     /// Whether TC bandwidth limiting is enabled
     #[serde(default)]
     pub enabled: bool,
-
     /// Bandwidth limit in KB/s
     /// Default: 1 KB/s
     #[serde(default = "default_limit")]
     pub limit_kbps: u32,
-
     /// Direction to limit
     #[serde(default)]
     pub direction: TcDirection,

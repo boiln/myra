@@ -28,27 +28,21 @@ pub struct ClassicThrottleOptions {
     /// Whether this module is enabled
     #[serde(default)]
     pub enabled: bool,
-
     /// Whether to apply to inbound traffic
     #[serde(default = "default_true")]
     pub inbound: bool,
-
     /// Whether to apply to outbound traffic
     #[serde(default = "default_true")]
     pub outbound: bool,
-
     /// Chance to start a throttle window (0-100%)
     #[serde(default = "default_chance")]
     pub chance: f64,
-
     /// Time window for buffering in milliseconds (0-1000)
     #[serde(default = "default_window_ms")]
     pub window_ms: u64,
-
     /// If true, DROP buffered packets; if false, RELEASE as burst
     #[serde(default)]
     pub drop_on_release: bool,
-
     /// Maximum packets to buffer before forced flush
     #[serde(default = "default_max_buffer")]
     pub max_buffer: usize,

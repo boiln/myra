@@ -2,12 +2,12 @@ pub mod bandwidth;
 pub mod builder;
 pub mod burst;
 pub mod classic;
-pub mod lag;
+pub mod corruption;
 pub mod drop;
 pub mod duplicate;
+pub mod lag;
 pub mod manipulation;
 pub mod reorder;
-pub mod corruption;
 pub mod tc_bandwidth;
 pub mod throttle;
 

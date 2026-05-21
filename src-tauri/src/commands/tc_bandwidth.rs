@@ -40,8 +40,10 @@ pub fn start_tc_bandwidth(
         _ => (true, false),
     };
 
-    info!("Starting bandwidth limiter: {:.2} KB/s, direction: {} (in={}, out={})",
-          limit_kbps, direction, inbound, outbound);
+    info!(
+        "Starting bandwidth limiter: {:.2} KB/s, direction: {} (in={}, out={})",
+        limit_kbps, direction, inbound, outbound
+    );
 
     match WfpThrottle::new(limit_kbps, "all", inbound, outbound) {
         Ok(throttle) => {
@@ -52,7 +54,10 @@ pub fn start_tc_bandwidth(
                 (true, false) => "inbound",
                 _ => "outbound",
             };
-            Ok(format!("Bandwidth limiter started: {:.2} KB/s ({})", limit_kbps, dir_str))
+            Ok(format!(
+                "Bandwidth limiter started: {:.2} KB/s ({})",
+                limit_kbps, dir_str
+            ))
         }
         Err(e) => {
             error!("Failed to start bandwidth limiter: {:?}", e);
@@ -80,7 +85,9 @@ pub fn stop_tc_bandwidth(state: State<'_, TcLimiterState>) -> Result<String, Str
 
 /// Get the current status of the bandwidth limiter
 #[tauri::command]
-pub fn get_tc_bandwidth_status(state: State<'_, TcLimiterState>) -> Result<TcBandwidthStatus, String> {
+pub fn get_tc_bandwidth_status(
+    state: State<'_, TcLimiterState>,
+) -> Result<TcBandwidthStatus, String> {
 
     let limiter_guard = state.throttle.lock().map_err(|e| e.to_string())?;
 

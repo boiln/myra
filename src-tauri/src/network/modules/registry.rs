@@ -30,8 +30,8 @@ use crate::network::modules::burst::flush_buffer;
 use crate::network::modules::stats::PacketProcessingStatistics;
 use crate::network::modules::traits::{ModuleContext, ModuleOptions, PacketModule};
 use crate::network::modules::{
-    BandwidthModule, BurstModule, DropModule, DuplicateModule, LagModule, ReorderModule,
-    CorruptionModule, ThrottleModule,
+    BandwidthModule, BurstModule, CorruptionModule, DropModule, DuplicateModule, LagModule,
+    ReorderModule, ThrottleModule,
 };
 use crate::network::processing::module_state::ModuleProcessingState;
 use crate::settings::Settings;

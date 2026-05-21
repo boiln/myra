@@ -18,7 +18,7 @@ pub use crate::settings::{Settings, SettingsBuilder};
 
 // Individual module options (for advanced usage)
 pub use crate::settings::{
-    bandwidth::BandwidthOptions, lag::LagOptions, drop::DropOptions,
-    duplicate::DuplicateOptions, reorder::ReorderOptions, corruption::CorruptionOptions,
+    bandwidth::BandwidthOptions, corruption::CorruptionOptions, drop::DropOptions,
+    duplicate::DuplicateOptions, lag::LagOptions, reorder::ReorderOptions,
     throttle::ThrottleOptions,
 };

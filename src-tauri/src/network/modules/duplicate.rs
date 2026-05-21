@@ -132,8 +132,8 @@ mod tests {
                 &mut packets,
                 3,
                 Probability::new(1.0).unwrap(),
-                true,  // apply_inbound
-                true,  // apply_outbound
+                true, // apply_inbound
+                true, // apply_outbound
                 &mut stats,
             );
 

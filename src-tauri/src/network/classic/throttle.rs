@@ -26,9 +26,9 @@ pub fn process_throttle<'a>(
     // Check if we should start a new throttle window
     if state.window_start.is_none() {
         // Only start if we have packets and chance succeeds
-        let has_matching_packets = packets.iter().any(|p| {
-            (p.is_outbound && options.outbound) || (!p.is_outbound && options.inbound)
-        });
+        let has_matching_packets = packets
+            .iter()
+            .any(|p| (p.is_outbound && options.outbound) || (!p.is_outbound && options.inbound));
 
         if has_matching_packets && rng.random::<f64>() < chance {
             state.window_start = Some(now);
@@ -45,8 +45,8 @@ pub fn process_throttle<'a>(
 
     // Buffer matching packets during throttle window
     for packet in packets.drain(..) {
-        let matches_direction = (packet.is_outbound && options.outbound)
-            || (!packet.is_outbound && options.inbound);
+        let matches_direction =
+            (packet.is_outbound && options.outbound) || (!packet.is_outbound && options.inbound);
 
         if !matches_direction {
             passthrough.push(packet);
@@ -65,16 +65,25 @@ pub fn process_throttle<'a>(
         if buffer_full {
             log::debug!("Classic throttle: buffer full ({}), flushing", buffer.len());
         } else {
-            log::debug!("Classic throttle: window expired, flushing {} packets", buffer.len());
+            log::debug!(
+                "Classic throttle: window expired, flushing {} packets",
+                buffer.len()
+            );
         }
 
         if options.drop_on_release {
             // DROP all buffered packets
-            log::debug!("Classic throttle: dropping {} buffered packets", buffer.len());
+            log::debug!(
+                "Classic throttle: dropping {} buffered packets",
+                buffer.len()
+            );
             buffer.clear();
         } else {
             // RELEASE all buffered packets as a burst
-            log::debug!("Classic throttle: releasing {} packets as burst", buffer.len());
+            log::debug!(
+                "Classic throttle: releasing {} packets as burst",
+                buffer.len()
+            );
 
             while let Some(packet) = buffer.pop_front() {
                 passthrough.push(packet);

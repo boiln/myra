@@ -7,10 +7,12 @@ use std::sync::atomic::Ordering;
 use log::debug;
 use tauri::State;
 
-use crate::commands::state::PacketProcessingState;
-use crate::commands::types::{ModuleConfig, ModuleInfo, ModuleParams, ProcessingStatus, ProcessingStatisticsDto};
 use crate::commands::filter_history::add_to_history;
+use crate::commands::state::PacketProcessingState;
 use crate::commands::system::validate_filter;
+use crate::commands::types::{
+    ModuleConfig, ModuleInfo, ModuleParams, ProcessingStatisticsDto, ProcessingStatus,
+};
 use crate::settings::Settings;
 
 /// Gets the current status of the processing engine.
@@ -70,9 +72,7 @@ pub async fn get_status(
 /// * `Ok(Settings)` - The current settings
 /// * `Err(String)` - If there was an error retrieving settings
 #[tauri::command]
-pub async fn get_settings(
-    state: State<'_, PacketProcessingState>,
-) -> Result<Settings, String> {
+pub async fn get_settings(state: State<'_, PacketProcessingState>) -> Result<Settings, String> {
 
     Ok(state
         .settings
@@ -240,7 +240,11 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
             chance: bandwidth.probability.value() * 100.0,
             enabled: bandwidth.enabled,
             duration_ms: Some(bandwidth.duration_ms),
-            limit_kbps: Some(if bandwidth.limit == 0 { 50 } else { bandwidth.limit as u64 }),
+            limit_kbps: Some(if bandwidth.limit == 0 {
+                50
+            } else {
+                bandwidth.limit as u64
+            }),
             passthrough_threshold: Some(bandwidth.passthrough_threshold),
             use_wfp: Some(bandwidth.use_wfp),
             ..Default::default()

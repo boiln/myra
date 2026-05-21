@@ -17,12 +17,12 @@
 //! ```
 use crate::network::types::probability::Probability;
 use crate::settings::bandwidth::BandwidthOptions;
-use crate::settings::lag::LagOptions;
+use crate::settings::corruption::CorruptionOptions;
 use crate::settings::drop::DropOptions;
 use crate::settings::duplicate::DuplicateOptions;
+use crate::settings::lag::LagOptions;
 use crate::settings::manipulation::Settings;
 use crate::settings::reorder::ReorderOptions;
-use crate::settings::corruption::CorruptionOptions;
 use crate::settings::throttle::ThrottleOptions;
 
 /// Builder for constructing `Settings`.
@@ -444,24 +444,15 @@ mod tests {
 
     #[test]
     fn test_builder_clear() {
-
-        let settings = SettingsBuilder::new()
-            .drop(50.0)
-            .lag(100)
-            .clear()
-            .build();
+        let settings = SettingsBuilder::new().drop(50.0).lag(100).clear().build();
 
         assert!(!settings.has_active_modules());
-
     }
 
     #[test]
     fn test_active_module_names() {
 
-        let settings = SettingsBuilder::new()
-            .drop(10.0)
-            .bandwidth(1000)
-            .build();
+        let settings = SettingsBuilder::new().drop(10.0).bandwidth(1000).build();
 
         let names = settings.active_module_names();
 

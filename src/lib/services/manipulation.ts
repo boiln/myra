@@ -18,7 +18,6 @@ export const ManipulationService = {
         // Then start WFP throttle if needed (filtering is now active)
         await this.handleWfpThrottle(settings, true);
     },
-
     async stopProcessing(): Promise<void> {
         // Also stop WFP throttle if active
         if (wfpThrottleActive) {
@@ -27,11 +26,9 @@ export const ManipulationService = {
 
         return invoke("stop_processing");
     },
-
     async getStatus(): Promise<ProcessingStatus> {
         return invoke("get_status");
     },
-
     async updateSettings(
         settings: PacketManipulationSettings,
         isFilteringActive: boolean = false
@@ -44,7 +41,6 @@ export const ManipulationService = {
 
         return invoke("update_settings", { modules });
     },
-
     // Handle WFP throttle based on bandwidth settings - only starts when filtering is active
     async handleWfpThrottle(
         settings: PacketManipulationSettings,
@@ -84,7 +80,6 @@ export const ManipulationService = {
             await this.startWfpThrottle(bandwidth!.limit || 1, direction);
         }
     },
-
     async startWfpThrottle(limitKbps: number, direction: string): Promise<void> {
         try {
             await invoke("start_tc_bandwidth", { limitKbps, direction });
@@ -93,7 +88,6 @@ export const ManipulationService = {
             console.error("Failed to start WFP throttle:", e);
         }
     },
-
     async stopWfpThrottle(): Promise<void> {
         try {
             await invoke("stop_tc_bandwidth");
@@ -102,7 +96,6 @@ export const ManipulationService = {
             console.error("Failed to stop WFP throttle:", e);
         }
     },
-
     // Helper function to convert settings to modules array
     // Always sends all modules with their settings, using enabled field to track active state
     createModulesFromSettings(settings: PacketManipulationSettings): any[] {
@@ -308,27 +301,21 @@ export const ManipulationService = {
 
         return modules;
     },
-
     async getSettings(): Promise<PacketManipulationSettings> {
         return invoke("get_settings");
     },
-
     async updateFilter(filter: string | null): Promise<void> {
         return invoke("update_filter", { filter });
     },
-
     async getFilter(): Promise<string | null> {
         return invoke("get_filter");
     },
-
     async getFilterHistory(): Promise<string[]> {
         return invoke("get_filter_history");
     },
-
     async clearFilterHistory(): Promise<void> {
         return invoke("clear_filter_history");
     },
-
     async saveConfig(
         name: string,
         filterTarget?: FilterTarget,
@@ -360,15 +347,12 @@ export const ManipulationService = {
             mode,
         });
     },
-
     async loadConfig(name: string): Promise<LoadConfigResponse> {
         return invoke("load_config", { name });
     },
-
     async listConfigs(): Promise<string[]> {
         return invoke("list_configs");
     },
-
     async deleteConfig(name: string): Promise<void> {
         return invoke("delete_config", { name });
     },

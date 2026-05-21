@@ -1,20 +1,20 @@
 use crate::network::modules::stats::bandwidth_stats::BandwidthStats;
 use crate::network::modules::stats::burst_stats::BurstStats;
-use crate::network::modules::stats::lag_stats::LagStats;
+use crate::network::modules::stats::corruption_stats::CorruptionStats;
 use crate::network::modules::stats::drop_stats::DropStats;
 use crate::network::modules::stats::duplicate_stats::DuplicateStats;
+use crate::network::modules::stats::lag_stats::LagStats;
 use crate::network::modules::stats::reorder_stats::ReorderStats;
-use crate::network::modules::stats::corruption_stats::CorruptionStats;
 use crate::network::modules::stats::throttle_stats::ThrottleStats;
 use std::time::Duration;
 
 pub mod bandwidth_stats;
 pub mod burst_stats;
-pub mod lag_stats;
+pub mod corruption_stats;
 pub mod drop_stats;
 pub mod duplicate_stats;
+pub mod lag_stats;
 pub mod reorder_stats;
-pub mod corruption_stats;
 pub mod throttle_stats;
 pub mod util;
 

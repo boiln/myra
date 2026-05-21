@@ -150,10 +150,12 @@ pub fn corruption_packets(
 
         if payload_length > 0 {
             let bytes_to_corruption = (payload_length as f64 * corruption_amount.value()) as usize;
-            let corruptioned_indices = apply_corruptioning(&mut data[payload_offset..], bytes_to_corruption);
+            let corruptioned_indices =
+                apply_corruptioning(&mut data[payload_offset..], bytes_to_corruption);
 
             if should_update_stats {
-                let corruptioned_flags = calculate_corruptioned_flags(data.len(), &corruptioned_indices);
+                let corruptioned_flags =
+                    calculate_corruptioned_flags(data.len(), &corruptioned_indices);
 
                 stats.corruption_flags = corruptioned_flags;
                 stats.data = data[payload_offset..].to_owned();
@@ -233,7 +235,10 @@ fn apply_corruptioning(data: &mut [u8], bytes_to_corruption: usize) -> HashSet<u
 /// # Returns
 ///
 /// A vector of boolean flags where true indicates a corruptioned byte
-fn calculate_corruptioned_flags(data_len: usize, corruptioned_indices: &HashSet<usize>) -> Vec<bool> {
+fn calculate_corruptioned_flags(
+    data_len: usize,
+    corruptioned_indices: &HashSet<usize>,
+) -> Vec<bool> {
 
     let mut corruptioned_flags = vec![false; data_len];
 

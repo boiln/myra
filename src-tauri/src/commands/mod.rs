@@ -5,13 +5,13 @@
 pub mod classic;
 pub mod classic_state;
 pub mod config;
+pub mod filter_history;
 pub mod start;
 pub mod state;
 pub mod status;
 pub mod stop;
 pub mod system;
 pub mod tc_bandwidth;
-pub mod filter_history;
 pub mod types;
 pub mod update;
 
@@ -20,18 +20,18 @@ pub use state::PacketProcessingState;
 pub use tc_bandwidth::TcLimiterState;
 
 pub use classic::{
-    __cmd__start_classic_processing, __cmd__stop_classic_processing,
-    __cmd__update_classic_settings, __cmd__get_classic_status,
-    start_classic_processing, stop_classic_processing,
-    update_classic_settings, get_classic_status,
+    __cmd__get_classic_status, __cmd__start_classic_processing, __cmd__stop_classic_processing,
+    __cmd__update_classic_settings, get_classic_status, start_classic_processing,
+    stop_classic_processing, update_classic_settings,
+};
+pub use filter_history::{
+    __cmd__clear_filter_history, __cmd__get_filter_history, clear_filter_history,
+    get_filter_history,
 };
 pub use start::{__cmd__start_processing, start_processing};
 pub use status::{
     __cmd__get_filter, __cmd__get_settings, __cmd__get_status, __cmd__update_filter, get_filter,
     get_settings, get_status, update_filter,
-};
-pub use filter_history::{
-    __cmd__get_filter_history, __cmd__clear_filter_history, get_filter_history, clear_filter_history,
 };
 pub use stop::{__cmd__stop_processing, stop_processing};
 pub use system::{
@@ -42,8 +42,8 @@ pub use system::{
     scan_network_devices, start_flow_tracking, stop_flow_tracking, validate_filter,
 };
 pub use tc_bandwidth::{
-    __cmd__start_tc_bandwidth, __cmd__stop_tc_bandwidth, __cmd__get_tc_bandwidth_status,
-    start_tc_bandwidth, stop_tc_bandwidth, get_tc_bandwidth_status,
+    __cmd__get_tc_bandwidth_status, __cmd__start_tc_bandwidth, __cmd__stop_tc_bandwidth,
+    get_tc_bandwidth_status, start_tc_bandwidth, stop_tc_bandwidth,
 };
 pub use update::{__cmd__update_settings, update_settings};
 

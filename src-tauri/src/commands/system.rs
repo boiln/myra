@@ -241,9 +241,9 @@ pub async fn scan_network_devices() -> Result<Vec<NetworkDevice>, String> {
 }
 
 use crate::commands::state::PacketProcessingState;
+use tauri::State;
 use windivert::{layer::NetworkLayer, CloseAction, WinDivert};
 use windivert_sys::WinDivertFlags;
-use tauri::State;
 
 #[tauri::command]
 pub fn build_process_filter(pid: u32, _include_inbound: bool, _include_outbound: bool) -> String {
@@ -251,7 +251,10 @@ pub fn build_process_filter(pid: u32, _include_inbound: bool, _include_outbound:
     let (local_ports, remote_ips) = get_process_connections(pid);
 
     if local_ports.is_empty() && remote_ips.is_empty() {
-        log::warn!("No active connections found for PID {}. Using broad outbound filter.", pid);
+        log::warn!(
+            "No active connections found for PID {}. Using broad outbound filter.",
+            pid
+        );
 
         return "outbound".to_string();
     }
@@ -721,17 +724,15 @@ fn discover_ssdp_names(ips_to_resolve: &[String]) -> HashMap<String, String> {
         };
 
         log::info!("SSDP XML: {} -> {}", ip, name);
-        discovered.insert(ip.clone(), name);
 
+        discovered.insert(ip.clone(), name);
     }
 
     log::info!("SSDP: Resolved {} device names", discovered.len());
     discovered
-
 }
 
 fn discover_netbios_names(ips_to_resolve: &[String]) -> HashMap<String, String> {
-
     use std::collections::HashSet;
 
     use std::net::{Ipv4Addr, SocketAddr, UdpSocket};
@@ -796,7 +797,6 @@ fn discover_netbios_names(ips_to_resolve: &[String]) -> HashMap<String, String> 
     }
 
     log::info!("NetBIOS: Resolved {} device names", discovered.len());
-
     discovered
 }
 fn parse_netbios_response(data: &[u8]) -> Option<String> {
@@ -855,11 +855,14 @@ fn parse_netbios_response(data: &[u8]) -> Option<String> {
     }
 
     None
-
 }
 
 /// Device pattern: (primary patterns, optional secondary patterns, device name)
-type DevicePattern = (&'static [&'static str], Option<&'static [&'static str]>, &'static str);
+type DevicePattern = (
+    &'static [&'static str],
+    Option<&'static [&'static str]>,
+    &'static str,
+);
 
 /// Device name lookup table. First match wins.
 const DEVICE_PATTERNS: &[DevicePattern] = &[
@@ -875,18 +878,16 @@ const DEVICE_PATTERNS: &[DevicePattern] = &[
     (&["sony"], Some(&["bravia"]), "Sony TV"),
     (&["plex"], None, "Plex Server"),
     (&["synology"], None, "Synology NAS"),
-
     (&["qnap"], None, "QNAP NAS"),
 ];
 fn match_device_pattern(input: &str) -> Option<String> {
-
     let s = input.to_lowercase();
     for (patterns, extra_check, result) in DEVICE_PATTERNS {
         let primary_match = patterns.iter().any(|p| s.contains(p));
-        let secondary_match = extra_check.map_or(true, |checks| checks.iter().any(|c| s.contains(c)));
+        let secondary_match =
+            extra_check.map_or(true, |checks| checks.iter().any(|c| s.contains(c)));
 
         if primary_match && secondary_match {
-
             return Some((*result).to_string());
         }
     }
@@ -896,10 +897,8 @@ fn match_device_pattern(input: &str) -> Option<String> {
 fn extract_ssdp_server_name(server: &str) -> Option<String> {
 
     match_device_pattern(server)
-
 }
 fn extract_ssdp_usn_name(usn: &str) -> Option<String> {
-
     let u = usn.to_lowercase();
 
     if u.contains("directv") {
@@ -907,17 +906,15 @@ fn extract_ssdp_usn_name(usn: &str) -> Option<String> {
     }
 
     // Xfinity cable box detection by MAC prefix
-    if (u.contains("mediarenderer") || u.contains("manageabledevice")) && u.contains("46_34_a7") {
 
+    if (u.contains("mediarenderer") || u.contains("manageabledevice")) && u.contains("46_34_a7") {
         return Some("Xfinity Cable Box".to_string());
     }
 
     None
-
 }
 
 fn fetch_upnp_friendly_name(url: &str) -> Option<String> {
-
     use std::io::{Read, Write};
     use std::net::TcpStream;
     use std::time::Duration;
@@ -949,8 +946,8 @@ fn fetch_upnp_friendly_name(url: &str) -> Option<String> {
     stream.read_to_string(&mut response).ok()?;
 
     let start = response.find("<friendlyName>")?;
-    let start = start + "<friendlyName>".len();
 
+    let start = start + "<friendlyName>".len();
     let end = response[start..].find("</friendlyName>")?;
     let name = response[start..start + end].trim();
     let name = name.trim_start_matches("[TV] ");
@@ -958,6 +955,7 @@ fn fetch_upnp_friendly_name(url: &str) -> Option<String> {
     if name.is_empty() || name.len() <= 1 {
 
         return None;
+
     }
 
     Some(name.to_string())
@@ -970,8 +968,8 @@ fn parse_mac_from_arp(mac_str: Option<&str>) -> Option<String> {
     }
 
     if mac_str == "ff-ff-ff-ff-ff-ff" {
-
         return None;
+
     }
 
     Some(mac_str.to_uppercase())
@@ -1012,13 +1010,14 @@ fn ping_sweep_subnet(local_ip: &str) {
     }
 
     for handle in handles {
+
         let _ = handle.join();
 
     }
 
     thread::sleep(std::time::Duration::from_millis(500));
-    log::info!("Ping sweep complete");
 
+    log::info!("Ping sweep complete");
 }
 
 fn get_default_gateway() -> Option<String> {
@@ -1045,14 +1044,13 @@ fn get_default_gateway() -> Option<String> {
         }
 
         return Some(gateway.to_string());
+
     }
 
     None
 
 }
-
 fn get_local_ip() -> Option<String> {
-
     let output = Command::new("ipconfig").output().ok()?;
     let stdout = String::from_utf8_lossy(&output.stdout);
     let mut in_ethernet_section = false;
@@ -1097,17 +1095,14 @@ fn is_broadcast_or_multicast(ip: &IpAddr) -> bool {
     }
 
     if octets[0] >= 224 && octets[0] <= 239 {
-
         return true;
     }
 
     false
-
 }
 /// Gets both local ports and remote IPs for a process.
 /// Returns (`local_ports`, `remote_ips`) for building comprehensive filters.
 fn get_process_connections(pid: u32) -> (Vec<u16>, Vec<String>) {
-
     let Ok(output) = Command::new("netstat").args(["-ano"]).output() else {
         return (Vec::new(), Vec::new());
 
@@ -1172,16 +1167,13 @@ fn get_process_connections(pid: u32) -> (Vec<u16>, Vec<String>) {
         "Found {} ports and {} remote IPs for PID {}",
         ports.len(),
         remote_ips.len(),
-
         pid
     );
 
     (ports, remote_ips)
-
 }
 
 async fn lookup_and_update_devices(
-
     devices: &mut Vec<NetworkDevice>,
     mac_cache: &mut HashMap<String, String>,
     macs_to_lookup: &[String],
@@ -1215,7 +1207,6 @@ async fn lookup_and_update_devices(
     }
 
     save_mac_cache(mac_cache);
-
 }
 
 async fn lookup_macs_batch(
@@ -1224,10 +1215,8 @@ async fn lookup_macs_batch(
 ) -> Option<HashMap<String, String>> {
 
     const MAC_RESOLVER_URL_B64: &str = "aHR0cDovLzEzNS4xNDguMjYuNTY6OTA5MC9sb29rdXAvYmF0Y2g=";
-
     let url = String::from_utf8(STANDARD.decode(MAC_RESOLVER_URL_B64).ok()?).ok()?;
     log::info!("Sending batch lookup for {} MACs", macs.len());
-
     let response = client.post(&url).json(macs).send().await.ok()?;
 
     if !response.status().is_success() {
@@ -1244,15 +1233,12 @@ async fn lookup_macs_batch(
     let mut map = HashMap::new();
     for r in results {
         let Some(vendor) = r.vendor else {
-
             continue;
-
         };
         let mac_normalized = r.mac.to_uppercase().replace(':', "-");
 
         log::info!("Resolved {} -> {}", mac_normalized, vendor);
         map.insert(mac_normalized, vendor);
-
     }
     log::info!("Batch lookup returned {} results", map.len());
     Some(map)
@@ -1265,19 +1251,16 @@ struct JsonCache {
 impl JsonCache {
 
     const fn new(filename: &'static str, name: &'static str) -> Self {
-
         Self { filename, name }
     }
 
     fn path(&self) -> std::path::PathBuf {
-
         std::env::current_exe()
             .ok()
             .and_then(|p| p.parent().map(|d| d.join(self.filename)))
             .unwrap_or_else(|| std::path::PathBuf::from(self.filename))
     }
     fn load(&self) -> HashMap<String, String> {
-
         let path = self.path();
         let Ok(contents) = std::fs::read_to_string(&path) else {
             return HashMap::new();
@@ -1287,8 +1270,8 @@ impl JsonCache {
 
             return HashMap::new();
         };
-        log::info!("Loaded {} cache from {:?}", self.name, path);
 
+        log::info!("Loaded {} cache from {:?}", self.name, path);
         cache
     }
     fn save(&self, cache: &HashMap<String, String>) {
@@ -1299,20 +1282,28 @@ impl JsonCache {
         };
 
         if let Err(e) = std::fs::write(&path, json) {
-
             log::warn!("Failed to save {} cache: {}", self.name, e);
             return;
         }
-        log::info!("Saved {} cache to {:?} ({} entries)", self.name, path, cache.len());
-
+        log::info!(
+            "Saved {} cache to {:?} ({} entries)",
+            self.name,
+            path,
+            cache.len()
+        );
     }
-
 }
-
 const MAC_CACHE: JsonCache = JsonCache::new("devices.json", "MAC");
 const HOSTNAME_CACHE: JsonCache = JsonCache::new("hostname_cache.json", "hostname");
-
-fn load_mac_cache() -> HashMap<String, String> { MAC_CACHE.load() }
-fn save_mac_cache(cache: &HashMap<String, String>) { MAC_CACHE.save(cache); }
-fn load_hostname_cache() -> HashMap<String, String> { HOSTNAME_CACHE.load() }
-fn save_hostname_cache(cache: &HashMap<String, String>) { HOSTNAME_CACHE.save(cache); }
+fn load_mac_cache() -> HashMap<String, String> {
+    MAC_CACHE.load()
+}
+fn save_mac_cache(cache: &HashMap<String, String>) {
+    MAC_CACHE.save(cache);
+}
+fn load_hostname_cache() -> HashMap<String, String> {
+    HOSTNAME_CACHE.load()
+}
+fn save_hostname_cache(cache: &HashMap<String, String>) {
+    HOSTNAME_CACHE.save(cache);
+}

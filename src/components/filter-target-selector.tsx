@@ -80,6 +80,7 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
 
     // Sync state when filterTarget changes (e.g., from loading preset)
     useEffect(() => {
+
         if (filterTarget) {
             // Skip auto-apply when syncing from preset - the filter was already set
             skipAutoApplyRef.current = true;
@@ -94,10 +95,12 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
             }, 200);
             return () => clearTimeout(t);
         }
+
     }, [filterTarget]);
 
     // Load processes
     const loadProcesses = useCallback(async () => {
+
         setProcessList((s) => ({ ...s, loading: true }));
 
         try {
@@ -107,19 +110,23 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
             console.error("Failed to load processes:", error);
             setProcessList((s) => ({ ...s, loading: false }));
         }
+
     }, []);
 
     // Load processes on mount
     useEffect(() => {
+
         loadProcesses();
         // Load filter history
         ManipulationService.getFilterHistory()
             .then((list) => setFilterUi((s) => ({ ...s, history: list ?? [] })))
             .catch(() => setFilterUi((s) => ({ ...s, history: [] })));
+
     }, [loadProcesses]);
 
     // Validate filter with backend
     const validateFilter = useCallback(async (filterStr: string): Promise<boolean> => {
+
         try {
             const isValid = await invoke<boolean>("validate_filter", { filter: filterStr });
             if (isValid) {
@@ -131,10 +138,12 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
             setFilterUi((s) => ({ ...s, error: error as string }));
             return false;
         }
+
     }, []);
 
     // Build filter string from current state
     const buildFilterString = useCallback(async (): Promise<string> => {
+
         let baseFilter = "";
         // Build direction part
         const dirFilter =
@@ -186,13 +195,16 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
         }
 
         return baseFilter;
+
     }, [selectedProcess, includeInbound, includeOutbound, processes, setFilterTarget]);
 
     // Auto-apply filter when dependencies change
     useEffect(() => {
+
         // Skip if filtering is active, syncing from preset, or app not yet initialized
         if (isActive || skipAutoApplyRef.current || !isInitialized) return;
         const applyFilter = async () => {
+
             const newFilter = await buildFilterString();
             // If a specific filter is already set in store and differs,
             // do not auto-override it with a generic direction filter.
@@ -206,6 +218,7 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
             if (isValid) {
                 await updateFilter(newFilter);
             }
+
         };
         // Debounce the filter application
         if (filterTimeoutRef.current) {
@@ -218,6 +231,7 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                 clearTimeout(filterTimeoutRef.current);
             }
         };
+
     }, [selectedProcess, includeInbound, includeOutbound, isActive, isInitialized, filter]);
 
     // Handle manual filter input change
@@ -229,6 +243,7 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
 
     // Handle filter blur - validate and apply
     const handleFilterBlur = async () => {
+
         if (isActive || localFilter === filter) return;
 
         const isValid = await validateFilter(localFilter);
@@ -243,10 +258,12 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                 setFilterUi((s) => ({ ...s, history: list ?? [] }));
             } catch {}
         }
+
     };
 
     // Handle filter keydown
     const handleFilterKeyDown = async (e: React.KeyboardEvent) => {
+
         if (e.key === "Enter" && !isActive) {
             e.preventDefault();
 
@@ -256,10 +273,12 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                 await updateFilter(localFilter);
             }
         }
+
     };
 
     // Handle direction change
     const handleDirectionChange = (direction: "inbound" | "outbound", checked: boolean) => {
+
         if (direction === "inbound") {
             setTarget((s) => ({
                 ...s,
@@ -275,6 +294,7 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                 includeInbound: !checked && !s.includeInbound ? true : s.includeInbound,
             }));
         }
+
     };
 
     // Handle process change
@@ -283,6 +303,7 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
     };
 
     const applyPreviousFilter = async (value: string) => {
+
         if (isActive) return; // Do not change while active
 
         const ok = await validateFilter(value);
@@ -297,6 +318,7 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
 
             setFilterUi((s) => ({ ...s, history: list ?? [] }));
         } catch {}
+
     };
 
     return (
@@ -366,6 +388,7 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
                                 onClick={async () => {
+
                                     if (disabled || isActive) return;
 
                                     try {

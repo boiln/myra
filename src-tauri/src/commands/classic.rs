@@ -10,7 +10,9 @@ use tauri::State;
 
 use crate::commands::classic_state::ClassicProcessingState;
 use crate::commands::state::PacketProcessingState;
-use crate::network::classic::{process_classic_packets, ClassicProcessingState as ClassicModuleState};
+use crate::network::classic::{
+    process_classic_packets, ClassicProcessingState as ClassicModuleState,
+};
 use crate::network::core::set_high_precision_timer;
 use crate::settings::classic::ClassicSettings;
 
@@ -64,7 +66,7 @@ pub async fn start_classic_processing(
             packet_sender,
             running_recv,
             settings_recv,
-            filter_recv
+            filter_recv,
         ) {
             error!("Classic mode packet receiving error: {}", e);
         }
@@ -77,11 +79,9 @@ pub async fn start_classic_processing(
     // Spawn Classic mode processor thread
     thread::spawn(move || {
 
-        if let Err(e) = start_classic_packet_processing(
-            classic_settings,
-            packet_receiver,
-            running_proc,
-        ) {
+        if let Err(e) =
+            start_classic_packet_processing(classic_settings, packet_receiver, running_proc)
+        {
             error!("Classic mode packet processing error: {}", e);
         }
 
@@ -117,7 +117,8 @@ pub async fn update_classic_settings(
     settings: ClassicSettings,
 ) -> Result<(), String> {
 
-    info!("Updating Classic settings: latency={:?}, drop={:?}, throttle={:?}",
+    info!(
+        "Updating Classic settings: latency={:?}, drop={:?}, throttle={:?}",
         settings.latency.as_ref().map(|o| o.enabled),
         settings.drop.as_ref().map(|o| o.enabled),
         settings.throttle.as_ref().map(|o| o.enabled)
@@ -172,7 +173,8 @@ fn start_classic_packet_processing(
         "false",
         0,
         WinDivertFlags::set_send_only(WinDivertFlags::new()),
-    ).map_err(|e| {
+    )
+    .map_err(|e| {
         error!("Failed to initialize WinDivert for Classic mode: {}", e);
         crate::error::MyraError::WinDivert(e)
     })?;
@@ -203,10 +205,15 @@ fn start_classic_packet_processing(
         // Log every 2 seconds
         if last_log_time.elapsed() >= Duration::from_secs(2) {
             let settings_guard = settings.lock().ok();
-            let any_enabled = settings_guard.as_ref().map(|s| s.has_any_enabled()).unwrap_or(false);
+            let any_enabled = settings_guard
+                .as_ref()
+                .map(|s| s.has_any_enabled())
+                .unwrap_or(false);
 
-            info!("Classic: {} packets received, {} this cycle, any_module_enabled={}",
-                packet_count, packets_this_cycle, any_enabled);
+            info!(
+                "Classic: {} packets received, {} this cycle, any_module_enabled={}",
+                packet_count, packets_this_cycle, any_enabled
+            );
             last_log_time = Instant::now();
         }
 

@@ -19,8 +19,7 @@ use std::time::{Duration, Instant};
 pub struct ThrottleModule;
 
 /// State maintained by the throttle module between processing calls.
-#[derive(Debug)]
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct ThrottleState {
     /// Queue of buffered packets
     pub buffer: VecDeque<PacketData<'static>>,
@@ -132,9 +131,10 @@ pub fn throttle_packets<'a>(
     // Cooldown period after flush
     // In freeze_mode: No cooldown - continuous buffering creates freeze effect
     // In normal mode: 40ms cooldown - allows packets to flow, prevents disconnects
-    let in_cooldown = !freeze_mode && last_flush
-        .map(|flush_time| now.duration_since(flush_time) < cooldown)
-        .unwrap_or(false);
+    let in_cooldown = !freeze_mode
+        && last_flush
+            .map(|flush_time| now.duration_since(flush_time) < cooldown)
+            .unwrap_or(false);
 
     // Check if we need to release/drop buffered packets
     let should_flush = cycle_start.as_ref().is_some_and(|start| {
@@ -154,8 +154,11 @@ pub fn throttle_packets<'a>(
             stats.dropped_count += count;
         } else {
             // Release mode - send all buffered packets at once
-            info!("THROTTLE: Releasing {} buffered packets (throttle was {}ms)",
-                  count, timeframe.as_millis());
+            info!(
+                "THROTTLE: Releasing {} buffered packets (throttle was {}ms)",
+                count,
+                timeframe.as_millis()
+            );
 
             while let Some(packet) = buffer.pop_front() {
                 packets.push(packet);
@@ -180,14 +183,20 @@ pub fn throttle_packets<'a>(
 
     if can_start_new_cycle && rand::rng().random_bool(probability.value()) {
         *cycle_start = Some(now);
-        info!("THROTTLE: Starting new {}ms throttle cycle", timeframe.as_millis());
+        info!(
+            "THROTTLE: Starting new {}ms throttle cycle",
+            timeframe.as_millis()
+        );
     }
 
     if !can_start_new_cycle && in_cooldown {
         // During cooldown, packets pass through freely
         // This is logged only occasionally to avoid spam
         if stats.buffered_count > 0 {
-            info!("THROTTLE: In cooldown, {} packets passing through", packets.len());
+            info!(
+                "THROTTLE: In cooldown, {} packets passing through",
+                packets.len()
+            );
             stats.buffered_count = 0;
         }
     }
@@ -205,8 +214,8 @@ pub fn throttle_packets<'a>(
             let packet = &packets[i];
 
             // Check direction
-            let should_buffer = (packet.is_outbound && apply_outbound)
-                || (!packet.is_outbound && apply_inbound);
+            let should_buffer =
+                (packet.is_outbound && apply_outbound) || (!packet.is_outbound && apply_inbound);
 
             if !should_buffer {
                 i += 1;

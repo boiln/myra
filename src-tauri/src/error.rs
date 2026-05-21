@@ -5,15 +5,12 @@ pub enum MyraError {
     /// Error from `WinDivert` operations
     #[error("WinDivert error: {0}")]
     WinDivert(#[from] windivert::error::WinDivertError),
-
     /// Error when a mutex/rwlock is poisoned
     #[error("Lock poisoned: {0}")]
     LockPoisoned(String),
-
     /// Error when acquiring a statistics lock fails
     #[error("Failed to acquire statistics lock: {0}")]
     StatisticsLock(String),
-
     /// I/O errors from file operations
     #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),

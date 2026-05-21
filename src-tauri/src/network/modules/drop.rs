@@ -84,8 +84,8 @@ pub fn drop_packets(
     packets.retain(|packet| {
 
         // Check if this packet's direction should be affected
-        let matches_direction = (packet.is_outbound && apply_outbound)
-            || (!packet.is_outbound && apply_inbound);
+        let matches_direction =
+            (packet.is_outbound && apply_outbound) || (!packet.is_outbound && apply_inbound);
 
         if !matches_direction {
             // Direction doesn't match - keep packet unchanged
@@ -126,8 +126,8 @@ mod tests {
             drop_packets(
                 &mut packets,
                 Probability::new(1.0).unwrap(),
-                true,  // apply_inbound
-                true,  // apply_outbound
+                true, // apply_inbound
+                true, // apply_outbound
                 &mut drop_stats,
             );
 
@@ -159,8 +159,8 @@ mod tests {
             drop_packets(
                 &mut packets,
                 Probability::new(0.0).unwrap(),
-                true,  // apply_inbound
-                true,  // apply_outbound
+                true, // apply_inbound
+                true, // apply_outbound
                 &mut drop_stats,
             );
 

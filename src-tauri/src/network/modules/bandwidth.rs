@@ -174,8 +174,8 @@ fn bandwidth_limiter_paced<'a>(
 
     for packet in packets.drain(..) {
         let packet_size = packet.packet.data.len();
-        let matches_direction = (packet.is_outbound && apply_outbound)
-            || (!packet.is_outbound && apply_inbound);
+        let matches_direction =
+            (packet.is_outbound && apply_outbound) || (!packet.is_outbound && apply_inbound);
 
         let is_small = passthrough_threshold > 0 && packet_size <= passthrough_threshold;
 
@@ -202,7 +202,11 @@ fn bandwidth_limiter_paced<'a>(
             bytes_sent = packet_size;
 
             let bytes_per_sec = (bandwidth_limit_kbps as f64) * 1024.0;
-            let transmission_time_secs = if bytes_per_sec > 0.0 { packet_size as f64 / bytes_per_sec } else { 1.0 };
+            let transmission_time_secs = if bytes_per_sec > 0.0 {
+                packet_size as f64 / bytes_per_sec
+            } else {
+                1.0
+            };
 
             let transmission_duration = std::time::Duration::from_secs_f64(transmission_time_secs);
 
@@ -345,9 +349,9 @@ mod tests {
             total_buffer_size,
             &mut last_send_time,
             bandwidth_limit,
-            true,  // apply inbound
-            true,  // apply outbound
-            0,     // no passthrough threshold
+            true, // apply inbound
+            true, // apply outbound
+            0,    // no passthrough threshold
             &mut stats,
         );
 

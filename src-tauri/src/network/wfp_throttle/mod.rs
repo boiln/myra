@@ -4,4 +4,4 @@
 //! This is a user-mode approach that may have limitations compared to kernel drivers.
 mod throttle;
 
-pub use throttle::{WfpThrottle, WfpError};
+pub use throttle::{WfpError, WfpThrottle};

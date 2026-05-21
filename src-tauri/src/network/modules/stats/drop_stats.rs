@@ -14,10 +14,8 @@ use crate::network::modules::stats::util::ewma::Ewma;
 pub struct DropStats {
     /// Total number of packets processed
     pub total_packets: usize,
-
     /// Total number of packets dropped
     pub total_dropped: usize,
-
     /// EWMA for recent drop rate calculations
     ewma: Ewma,
 }

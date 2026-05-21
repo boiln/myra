@@ -21,19 +21,15 @@ pub struct ClassicTamperOptions {
     /// Whether this module is enabled
     #[serde(default)]
     pub enabled: bool,
-
     /// Whether to apply to inbound traffic
     #[serde(default = "default_true")]
     pub inbound: bool,
-
     /// Whether to apply to outbound traffic
     #[serde(default = "default_true")]
     pub outbound: bool,
-
     /// Chance to tamper each packet (0-100%)
     #[serde(default = "default_chance")]
     pub chance: f64,
-
     /// Whether to recalculate checksums after tampering
     #[serde(default = "default_true")]
     pub recalc_checksum: bool,

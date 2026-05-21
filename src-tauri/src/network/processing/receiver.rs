@@ -35,7 +35,10 @@ pub fn receive_packets(
     filter: Arc<Mutex<Option<String>>>,
 ) -> Result<(), WinDivertError> {
 
-    info!("Receiver thread started, running={}", running.load(Ordering::SeqCst));
+    info!(
+        "Receiver thread started, running={}",
+        running.load(Ordering::SeqCst)
+    );
 
     let mut buffer = vec![0u8; 65535]; // Max packet size
     let mut last_filter: Option<String> = None;
@@ -98,7 +101,8 @@ pub fn receive_packets(
 
         // Log once that we're about to start receiving
         if recv_count == 0 && !logged_missing_handle {
-            static LOGGED_WAITING: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+            static LOGGED_WAITING: std::sync::atomic::AtomicBool =
+                std::sync::atomic::AtomicBool::new(false);
 
             if !LOGGED_WAITING.swap(true, Ordering::SeqCst) {
                 info!("Receiver: Calling recv() - this will block until a packet arrives");

@@ -115,8 +115,8 @@ pub fn lag_packets<'a>(
     // With default probability of 1.0, ALL matching packets are lagged
     for packet in packets.drain(..) {
         // Check if this packet's direction should be affected
-        let matches_direction = (packet.is_outbound && apply_outbound)
-            || (!packet.is_outbound && apply_inbound);
+        let matches_direction =
+            (packet.is_outbound && apply_outbound) || (!packet.is_outbound && apply_inbound);
 
         if !matches_direction {
             // Direction doesn't match - let packet pass through
@@ -140,7 +140,9 @@ pub fn lag_packets<'a>(
             break;
         }
 
-        let Some(packet) = storage.pop_front() else { break };
+        let Some(packet) = storage.pop_front() else {
+            break;
+        };
 
         passthrough_packets.push(packet);
     }
@@ -183,8 +185,8 @@ mod tests {
                 &mut storage,
                 Duration::from_millis(100),
                 Probability::new(1.0).unwrap(),
-                true,  // apply_inbound
-                true,  // apply_outbound
+                true, // apply_inbound
+                true, // apply_outbound
                 &mut stats,
             );
 
@@ -213,8 +215,8 @@ mod tests {
                 &mut storage,
                 Duration::from_millis(1000),
                 Probability::new(1.0).unwrap(),
-                true,  // apply_inbound
-                true,  // apply_outbound
+                true, // apply_inbound
+                true, // apply_outbound
                 &mut stats,
             );
 
@@ -245,8 +247,8 @@ mod tests {
                 &mut storage,
                 Duration::from_millis(1000),
                 Probability::new(1.0).unwrap(),
-                true,  // apply_inbound
-                true,  // apply_outbound
+                true, // apply_inbound
+                true, // apply_outbound
                 &mut stats,
             );
 

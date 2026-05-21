@@ -2,19 +2,19 @@
 //!
 //! Classic mode provides deterministic, timer-based manipulation as opposed
 //! to Standard mode's probabilistic per-packet approach.
-pub mod latency;
+pub mod bandwidth;
 pub mod drop;
-pub mod throttle;
+pub mod latency;
 pub mod reorder;
 pub mod tamper;
-pub mod bandwidth;
+pub mod throttle;
 
-pub use latency::ClassicLatencyOptions;
+pub use bandwidth::ClassicBandwidthOptions;
 pub use drop::ClassicDropOptions;
-pub use throttle::ClassicThrottleOptions;
+pub use latency::ClassicLatencyOptions;
 pub use reorder::ClassicReorderOptions;
 pub use tamper::ClassicTamperOptions;
-pub use bandwidth::ClassicBandwidthOptions;
+pub use throttle::ClassicThrottleOptions;
 
 use serde::{Deserialize, Serialize};
 
@@ -24,23 +24,18 @@ pub struct ClassicSettings {
     /// Latency module - holds packets for fixed duration
     #[serde(default)]
     pub latency: Option<ClassicLatencyOptions>,
-
     /// Drop module - probabilistic packet dropping
     #[serde(default)]
     pub drop: Option<ClassicDropOptions>,
-
     /// Throttle module - buffer then release/drop
     #[serde(default)]
     pub throttle: Option<ClassicThrottleOptions>,
-
     /// Reorder module - swap adjacent packets
     #[serde(default)]
     pub reorder: Option<ClassicReorderOptions>,
-
     /// Tamper module - corrupt packet data
     #[serde(default)]
     pub tamper: Option<ClassicTamperOptions>,
-
     /// Bandwidth module - rate limiting
     #[serde(default)]
     pub bandwidth: Option<ClassicBandwidthOptions>,

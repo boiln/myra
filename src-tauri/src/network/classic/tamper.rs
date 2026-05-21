@@ -17,8 +17,8 @@ pub fn process_tamper<'a>(
     let chance = options.chance / 100.0;
 
     for packet in packets.iter_mut() {
-        let matches_direction = (packet.is_outbound && options.outbound)
-            || (!packet.is_outbound && options.inbound);
+        let matches_direction =
+            (packet.is_outbound && options.outbound) || (!packet.is_outbound && options.inbound);
 
         if !matches_direction {
             continue;
@@ -44,7 +44,7 @@ pub fn process_tamper<'a>(
                 let protocol = data[9];
 
                 let transport_header = match protocol {
-                    6 => 20,  // TCP minimum header
+                    6 => 20, // TCP minimum header
                     17 => 8, // UDP header
                     _ => 0,
                 };
@@ -55,8 +55,8 @@ pub fn process_tamper<'a>(
                 // IPv6 has 40 byte fixed header + extension headers (simplified)
                 let next_header = data[6];
                 let transport_header = match next_header {
-                    6 => 20,  // TCP
-                    17 => 8,  // UDP
+                    6 => 20, // TCP
+                    17 => 8, // UDP
                     _ => 0,
                 };
                 40 + transport_header
@@ -134,7 +134,8 @@ fn recalculate_checksums(data: &mut [u8]) {
         let protocol = data[9];
 
         match protocol {
-            6 => { // TCP
+            6 => {
+                // TCP
                 if data.len() >= ihl + 20 {
                     // Zero TCP checksum (offset 16-17 from TCP header start)
                     data[ihl + 16] = 0;
@@ -142,7 +143,8 @@ fn recalculate_checksums(data: &mut [u8]) {
                     // Note: Full TCP checksum requires pseudo-header, simplified here
                 }
             }
-            17 => { // UDP
+            17 => {
+                // UDP
                 if data.len() >= ihl + 8 {
                     // Zero UDP checksum (offset 6-7 from UDP header start)
                     data[ihl + 6] = 0;

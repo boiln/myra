@@ -14,16 +14,12 @@ use std::time::{Duration, Instant};
 pub struct CorruptionStats {
     /// Raw payload data from the most recently corruptioned packet
     pub(crate) data: Vec<u8>,
-
     /// Boolean flags indicating which bytes in the data were corruptioned with (true = corruptioned)
     pub(crate) corruption_flags: Vec<bool>,
-
     /// Indicates whether packet checksums are still valid after corruptioning
     pub(crate) checksum_valid: bool,
-
     /// When statistics were last updated
     pub last_update: Instant,
-
     /// How often statistics should be updated
     pub update_interval: Duration,
 }

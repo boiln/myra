@@ -41,9 +41,7 @@ pub fn process_reorder<'a>(
     let matching_indices: Vec<usize> = packets
         .iter()
         .enumerate()
-        .filter(|(_, p)| {
-            (p.is_outbound && options.outbound) || (!p.is_outbound && options.inbound)
-        })
+        .filter(|(_, p)| (p.is_outbound && options.outbound) || (!p.is_outbound && options.inbound))
         .map(|(i, _)| i)
         .collect();
 

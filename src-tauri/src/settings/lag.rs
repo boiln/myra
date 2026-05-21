@@ -18,27 +18,22 @@ pub struct LagOptions {
     #[arg(skip)]
     #[serde(default)]
     pub enabled: bool,
-
     /// Whether to apply to inbound (download) traffic
     #[arg(skip)]
     #[serde(default = "default_true")]
     pub inbound: bool,
-
     /// Whether to apply to outbound (upload) traffic
     #[arg(skip)]
     #[serde(default = "default_true")]
     pub outbound: bool,
-
     /// Lag time in milliseconds to introduce for each packet
     #[arg(long = "lag-ms", id = "lag-ms", default_value_t = 0)]
     #[serde(default)]
     pub delay_ms: u64,
-
     /// Probability of lagging packets, ranging from 0.0 to 1.0 (default 1.0 = 100%)
     #[arg(long = "lag-probability", id = "lag-probability", default_value_t = default_probability_100())]
     #[serde(default = "default_probability_100")]
     pub probability: Probability,
-
     /// Duration for which the effect is applied in milliseconds (0 = infinite)
     #[arg(long = "lag-duration", id = "lag-duration", default_value_t = 0)]
     #[serde(default)]

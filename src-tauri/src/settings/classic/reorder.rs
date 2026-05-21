@@ -24,19 +24,15 @@ pub struct ClassicReorderOptions {
     /// Whether this module is enabled
     #[serde(default)]
     pub enabled: bool,
-
     /// Whether to apply to inbound traffic
     #[serde(default = "default_true")]
     pub inbound: bool,
-
     /// Whether to apply to outbound traffic
     #[serde(default = "default_true")]
     pub outbound: bool,
-
     /// Chance to swap packets (0-100%)
     #[serde(default = "default_chance")]
     pub chance: f64,
-
     /// How many cycles to hold a lone packet before releasing
     #[serde(default = "default_max_hold_cycles")]
     pub max_hold_cycles: u32,

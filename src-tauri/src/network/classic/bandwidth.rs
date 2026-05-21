@@ -56,8 +56,8 @@ pub fn process_bandwidth<'a>(
 
     // Process new incoming packets
     for packet in packets.drain(..) {
-        let matches_direction = (packet.is_outbound && options.outbound)
-            || (!packet.is_outbound && options.inbound);
+        let matches_direction =
+            (packet.is_outbound && options.outbound) || (!packet.is_outbound && options.inbound);
 
         if !matches_direction {
             output.push(packet);
@@ -75,7 +75,10 @@ pub fn process_bandwidth<'a>(
             buffer.push_back(packet);
         } else {
             // Buffer full - DROP packet
-            log::debug!("Classic bandwidth: dropping packet (buffer full at {})", options.max_buffer);
+            log::debug!(
+                "Classic bandwidth: dropping packet (buffer full at {})",
+                options.max_buffer
+            );
         }
     }
 
