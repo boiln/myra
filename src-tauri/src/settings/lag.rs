@@ -14,7 +14,6 @@ fn default_probability_100() -> Probability {
 /// so all matching traffic is lagged.
 #[derive(Parser, Debug, Serialize, Deserialize, Clone)]
 pub struct LagOptions {
-
     /// Whether this module is enabled
     #[arg(skip)]
     #[serde(default)]
@@ -44,12 +43,11 @@ pub struct LagOptions {
     #[arg(long = "lag-duration", id = "lag-duration", default_value_t = 0)]
     #[serde(default)]
     pub duration_ms: u64,
-
 }
 
 impl Default for LagOptions {
-
     fn default() -> Self {
+
         Self {
             enabled: false,
             inbound: true,
@@ -58,6 +56,6 @@ impl Default for LagOptions {
             probability: default_probability_100(),
             duration_ms: 0,
         }
-    }
 
+    }
 }

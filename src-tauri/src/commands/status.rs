@@ -35,11 +35,9 @@ pub async fn get_status(
     let modules = build_module_info_list(&settings);
 
     let statistics = if running {
-
         let stats = state.statistics.read().map_err(|e| e.to_string())?;
 
         Some(ProcessingStatisticsDto {
-
             burst_buffered: stats.burst_stats.buffered,
             burst_released: stats.burst_stats.released,
             burst_buffered_count: stats.burst_stats.buffered_count,
@@ -48,19 +46,15 @@ pub async fn get_status(
             throttle_is_throttling: stats.throttle_stats.is_throttling(),
             lag_current_lagged: stats.lag_stats.current_lagged(),
             reorder_delayed_packets: stats.reorder_stats.delayed_packets,
-
         })
-
     } else {
         None
     };
 
     Ok(ProcessingStatus {
-
         running,
         statistics,
         modules,
-
     })
 
 }
@@ -187,7 +181,6 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
 
     let drop = settings.drop.clone().unwrap_or_default();
     let drop_info = module(
-
         "drop",
         "Drop",
         drop.enabled,
@@ -203,7 +196,6 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
 
     let throttle = settings.throttle.clone().unwrap_or_default();
     let throttle_info = module(
-
         "throttle",
         "Throttle",
         throttle.enabled,
@@ -223,7 +215,6 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
 
     let duplicate = settings.duplicate.clone().unwrap_or_default();
     let duplicate_info = module(
-
         "duplicate",
         "Duplicate",
         duplicate.enabled,
@@ -240,7 +231,6 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
 
     let bandwidth = settings.bandwidth.clone().unwrap_or_default();
     let bandwidth_info = module(
-
         "bandwidth",
         "Bandwidth",
         bandwidth.enabled,
@@ -259,7 +249,6 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
 
     let corruption = settings.corruption.clone().unwrap_or_default();
     let corruption_info = module(
-
         "corruption",
         "Corruption",
         corruption.enabled,
@@ -275,7 +264,6 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
 
     let reorder = settings.reorder.clone().unwrap_or_default();
     let reorder_info = module(
-
         "reorder",
         "Reorder",
         reorder.enabled,
@@ -292,7 +280,6 @@ fn build_module_info_list(settings: &Settings) -> Vec<ModuleInfo> {
 
     let burst = settings.burst.clone().unwrap_or_default();
     let burst_info = module(
-
         "burst",
         "Burst",
         burst.enabled,

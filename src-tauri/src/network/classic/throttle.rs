@@ -47,7 +47,6 @@ pub fn process_throttle<'a>(
     // Buffer matching packets during throttle window
     for packet in packets.drain(..) {
         let matches_direction = (packet.is_outbound && options.outbound)
-
             || (!packet.is_outbound && options.inbound);
 
         if !matches_direction {

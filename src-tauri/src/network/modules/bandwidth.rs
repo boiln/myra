@@ -21,30 +21,27 @@ pub struct BandwidthModule;
 /// State maintained by the bandwidth module between processing calls.
 #[derive(Debug)]
 pub struct BandwidthState {
-
     pub buffer: VecDeque<PacketData<'static>>,
     pub total_buffer_size: usize,
     pub last_send_time: Instant,
     /// For packet pacing mode: tracks when the next packet can be released
     pub next_release_time: Instant,
-
 }
 
 impl Default for BandwidthState {
-
     fn default() -> Self {
+
         Self {
             buffer: VecDeque::new(),
             total_buffer_size: 0,
             last_send_time: Instant::now(),
             next_release_time: Instant::now(),
         }
-    }
 
+    }
 }
 
 impl PacketModule for BandwidthModule {
-
     type Options = BandwidthOptions;
     type State = BandwidthState;
 
@@ -95,7 +92,6 @@ impl PacketModule for BandwidthModule {
         Ok(())
 
     }
-
 }
 
 /// Limits network bandwidth by controlling the rate at which packets are released
@@ -180,7 +176,6 @@ fn bandwidth_limiter_paced<'a>(
     for packet in packets.drain(..) {
         let packet_size = packet.packet.data.len();
         let matches_direction = (packet.is_outbound && apply_outbound)
-
             || (!packet.is_outbound && apply_inbound);
 
         let is_small = passthrough_threshold > 0 && packet_size <= passthrough_threshold;
@@ -301,16 +296,17 @@ fn maintain_buffer_size(
     total_size: &mut usize,
     stats: &mut BandwidthStats,
 ) {
+
     while *total_size > MAX_BUFFER_SIZE {
         if remove_packet_from_buffer(buffer, total_size, stats).is_none() {
             break;
         }
     }
+
 }
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
     use crate::network::core::packet::PacketData;
     use crate::network::modules::bandwidth::{
@@ -334,7 +330,6 @@ mod tests {
     fn test_basic_bandwidth_limiting() {
 
         let mut packets = vec![
-
             PacketData::from(create_dummy_packet(1000)),
             PacketData::from(create_dummy_packet(1000)),
         ];
@@ -402,7 +397,6 @@ mod tests {
     fn test_no_bandwidth_limiting() {
 
         let mut packets = vec![
-
             PacketData::from(create_dummy_packet(1000)),
             PacketData::from(create_dummy_packet(1000)),
         ];
@@ -433,7 +427,6 @@ mod tests {
     fn test_zero_bandwidth() {
 
         let mut packets = vec![
-
             PacketData::from(create_dummy_packet(1000)),
             PacketData::from(create_dummy_packet(1000)),
         ];
@@ -510,7 +503,6 @@ mod tests {
         let mut buffer = VecDeque::new();
         let mut total_size = 0;
         let mut packets = vec![
-
             PacketData::from(create_dummy_packet(1000)),
             PacketData::from(create_dummy_packet(2000)),
         ];
@@ -557,5 +549,4 @@ mod tests {
         assert_eq!(total_size, 0);
 
     }
-
 }

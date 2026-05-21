@@ -129,7 +129,6 @@ pub fn start_packet_processing(
 ) -> Result<()> {
 
     let mut wd = WinDivert::<NetworkLayer>::network(
-
         "false",
         0,
         WinDivertFlags::set_send_only(WinDivertFlags::new()),
@@ -263,12 +262,10 @@ pub fn start_packet_processing(
     }
 
     match WinDivert::<NetworkLayer>::network(
-
         "false",
         0,
         WinDivertFlags::new(),
     ) {
-
         Ok(mut flush_handle) => {
             let _ = flush_handle.close(CloseAction::Nothing);
 
@@ -277,7 +274,6 @@ pub fn start_packet_processing(
         Err(e) => {
             error!("Failed to flush WFP cache: {}", e);
         }
-
     }
 
     Ok(())

@@ -21,7 +21,6 @@ pub struct ReorderModule;
 pub type ReorderState = BinaryHeap<DelayedPacket<'static>>;
 
 impl PacketModule for ReorderModule {
-
     type Options = ReorderOptions;
     type State = ReorderState;
 
@@ -63,7 +62,6 @@ impl PacketModule for ReorderModule {
         Ok(())
 
     }
-
 }
 
 /// Reorders packets based on specified probability and delay parameters
@@ -111,7 +109,6 @@ pub fn reorder_packets<'a>(
     for packet in packets.drain(..) {
         // Check if this packet's direction should be affected
         let matches_direction = (packet.is_outbound && apply_outbound)
-
             || (!packet.is_outbound && apply_inbound);
 
         if !matches_direction {

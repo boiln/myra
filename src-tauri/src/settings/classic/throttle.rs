@@ -25,7 +25,6 @@ fn default_max_buffer() -> usize {
 /// all at once (burst) or drops them entirely.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ClassicThrottleOptions {
-
     /// Whether this module is enabled
     #[serde(default)]
     pub enabled: bool,
@@ -53,12 +52,11 @@ pub struct ClassicThrottleOptions {
     /// Maximum packets to buffer before forced flush
     #[serde(default = "default_max_buffer")]
     pub max_buffer: usize,
-
 }
 
 impl Default for ClassicThrottleOptions {
-
     fn default() -> Self {
+
         Self {
             enabled: false,
             inbound: true,
@@ -68,6 +66,6 @@ impl Default for ClassicThrottleOptions {
             drop_on_release: false,
             max_buffer: 1000,
         }
-    }
 
+    }
 }

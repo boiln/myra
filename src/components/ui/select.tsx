@@ -21,7 +21,6 @@ function SelectTrigger({
 }: React.ComponentProps<typeof SelectPrimitive.Trigger>) {
 
     return (
-
         <SelectPrimitive.Trigger
             ref={ref}
             className={cn(
@@ -46,7 +45,6 @@ function SelectScrollUpButton({
 }: React.ComponentProps<typeof SelectPrimitive.ScrollUpButton>) {
 
     return (
-
         <SelectPrimitive.ScrollUpButton
             ref={ref}
             className={cn("flex cursor-default items-center justify-center py-1", className)}
@@ -65,7 +63,6 @@ function SelectScrollDownButton({
 }: React.ComponentProps<typeof SelectPrimitive.ScrollDownButton>) {
 
     return (
-
         <SelectPrimitive.ScrollDownButton
             ref={ref}
             className={cn("flex cursor-default items-center justify-center py-1", className)}
@@ -86,7 +83,6 @@ function SelectContent({
 }: React.ComponentProps<typeof SelectPrimitive.Content>) {
 
     return (
-
         <SelectPrimitive.Portal>
             <SelectPrimitive.Content
                 ref={ref}
@@ -123,7 +119,6 @@ function SelectLabel({
 }: React.ComponentProps<typeof SelectPrimitive.Label>) {
 
     return (
-
         <SelectPrimitive.Label
             ref={ref}
             className={cn("py-1.5 pl-8 pr-2 text-sm font-semibold", className)}
@@ -141,7 +136,6 @@ function SelectItem({
 }: React.ComponentProps<typeof SelectPrimitive.Item>) {
 
     return (
-
         <SelectPrimitive.Item
             ref={ref}
             className={cn(
@@ -155,7 +149,6 @@ function SelectItem({
                     <Check className="size-4" />
                 </SelectPrimitive.ItemIndicator>
             </span>
-
             <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
         </SelectPrimitive.Item>
     );
@@ -169,7 +162,6 @@ function SelectSeparator({
 }: React.ComponentProps<typeof SelectPrimitive.Separator>) {
 
     return (
-
         <SelectPrimitive.Separator
             ref={ref}
             className={cn("-mx-1 my-1 h-px bg-muted", className)}

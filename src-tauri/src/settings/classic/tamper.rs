@@ -18,7 +18,6 @@ fn default_chance() -> f64 {
 /// Larger packets get ~25% of middle section tampered.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ClassicTamperOptions {
-
     /// Whether this module is enabled
     #[serde(default)]
     pub enabled: bool,
@@ -38,12 +37,11 @@ pub struct ClassicTamperOptions {
     /// Whether to recalculate checksums after tampering
     #[serde(default = "default_true")]
     pub recalc_checksum: bool,
-
 }
 
 impl Default for ClassicTamperOptions {
-
     fn default() -> Self {
+
         Self {
             enabled: false,
             inbound: true,
@@ -51,6 +49,6 @@ impl Default for ClassicTamperOptions {
             chance: 10.0,
             recalc_checksum: true,
         }
-    }
 
+    }
 }

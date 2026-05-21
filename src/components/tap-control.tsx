@@ -26,18 +26,20 @@ export function TapControl() {
     };
 
     const handleInputChange = (
-
         e: ChangeEvent<HTMLInputElement>,
         key: "intervalMs" | "durationMs" | "minBufferForTap" | "cooldownMs",
         isInteger = true
     ) => {
+
         const input = e.target.value;
 
         setInputValues((prev) => ({ ...prev, [key]: input }));
 
         // Allow empty and partial numeric input during typing
         if (input === "") return;
+
         if (!/^-?\d*\.?\d*$/.test(input)) return;
+
         if (input === "." || input === "-" || input === "-." || input.endsWith(".")) return;
 
         const parsed = isInteger ? parseInt(input, 10) : parseFloat(input);
@@ -59,15 +61,16 @@ export function TapControl() {
                 setCooldownMs(parsed);
                 break;
         }
+
     };
 
     const handleInputBlur = (
-
         key: "intervalMs" | "durationMs" | "minBufferForTap" | "cooldownMs",
         min: number,
         max: number,
         isInteger = true
     ) => {
+
         const input = inputValues[key];
         const parsed = isInteger ? parseInt(input ?? "", 10) : parseFloat(input ?? "");
 
@@ -95,20 +98,22 @@ export function TapControl() {
                 setCooldownMs(clamped);
                 break;
         }
+
     };
 
     // Sync UI inputs when TAP settings change (e.g., after loading a preset)
     useEffect(() => {
+
         setInputValues({
             intervalMs: (settings.intervalMs ?? 0).toString(),
             durationMs: (settings.durationMs ?? 0).toString(),
             minBufferForTap: (settings.minBufferForTap ?? 200).toString(),
             cooldownMs: (settings.cooldownMs ?? 1200).toString(),
         });
+
     }, [settings.intervalMs, settings.durationMs, settings.minBufferForTap, settings.cooldownMs]);
 
     return (
-
         <div className="flex items-center gap-3 rounded-lg border border-border bg-card/90 p-2 shadow-sm backdrop-blur-sm">
             {/* Tap enable checkbox */}
             <MyraCheckbox
@@ -118,7 +123,6 @@ export function TapControl() {
                 label="Tap"
                 labelClassName="text-sm font-medium text-foreground"
             />
-
             {/* Interval setting */}
             <div className="flex items-center gap-1">
                 <Label
@@ -139,7 +143,6 @@ export function TapControl() {
                 />
                 <span className="text-xs text-foreground/70">ms</span>
             </div>
-
             {/* Duration setting */}
             <div className="flex items-center gap-1">
                 <Label
@@ -160,7 +163,6 @@ export function TapControl() {
                 />
                 <span className="text-xs text-foreground/70">ms</span>
             </div>
-
             {/* Auto mode toggle */}
             <MyraCheckbox
                 id="tap-auto-enabled"
@@ -170,7 +172,6 @@ export function TapControl() {
                 labelClassName="text-sm font-medium text-foreground"
                 disabled={!settings.enabled}
             />
-
             {/* Auto thresholds */}
             <div className="flex items-center gap-1">
                 <Label
@@ -190,7 +191,6 @@ export function TapControl() {
                     inputMode="numeric"
                 />
             </div>
-
             <div className="flex items-center gap-1">
                 <Label
                     htmlFor="tap-cooldown"

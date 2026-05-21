@@ -7,9 +7,7 @@ const MAX_HISTORY: usize = 20;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 struct FilterHistory {
-
     entries: Vec<String>,
-
 }
 
 fn get_history_dir() -> Result<PathBuf, String> {
@@ -25,7 +23,6 @@ fn get_history_dir() -> Result<PathBuf, String> {
     }
 
     let exe_dir = std::env::current_exe()
-
         .map_err(|e| format!("Could not determine executable path: {}", e))?
         .parent()
         .ok_or_else(|| "Could not determine executable directory".to_string())?
@@ -53,11 +50,9 @@ fn load_history() -> Result<FilterHistory, String> {
     }
 
     let content = fs::read_to_string(&path)
-
         .map_err(|e| format!("Failed reading filter history: {}", e))?;
 
     let parsed: FilterHistory = serde_json::from_str(&content)
-
         .map_err(|e| format!("Failed parsing filter history: {}", e))?;
     Ok(parsed)
 
@@ -67,11 +62,9 @@ fn save_history(history: &FilterHistory) -> Result<(), String> {
 
     let path = get_history_path()?;
     let json = serde_json::to_string_pretty(history)
-
         .map_err(|e| format!("Failed serializing filter history: {}", e))?;
 
     let mut file = fs::File::create(&path)
-
         .map_err(|e| format!("Failed creating filter history file: {}", e))?;
     file.write_all(json.as_bytes())
         .map_err(|e| format!("Failed writing filter history: {}", e))?

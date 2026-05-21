@@ -3,7 +3,6 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 interface MyraCheckboxProps {
-
     id?: string;
     label?: string;
     checked?: boolean;
@@ -12,7 +11,6 @@ interface MyraCheckboxProps {
     className?: string;
     labelClassName?: string;
     isHighlighted?: boolean;
-
 }
 
 export function MyraCheckbox({
@@ -30,7 +28,6 @@ export function MyraCheckbox({
     const checkboxId = id || uniqueId;
 
     return (
-
         <div className="relative flex items-center">
             <div className="relative">
                 {/* Hide the original input but keep it accessible */}
@@ -42,7 +39,6 @@ export function MyraCheckbox({
                     disabled={disabled}
                     className="sr-only"
                 />
-
                 {/* Custom checkbox UI */}
                 <label
                     htmlFor={checkboxId}
@@ -75,7 +71,6 @@ export function MyraCheckbox({
                     </svg>
                 </label>
             </div>
-
             {/* Label */}
             {label && (
                 <Label

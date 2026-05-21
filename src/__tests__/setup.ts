@@ -34,6 +34,7 @@ Object.defineProperty(window, "matchMedia", {
 
 // Mock localStorage for zustand persist middleware
 const localStorageMock = (() => {
+
     let store: Record<string, string> = {};
 
     return {
@@ -48,5 +49,6 @@ const localStorageMock = (() => {
             store = {};
         },
     };
+
 })();
 Object.defineProperty(window, "localStorage", { value: localStorageMock });

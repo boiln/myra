@@ -7,7 +7,6 @@ use thiserror::Error;
 /// Error type for probability operations
 #[derive(Debug, Error)]
 pub enum ProbabilityError {
-
     /// Returned when a probability value is out of the valid range (0.0-1.0)
     #[error("{0} is not in the valid probability range of 0.0 to 1.0")]
     OutOfRange(f64),
@@ -15,7 +14,6 @@ pub enum ProbabilityError {
     /// Returned when a string can't be parsed as a valid float
     #[error("'{0}' is not a valid number for a probability value")]
     ParseError(String),
-
 }
 
 /// Represents a probability value between 0.0 and 1.0.
@@ -35,7 +33,6 @@ pub enum ProbabilityError {
 pub struct Probability(f64);
 
 impl Probability {
-
     /// Creates a new probability value, ensuring it's between 0.0 and 1.0.
     ///
     /// # Arguments
@@ -47,11 +44,13 @@ impl Probability {
     /// * `Result<Self, ProbabilityError>` - A Result containing the Probability
     ///   or an error if the value is outside the valid range
     pub fn new(value: f64) -> Result<Self, ProbabilityError> {
+
         if !(0.0..=1.0).contains(&value) {
             return Err(ProbabilityError::OutOfRange(value));
         }
 
         Ok(Self(value))
+
     }
 
     /// Returns the underlying probability value.
@@ -62,11 +61,9 @@ impl Probability {
     pub fn value(&self) -> f64 {
         self.0
     }
-
 }
 
 impl FromStr for Probability {
-
     type Err = ProbabilityError;
 
     /// Converts a string to a probability value.
@@ -82,17 +79,14 @@ impl FromStr for Probability {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
 
         let value: f64 = s
-
             .parse()
             .map_err(|_| ProbabilityError::ParseError(s.to_string()))?;
         Self::new(value)
 
     }
-
 }
 
 impl From<Probability> for f64 {
-
     /// Converts a Probability to an f64.
     ///
     /// # Arguments
@@ -105,11 +99,9 @@ impl From<Probability> for f64 {
     fn from(prob: Probability) -> Self {
         prob.0
     }
-
 }
 
 impl Default for Probability {
-
     /// Creates a default probability of 0.0 (impossible).
     ///
     /// # Returns
@@ -118,11 +110,9 @@ impl Default for Probability {
     fn default() -> Self {
         Self(0.0)
     }
-
 }
 
 impl fmt::Display for Probability {
-
     /// Formats the probability value for display.
     ///
     /// # Arguments
@@ -135,12 +125,10 @@ impl fmt::Display for Probability {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)
     }
-
 }
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
 
     #[test]
@@ -181,5 +169,4 @@ mod tests {
 
         assert_eq!(format!("{}", p), "0.25");
     }
-
 }

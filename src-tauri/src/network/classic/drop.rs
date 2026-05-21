@@ -15,20 +15,19 @@ pub fn process_drop<'a>(
     let chance = options.chance / 100.0;
 
     packets.retain(|packet| {
-        let matches_direction = (packet.is_outbound && options.outbound)
 
+        let matches_direction = (packet.is_outbound && options.outbound)
             || (!packet.is_outbound && options.inbound);
 
         if !matches_direction {
             return true; // Keep packet (wrong direction)
         }
-
         // Drop based on probability
         if rng.random::<f64>() < chance {
             return false; // Drop packet
         }
-
         true // Keep packet
+
     });
 
 }

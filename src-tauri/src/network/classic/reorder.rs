@@ -40,7 +40,6 @@ pub fn process_reorder<'a>(
 
     // Filter packets by direction
     let matching_indices: Vec<usize> = packets
-
         .iter()
         .enumerate()
         .filter(|(_, p)| {

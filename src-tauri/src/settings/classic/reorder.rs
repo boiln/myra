@@ -21,7 +21,6 @@ fn default_max_hold_cycles() -> u32 {
 /// Can hold a single packet for up to N cycles waiting for more packets.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ClassicReorderOptions {
-
     /// Whether this module is enabled
     #[serde(default)]
     pub enabled: bool,
@@ -41,12 +40,11 @@ pub struct ClassicReorderOptions {
     /// How many cycles to hold a lone packet before releasing
     #[serde(default = "default_max_hold_cycles")]
     pub max_hold_cycles: u32,
-
 }
 
 impl Default for ClassicReorderOptions {
-
     fn default() -> Self {
+
         Self {
             enabled: false,
             inbound: true,
@@ -54,6 +52,6 @@ impl Default for ClassicReorderOptions {
             chance: 10.0,
             max_hold_cycles: 10,
         }
-    }
 
+    }
 }

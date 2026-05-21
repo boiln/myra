@@ -7,7 +7,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { Info } from "lucide-react";
 
 interface ClassicModuleRowProps {
-
     module: ClassicModuleInfo;
     onModuleToggle: (module: ClassicModuleInfo) => Promise<void>;
     onDirectionToggle: (
@@ -15,7 +14,6 @@ interface ClassicModuleRowProps {
         direction: "inbound" | "outbound"
     ) => Promise<void>;
     onSettingChange: (module: ClassicModuleInfo, setting: string, value: number | boolean) => void;
-
 }
 
 // Module-specific parameter configurations
@@ -23,68 +21,56 @@ const MODULE_PARAMS: Record<
 
     ClassicModuleName,
     Array<{
-
         key: string;
         label: string;
         min: number;
         max: number;
         isInteger?: boolean;
         tooltip?: string;
-
     }>
 > = {
-
     classic_latency: [
         {
-
             key: "delay_ms",
             label: "Delay(ms)",
             min: 0,
             max: 15000,
             isInteger: true,
             tooltip: "Fixed delay before packet release",
-
         },
     ],
     classic_drop: [],
     classic_throttle: [
         {
-
             key: "window_ms",
             label: "Window(ms)",
             min: 0,
             max: 1000,
             isInteger: true,
             tooltip: "Time window for buffering packets",
-
         },
     ],
     classic_reorder: [
         {
-
             key: "max_hold_cycles",
             label: "Hold Cycles",
             min: 1,
             max: 100,
             isInteger: true,
             tooltip: "Max cycles to hold a single packet",
-
         },
     ],
     classic_tamper: [],
     classic_bandwidth: [
         {
-
             key: "limit_kbps",
             label: "Limit(KB/s)",
             min: 0.1,
             max: 10000,
             isInteger: false,
             tooltip: "Bandwidth limit in kilobytes per second",
-
         },
     ],
-
 };
 
 // Boolean toggles for specific modules
@@ -93,30 +79,24 @@ const MODULE_TOGGLES: Record<
     ClassicModuleName,
     Array<{ key: string; label: string; tooltip?: string }>
 > = {
-
     classic_latency: [],
     classic_drop: [],
     classic_throttle: [
         {
-
             key: "drop_on_release",
             label: "Drop",
             tooltip: "Drop buffered packets instead of releasing them",
-
         },
     ],
     classic_reorder: [],
     classic_tamper: [
         {
-
             key: "recalc_checksum",
             label: "Fix Checksum",
             tooltip: "Recalculate checksums after tampering",
-
         },
     ],
     classic_bandwidth: [],
-
 };
 
 export function ClassicModuleRow({
@@ -132,19 +112,21 @@ export function ClassicModuleRow({
     const toggles = MODULE_TOGGLES[module.name] || [];
 
     const handleInputChange = (
-
         e: ChangeEvent<HTMLInputElement>,
         setting: string,
         _min: number,
         _max: number,
         isInteger = false
     ) => {
+
         const input = e.target.value;
 
         setInputValues((prev) => ({ ...prev, [setting]: input }));
 
         if (input === "") return;
+
         if (!/^-?\d*\.?\d*$/.test(input)) return;
+
         if (input === "." || input === "-" || input === "-.") return;
 
         const parsed = isInteger ? parseInt(input, 10) : parseFloat(input);
@@ -152,9 +134,11 @@ export function ClassicModuleRow({
         if (isNaN(parsed)) return;
 
         onSettingChange(module, setting, parsed);
+
     };
 
     const handleInputBlur = (setting: string, min: number, max: number, isInteger = false) => {
+
         const input = inputValues[setting];
 
         if (input === undefined || input === "") {
@@ -174,15 +158,18 @@ export function ClassicModuleRow({
         let clamped = parsed;
 
         if (parsed < min) clamped = min;
+
         if (parsed > max) clamped = max;
 
         if (clamped !== parsed) {
             setInputValues((prev) => ({ ...prev, [setting]: clamped.toString() }));
             onSettingChange(module, setting, clamped);
         }
+
     };
 
     const getDisplayValue = (setting: string) => {
+
         if (setting in inputValues) return inputValues[setting];
 
         const value = module.config[setting as keyof typeof module.config];
@@ -190,10 +177,10 @@ export function ClassicModuleRow({
         if (value !== undefined && value !== null) return value.toString();
 
         return "";
+
     };
 
     return (
-
         <div className="flex items-center gap-x-3 py-2 first:pt-0.5 last:pb-0.5">
             {/* Module Enable Checkbox */}
             <div className="flex shrink-0 items-center gap-1.5">
@@ -213,7 +200,6 @@ export function ClassicModuleRow({
                     </TooltipContent>
                 </Tooltip>
             </div>
-
             {/* Module-specific numeric inputs */}
             <div className="flex shrink-0 items-center gap-2">
                 {params.map((param) => (
@@ -235,7 +221,6 @@ export function ClassicModuleRow({
                                     param.max,
                                     param.isInteger
                                 )
-
                             }
                             onBlur={() =>
                                 handleInputBlur(param.key, param.min, param.max, param.isInteger)
@@ -247,7 +232,6 @@ export function ClassicModuleRow({
                         />
                     </div>
                 ))}
-
                 {/* Module-specific boolean toggles */}
                 {toggles.map((toggle) => (
                     <Tooltip key={toggle.key}>
@@ -277,10 +261,8 @@ export function ClassicModuleRow({
                     </Tooltip>
                 ))}
             </div>
-
             {/* Spacer */}
             <div className="flex-1" />
-
             {/* Direction Controls */}
             <div className="flex items-center gap-2">
                 <MyraCheckbox
@@ -300,7 +282,6 @@ export function ClassicModuleRow({
                     labelClassName={`text-xs text-foreground ${!module.enabled ? "opacity-50" : ""}`}
                 />
             </div>
-
             {/* Chance */}
             <div className="flex items-center gap-1">
                 <Label
@@ -322,4 +303,5 @@ export function ClassicModuleRow({
             </div>
         </div>
     );
+
 }

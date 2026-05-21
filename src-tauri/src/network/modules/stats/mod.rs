@@ -24,7 +24,6 @@ pub mod util;
 /// such as packet drops, lag, reordering, and duplication.
 #[derive(Debug)]
 pub struct PacketProcessingStatistics {
-
     /// Statistics for packet dropping
     pub drop_stats: DropStats,
     /// Statistics for packet lag
@@ -41,12 +40,11 @@ pub struct PacketProcessingStatistics {
     pub bandwidth_stats: BandwidthStats,
     /// Statistics for packet bursting
     pub burst_stats: BurstStats,
-
 }
 
 impl Default for PacketProcessingStatistics {
-
     fn default() -> Self {
+
         Self {
             drop_stats: DropStats::new(0.005),
             lag_stats: LagStats::new(),
@@ -57,6 +55,6 @@ impl Default for PacketProcessingStatistics {
             bandwidth_stats: BandwidthStats::new(0.005),
             burst_stats: BurstStats::new(0.005),
         }
-    }
 
+    }
 }

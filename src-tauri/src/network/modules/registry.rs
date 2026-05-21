@@ -43,7 +43,6 @@ use std::time::Instant;
 
 /// Entry for a registered module in the registry.
 pub struct ModuleEntry {
-
     /// Unique identifier for this module
     pub name: &'static str,
     /// Human-readable display name
@@ -52,74 +51,57 @@ pub struct ModuleEntry {
     pub order: u32,
     /// Whether this module needs special handling (like burst flush)
     pub needs_special_handling: bool,
-
 }
 
 /// Information about all registered modules.
 pub const MODULES: &[ModuleEntry] = &[
     ModuleEntry {
-
         name: "drop",
         display_name: "Packet Drop",
         order: 10,
         needs_special_handling: false,
-
     },
     ModuleEntry {
-
         name: "lag",
         display_name: "Packet Lag",
         order: 20,
         needs_special_handling: false,
-
     },
     ModuleEntry {
-
         name: "throttle",
         display_name: "Throttle",
         order: 30,
         needs_special_handling: false,
-
     },
     ModuleEntry {
-
         name: "reorder",
         display_name: "Packet Reorder",
         order: 40,
         needs_special_handling: false,
-
     },
     ModuleEntry {
-
         name: "corruption",
         display_name: "Packet Corruption",
         order: 50,
         needs_special_handling: false,
-
     },
     ModuleEntry {
-
         name: "duplicate",
         display_name: "Packet Duplicate",
         order: 60,
         needs_special_handling: false,
-
     },
     ModuleEntry {
-
         name: "bandwidth",
         display_name: "Bandwidth Limit",
         order: 70,
         needs_special_handling: false,
-
     },
     ModuleEntry {
-
         name: "burst",
         display_name: "Burst (Lag Switch)",
         order: 80,
         needs_special_handling: true, // Needs buffer flush on disable
-
     },
 ];
 
@@ -140,6 +122,7 @@ pub fn find_module(name: &str) -> Option<&'static ModuleEntry> {
 
 /// Checks if a specific module is enabled in settings.
 pub fn is_module_enabled(settings: &Settings, name: &str) -> bool {
+
     match name {
         "drop" => settings.drop.as_ref().is_some_and(|o| o.enabled),
         "lag" => settings.lag.as_ref().is_some_and(|o| o.enabled),
@@ -151,6 +134,7 @@ pub fn is_module_enabled(settings: &Settings, name: &str) -> bool {
         "burst" => settings.burst.as_ref().is_some_and(|o| o.enabled),
         _ => false,
     }
+
 }
 
 /// Returns true if any module is currently enabled.
@@ -188,11 +172,8 @@ pub fn process_module<M>(
 where
     M: PacketModule,
 {
-
     let Some(opts) = options else {
-
         return Ok(());
-
     };
 
     if !opts.is_enabled() {
@@ -214,15 +195,12 @@ where
     }
 
     let mut ctx = ModuleContext {
-
         statistics,
         has_packets,
         effect_start,
-
     };
 
     module.process(packets, opts, state, &mut ctx)
-
 }
 
 /// Process all registered modules in order.
@@ -342,7 +320,6 @@ pub fn process_all_modules(
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
 
     #[test]
@@ -374,5 +351,4 @@ mod tests {
         assert!(names.contains(&"burst"));
 
     }
-
 }

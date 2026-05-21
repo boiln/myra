@@ -10,7 +10,6 @@ export function ToggleButton() {
     const { isActive, isTogglingActive, toggleActive } = useNetworkStore();
 
     return (
-
         <div className="flex items-center gap-2">
             <m.div
                 whileTap={{ scale: 0.97 }}

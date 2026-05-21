@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum TcDirection {
-
     /// Limit inbound (download) traffic only
     Inbound,
     /// Limit outbound (upload) traffic only
@@ -12,13 +11,11 @@ pub enum TcDirection {
     /// Limit both directions
     #[default]
     Both,
-
 }
 
 /// Settings for Traffic Control bandwidth limiting
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct TcBandwidthOptions {
-
     /// Whether TC bandwidth limiting is enabled
     #[serde(default)]
     pub enabled: bool,
@@ -31,7 +28,6 @@ pub struct TcBandwidthOptions {
     /// Direction to limit
     #[serde(default)]
     pub direction: TcDirection,
-
 }
 
 fn default_limit() -> u32 {
@@ -39,13 +35,13 @@ fn default_limit() -> u32 {
 }
 
 impl TcBandwidthOptions {
-
     pub fn new(limit_kbps: u32, direction: TcDirection) -> Self {
+
         Self {
             enabled: true,
             limit_kbps,
             direction,
         }
-    }
 
+    }
 }

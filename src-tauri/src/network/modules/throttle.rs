@@ -22,7 +22,6 @@ pub struct ThrottleModule;
 #[derive(Debug)]
 #[derive(Default)]
 pub struct ThrottleState {
-
     /// Queue of buffered packets
     pub buffer: VecDeque<PacketData<'static>>,
     /// When the current throttle cycle started (None = not throttling)
@@ -31,12 +30,9 @@ pub struct ThrottleState {
     pub last_flush: Option<Instant>,
     /// When we last let a packet through as keepalive (during throttle)
     pub last_leak: Option<Instant>,
-
 }
 
-
 impl PacketModule for ThrottleModule {
-
     type Options = ThrottleOptions;
     type State = ThrottleState;
 
@@ -84,7 +80,6 @@ impl PacketModule for ThrottleModule {
         Ok(())
 
     }
-
 }
 
 /// Network throttle implementation.
@@ -139,14 +134,12 @@ pub fn throttle_packets<'a>(
     // In freeze_mode: No cooldown - continuous buffering creates freeze effect
     // In normal mode: 40ms cooldown - allows packets to flow, prevents disconnects
     let in_cooldown = !freeze_mode && last_flush
-
         .map(|flush_time| now.duration_since(flush_time) < cooldown)
         .unwrap_or(false);
 
     // Check if we need to release/drop buffered packets
     let should_flush = cycle_start.as_ref().is_some_and(|start| {
         let elapsed = now.duration_since(*start);
-
         // Flush if timeframe elapsed OR buffer full
         elapsed >= timeframe || buffer.len() >= max_buffer
     });
@@ -214,7 +207,6 @@ pub fn throttle_packets<'a>(
 
             // Check direction
             let should_buffer = (packet.is_outbound && apply_outbound)
-
                 || (!packet.is_outbound && apply_inbound);
 
             if !should_buffer {
@@ -257,7 +249,6 @@ pub fn throttle_packets<'a>(
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
     use std::time::Duration;
     use windivert::layer::NetworkLayer;
@@ -265,9 +256,9 @@ mod tests {
 
     #[test]
     fn test_throttle_buffering() {
+
         unsafe {
             let mut packets = vec![
-
                 PacketData::new(WinDivertPacket::<NetworkLayer>::new(vec![1, 2, 3]), true),
                 PacketData::new(WinDivertPacket::<NetworkLayer>::new(vec![4, 5, 6]), true),
                 PacketData::new(WinDivertPacket::<NetworkLayer>::new(vec![7, 8, 9]), true),
@@ -300,10 +291,12 @@ mod tests {
             assert_eq!(buffer.len(), 3);
             assert!(stats.is_throttling);
         }
+
     }
 
     #[test]
     fn test_throttle_release_on_timeframe_end() {
+
         unsafe {
             let mut packets = Vec::new();
             let mut buffer = VecDeque::new();
@@ -345,10 +338,12 @@ mod tests {
             // last_flush should be set after release
             assert!(last_flush.is_some());
         }
+
     }
 
     #[test]
     fn test_throttle_drop_mode() {
+
         unsafe {
             let mut packets = Vec::new();
             let mut buffer = VecDeque::new();
@@ -384,6 +379,6 @@ mod tests {
             assert_eq!(buffer.len(), 0);
             assert_eq!(stats.dropped_count, 1);
         }
-    }
 
+    }
 }

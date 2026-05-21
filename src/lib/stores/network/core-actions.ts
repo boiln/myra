@@ -13,38 +13,35 @@ export const createCoreSlice: StateCreator<
     Pick<NetworkStore, "toggleActive" | "updateFilter" | "setFilterTarget" | "loadStatus">
 > = (set, get) => ({
     loadStatus: async () => {
+
         try {
             const [status, currentFilter, settings] = await Promise.all([
-
                 ManipulationService.getStatus(),
                 ManipulationService.getFilter(),
                 ManipulationService.getSettings(),
             ]);
-
             // Get existing modules to preserve inbound/outbound settings
             const { manipulationStatus: existingStatus } = get();
             const existingModules = existingStatus.modules;
-
             // Helper to get existing direction settings for a module
             const getExistingDirections = (moduleName: string) => {
+
                 const existing = existingModules.find((m) => m.name === moduleName);
 
                 return {
                     inbound: existing?.config.inbound ?? true,
                     outbound: existing?.config.outbound ?? true,
                 };
-            };
 
+            };
             // Helper to get existing config value - preserves UI state when backend returns undefined
             const getExistingConfig = <T>(moduleName: string, key: string, defaultValue: T): T => {
                 const existing = existingModules.find((m) => m.name === moduleName);
 
                 return (existing?.config[key as keyof typeof existing.config] as T) ?? defaultValue;
             };
-
             // Create modules array from settings, preserving direction settings
             const modules: ModuleInfo[] = [
-
                 {
                     name: "lag",
                     display_name: "Lag",
@@ -204,16 +201,13 @@ export const createCoreSlice: StateCreator<
                     },
                 },
             ];
-
             // Preserve current filter if backend returns null - don't reset to default
             const { filter: existingFilter } = get();
             const newFilter = currentFilter || existingFilter || DEFAULT_FILTER;
-
             // Check if Classic mode is running - if so, use that status instead
             const mode = useModeStore.getState().mode;
             const classicStore = useClassicStore.getState();
             const isRunning = mode === "classic" ? classicStore.isProcessing : status.running;
-
             set({
                 isActive: isRunning,
                 filter: newFilter,
@@ -226,8 +220,8 @@ export const createCoreSlice: StateCreator<
         } catch (error) {
             console.error("Failed to load status:", error);
         }
-    },
 
+    },
     toggleActive: async () => {
 
         const { isActive, filter, buildSettings } = get();
@@ -237,7 +231,6 @@ export const createCoreSlice: StateCreator<
         try {
             set({ isTogglingActive: true });
             set({ isActive: !isActive });
-
             if (isActive) {
                 // Stopping - stop whichever mode might be running
                 if (mode === "classic") {
@@ -245,7 +238,6 @@ export const createCoreSlice: StateCreator<
                 }
                 await ManipulationService.stopProcessing().catch(() => {});
             }
-
             if (!isActive) {
                 if (mode === "classic") {
                     // Start Classic mode processing with the same filter
@@ -253,13 +245,11 @@ export const createCoreSlice: StateCreator<
                 } else {
                     // Start Standard mode processing
                     const settings = buildSettings();
-
                     await ManipulationService.startProcessing(settings, filter);
                 }
             } else {
                 classicStore.setActive(false);
             }
-
             await get().loadStatus();
         } catch (error) {
             console.error("Failed to toggle active state:", error);
@@ -269,29 +259,23 @@ export const createCoreSlice: StateCreator<
         }
 
     },
-
     updateFilter: async (newFilter: string) => {
 
         const { isActive } = get();
 
         try {
             set({ isUpdatingFilter: true });
-
             await ManipulationService.updateFilter(newFilter || DEFAULT_FILTER);
             set({ filter: newFilter || DEFAULT_FILTER });
-
             if (!isActive) {
                 await get().loadStatus();
                 return;
             }
-
             const [settings] = await Promise.all([
-
                 ManipulationService.getSettings(),
                 ManipulationService.stopProcessing(),
             ]);
             await ManipulationService.startProcessing(settings, newFilter);
-
             await get().loadStatus();
         } catch (error) {
             console.error("Failed to update filter:", error);
@@ -300,7 +284,6 @@ export const createCoreSlice: StateCreator<
         }
 
     },
-
     setFilterTarget: (target: FilterTarget) => {
         set({ filterTarget: target });
     },

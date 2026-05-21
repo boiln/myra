@@ -17,7 +17,6 @@ export const createModuleSlice: StateCreator<
         const newSettings: PacketManipulationSettings = {
             ...(await ManipulationService.getSettings()),
         };
-
         const probability = Math.max(0.0001, (config.chance || 100) / 100);
         const duration_ms = config.duration_ms || 0;
 
@@ -29,21 +28,18 @@ export const createModuleSlice: StateCreator<
                     duration_ms: 0, // Effect duration (0 = infinite)
                 };
                 break;
-
             case "drop":
                 newSettings.drop = {
                     probability,
                     duration_ms,
                 };
                 break;
-
             case "throttle":
                 newSettings.throttle = {
                     probability,
                     duration_ms,
                 };
                 break;
-
             case "duplicate":
                 newSettings.duplicate = {
                     probability,
@@ -51,7 +47,6 @@ export const createModuleSlice: StateCreator<
                     duration_ms,
                 };
                 break;
-
             case "bandwidth":
                 newSettings.bandwidth = {
                     probability,
@@ -60,14 +55,12 @@ export const createModuleSlice: StateCreator<
                     use_wfp: config.use_wfp ?? false,
                 };
                 break;
-
             case "corruption":
                 newSettings.corruption = {
                     probability,
                     duration_ms,
                 };
                 break;
-
             case "reorder":
                 newSettings.reorder = {
                     probability,
@@ -75,12 +68,9 @@ export const createModuleSlice: StateCreator<
                     max_delay: config.throttle_ms || 100,
                 };
                 break;
-
             case "burst":
-
                 // Use preserved release_delay_us from settings if available
                 const preservedReleaseDelay =
-
                     newSettings.burst_release_delay_us ?? config.release_delay_us ?? 500;
                 newSettings.burst = {
                     probability,
@@ -102,16 +92,13 @@ export const createModuleSlice: StateCreator<
         }
 
     },
-
     updateModuleSettings: async (moduleName: string, config: ModuleConfig) => {
 
         const { manipulationStatus } = get();
         const moduleIndex = manipulationStatus.modules.findIndex((m) => m.name === moduleName);
 
         if (moduleIndex === -1) return;
-
         const updatedModules = [...manipulationStatus.modules];
-
         updatedModules[moduleIndex] = {
             ...updatedModules[moduleIndex],
             config: {
@@ -119,7 +106,6 @@ export const createModuleSlice: StateCreator<
                 ...config,
             },
         };
-
         set({
             manipulationStatus: {
                 ...manipulationStatus,
@@ -134,34 +120,27 @@ export const createModuleSlice: StateCreator<
         }
 
     },
-
     toggleDirection: async (moduleName: string, direction: "inbound" | "outbound") => {
 
         const { manipulationStatus } = get();
         const moduleIndex = manipulationStatus.modules.findIndex((m) => m.name === moduleName);
 
         if (moduleIndex === -1) return;
-
         const module = manipulationStatus.modules[moduleIndex];
-
         const newConfig = {
             ...module.config,
             [direction]: !module.config[direction],
         };
-
         await get().updateModuleSettings(moduleName, newConfig);
 
     },
-
     applyModuleSettings: async (moduleName: string, enabled: boolean) => {
 
         const { manipulationStatus } = get();
         const moduleIndex = manipulationStatus.modules.findIndex((m) => m.name === moduleName);
 
         if (moduleIndex === -1) return;
-
         const updatedModules = [...manipulationStatus.modules];
-
         updatedModules[moduleIndex] = {
             ...updatedModules[moduleIndex],
             enabled,
@@ -170,7 +149,6 @@ export const createModuleSlice: StateCreator<
                 enabled,
             },
         };
-
         set({
             manipulationStatus: {
                 ...manipulationStatus,

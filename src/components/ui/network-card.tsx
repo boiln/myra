@@ -6,12 +6,10 @@ interface NetworkCardProps extends Omit<
     HTMLMotionProps<"div">,
     "initial" | "animate" | "transition" | "whileTap"
 > {
-
     isActive?: boolean;
     isFeatured?: boolean;
     children: React.ReactNode;
     ref?: React.Ref<HTMLDivElement>;
-
 }
 
 export function NetworkCard({
@@ -26,7 +24,6 @@ export function NetworkCard({
     const [isHovered, setIsHovered] = useState(false);
 
     return (
-
         <LazyMotion features={domAnimation}>
             <m.div
                 ref={ref}

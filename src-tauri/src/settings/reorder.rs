@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Parser, Debug, Serialize, Deserialize, Clone)]
 pub struct ReorderOptions {
-
     /// Whether this module is enabled
     #[arg(skip)]
     #[serde(default)]
@@ -41,12 +40,11 @@ pub struct ReorderOptions {
     )]
     #[serde(default)]
     pub duration_ms: u64,
-
 }
 
 impl Default for ReorderOptions {
-
     fn default() -> Self {
+
         Self {
             enabled: false,
             inbound: true,
@@ -55,6 +53,6 @@ impl Default for ReorderOptions {
             max_delay: 100,
             duration_ms: 0,
         }
-    }
 
+    }
 }

@@ -12,7 +12,6 @@ use crate::network::modules::stats::util::ewma::Ewma;
 /// * `ewma` - Exponentially weighted moving average for smoothing recent drop rates
 #[derive(Debug)]
 pub struct DropStats {
-
     /// Total number of packets processed
     pub total_packets: usize,
 
@@ -21,11 +20,9 @@ pub struct DropStats {
 
     /// EWMA for recent drop rate calculations
     ewma: Ewma,
-
 }
 
 impl DropStats {
-
     /// Creates a new `DropStats` instance with the specified alpha parameter for EWMA.
     ///
     /// # Arguments
@@ -43,11 +40,13 @@ impl DropStats {
     /// let stats = DropStats::new(0.3); // EWMA with alpha = 0.3
     /// ```
     pub fn new(alpha: f64) -> Self {
+
         Self {
             total_packets: 0,
             total_dropped: 0,
             ewma: Ewma::new(alpha),
         }
+
     }
 
     /// Records a packet processing result, updating all statistics.
@@ -94,11 +93,13 @@ impl DropStats {
     /// assert_eq!(stats.total_drop_rate(), 0.5); // 50% drop rate
     /// ```
     pub fn total_drop_rate(&self) -> f64 {
+
         if self.total_packets == 0 {
             return 0.0;
         }
 
         self.total_dropped as f64 / self.total_packets as f64
+
     }
 
     /// Gets the recent drop rate based on the EWMA.
@@ -125,12 +126,10 @@ impl DropStats {
         self.ewma.reset();
 
     }
-
 }
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
 
     #[test]
@@ -177,5 +176,4 @@ mod tests {
         assert_eq!(stats.total_drop_rate(), 0.0);
 
     }
-
 }

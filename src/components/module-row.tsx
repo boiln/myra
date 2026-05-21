@@ -8,7 +8,6 @@ import { HotkeyBadge } from "@/components/hotkey-badge";
 
 // Map module names to hotkey actions
 const MODULE_HOTKEY_ACTIONS: Record<string, string> = {
-
     drop: "toggleDrop",
     lag: "toggleLag",
     throttle: "toggleThrottle",
@@ -17,18 +16,15 @@ const MODULE_HOTKEY_ACTIONS: Record<string, string> = {
     corruption: "toggleCorruption",
     reorder: "toggleReorder",
     burst: "toggleBurst",
-
 };
 
 interface ModuleRowProps {
-
     module: ModuleInfo;
     isActive: boolean;
     onModuleToggle: (module: ModuleInfo) => Promise<void>;
     onDirectionToggle: (module: ModuleInfo, direction: "inbound" | "outbound") => Promise<void>;
     onSettingChange: (module: ModuleInfo, setting: string, value: number) => void;
     onBooleanSettingChange?: (module: ModuleInfo, setting: string, value: boolean) => void;
-
 }
 
 export function ModuleRow({
@@ -43,13 +39,13 @@ export function ModuleRow({
 
     // Handle input change - allow any valid number format during typing
     const handleInputChange = (
-
         e: ChangeEvent<HTMLInputElement>,
         setting: string,
         _min: number,
         _max: number,
         isInteger = false
     ) => {
+
         const input = e.target.value;
 
         // Always update the display value
@@ -62,6 +58,7 @@ export function ModuleRow({
 
         // Allow partial number input during typing (like "0.", ".", "-", etc.)
         if (!/^-?\d*\.?\d*$/.test(input)) return;
+
         if (input === "." || input === "-" || input === "-." || input.endsWith(".")) return;
 
         const parsed = isInteger ? parseInt(input, 10) : parseFloat(input);
@@ -71,10 +68,12 @@ export function ModuleRow({
         // Don't clamp during typing - just update with parsed value
         // Clamping happens on blur
         onSettingChange(module, setting, parsed);
+
     };
 
     // Handle blur - clamp value to valid range
     const handleInputBlur = (setting: string, min: number, max: number, isInteger = false) => {
+
         const input = inputValues[setting];
 
         if (input === undefined || input === "") {
@@ -97,15 +96,18 @@ export function ModuleRow({
         let clamped = parsed;
 
         if (parsed < min) clamped = min;
+
         if (parsed > max) clamped = max;
 
         if (clamped !== parsed) {
             setInputValues((prev) => ({ ...prev, [setting]: clamped.toString() }));
             onSettingChange(module, setting, clamped);
         }
+
     };
 
     const getDisplayValue = (setting: string) => {
+
         if (setting in inputValues) return inputValues[setting];
 
         const value = module.config[setting as keyof typeof module.config];
@@ -124,10 +126,10 @@ export function ModuleRow({
         };
 
         return defaults[setting] ?? "";
+
     };
 
     return (
-
         <div key={module.name} className="flex items-center gap-x-3 py-2 first:pt-0.5 last:pb-0.5">
             {/* Module Enable Checkbox */}
             <div className="flex shrink-0 items-center gap-1.5">
@@ -142,7 +144,6 @@ export function ModuleRow({
                     <HotkeyBadge action={MODULE_HOTKEY_ACTIONS[module.name]} />
                 )}
             </div>
-
             {/* Module-specific inputs - right after module name */}
             <div className="flex shrink-0 items-center gap-2">
                 {module.name === "lag" && (
@@ -179,7 +180,6 @@ export function ModuleRow({
                                 value={getDisplayValue("throttle_ms")}
                                 onChange={(e) =>
                                     handleInputChange(e, "throttle_ms", 1, 60000, true)
-
                                 }
                                 onBlur={() => handleInputBlur("throttle_ms", 1, 60000, true)}
                                 className="h-6 w-[50px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
@@ -331,10 +331,8 @@ export function ModuleRow({
                     </>
                 )}
             </div>
-
             {/* Spacer to push right controls to the right */}
             <div className="flex-1" />
-
             {/* Direction Controls - docked right */}
             <div className="flex items-center gap-2">
                 <MyraCheckbox
@@ -354,7 +352,6 @@ export function ModuleRow({
                     labelClassName={`text-xs text-foreground ${!module.enabled ? "opacity-50" : ""}`}
                 />
             </div>
-
             {/* Chance - docked right */}
             <div className="flex items-center gap-1">
                 <Label
@@ -374,7 +371,6 @@ export function ModuleRow({
                     inputMode="decimal"
                 />
             </div>
-
             {/* Duration - docked right (not for lag since it uses Time above) */}
             {module.name !== "lag" && (
                 <div className="flex items-center gap-1">
@@ -397,4 +393,5 @@ export function ModuleRow({
             )}
         </div>
     );
+
 }

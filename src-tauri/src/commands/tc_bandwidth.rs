@@ -5,19 +5,15 @@ use tauri::State;
 
 /// Global state for the bandwidth limiter
 pub struct TcLimiterState {
-
     pub throttle: Mutex<Option<WfpThrottle>>,
-
 }
 
 impl Default for TcLimiterState {
-
     fn default() -> Self {
         Self {
             throttle: Mutex::new(None),
         }
     }
-
 }
 
 /// Start the bandwidth limiter
@@ -38,19 +34,16 @@ pub fn start_tc_bandwidth(
     }
 
     let (inbound, outbound) = match direction.to_lowercase().as_str() {
-
         "inbound" | "download" | "in" => (true, false),
         "outbound" | "upload" | "out" => (false, true),
         "both" | "all" => (true, true),
         _ => (true, false),
-
     };
 
     info!("Starting bandwidth limiter: {:.2} KB/s, direction: {} (in={}, out={})",
           limit_kbps, direction, inbound, outbound);
 
     match WfpThrottle::new(limit_kbps, "all", inbound, outbound) {
-
         Ok(throttle) => {
             *limiter_guard = Some(throttle);
 
@@ -65,7 +58,6 @@ pub fn start_tc_bandwidth(
             error!("Failed to start bandwidth limiter: {:?}", e);
             Err(format!("Failed to start: {}", e))
         }
-
     }
 
 }
@@ -111,9 +103,7 @@ pub fn get_tc_bandwidth_status(state: State<'_, TcLimiterState>) -> Result<TcBan
 /// Status response for bandwidth limiter
 #[derive(serde::Serialize)]
 pub struct TcBandwidthStatus {
-
     pub active: bool,
     pub limit_kbps: f64,
     pub direction: String,
-
 }

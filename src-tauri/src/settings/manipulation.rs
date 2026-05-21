@@ -18,14 +18,10 @@ where
     T: Serialize,
     S: Serializer,
 {
-
     match value {
-
         Some(v) => v.serialize(serializer),
         None => serializer.serialize_none(),
-
     }
-
 }
 
 /// Represents all network packet manipulation settings.
@@ -34,7 +30,6 @@ where
 /// that can be applied to packets, each as an optional setting.
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Settings {
-
     /// Controls random packet dropping
     #[serde(serialize_with = "serialize_option")]
     pub drop: Option<DropOptions>,
@@ -80,7 +75,6 @@ pub struct Settings {
     /// Works at OS socket layer for true rate limiting
     #[serde(default, serialize_with = "serialize_option")]
     pub tc_bandwidth: Option<TcBandwidthOptions>,
-
 }
 
 fn default_burst_release_delay() -> u64 {
@@ -88,8 +82,8 @@ fn default_burst_release_delay() -> u64 {
 }
 
 impl Default for Settings {
-
     fn default() -> Self {
+
         Self {
             drop: None,
             lag: None,
@@ -103,73 +97,57 @@ impl Default for Settings {
             lag_bypass: false,
             tc_bandwidth: None,
         }
-    }
 
+    }
 }
 
 // Implement ModuleOptions trait for all option types
 use crate::network::modules::traits::ModuleOptions;
 
 impl ModuleOptions for DropOptions {
-
     fn is_enabled(&self) -> bool {
         self.enabled
     }
-
 }
 
 impl ModuleOptions for LagOptions {
-
     fn is_enabled(&self) -> bool {
         self.enabled
     }
-
 }
 
 impl ModuleOptions for ThrottleOptions {
-
     fn is_enabled(&self) -> bool {
         self.enabled
     }
-
 }
 
 impl ModuleOptions for ReorderOptions {
-
     fn is_enabled(&self) -> bool {
         self.enabled
     }
-
 }
 
 impl ModuleOptions for CorruptionOptions {
-
     fn is_enabled(&self) -> bool {
         self.enabled
     }
-
 }
 
 impl ModuleOptions for DuplicateOptions {
-
     fn is_enabled(&self) -> bool {
         self.enabled
     }
-
 }
 
 impl ModuleOptions for BandwidthOptions {
-
     fn is_enabled(&self) -> bool {
         self.enabled
     }
-
 }
 
 impl ModuleOptions for BurstOptions {
-
     fn is_enabled(&self) -> bool {
         self.enabled
     }
-
 }

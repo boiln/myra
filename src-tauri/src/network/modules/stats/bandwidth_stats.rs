@@ -11,7 +11,6 @@ use std::time::{Duration, Instant};
 /// It provides methods to record traffic and retrieve statistics about recent throughput.
 #[derive(Debug)]
 pub struct BandwidthStats {
-
     /// Number of packets currently held in the bandwidth limiter's buffer
     pub(crate) storage_packet_count: usize,
 
@@ -29,11 +28,9 @@ pub struct BandwidthStats {
 
     /// Interval at which to update the EWMA
     update_interval: Duration,
-
 }
 
 impl BandwidthStats {
-
     /// Creates a new `BandwidthStats` instance with the specified alpha value for the EWMA
     ///
     /// The alpha value controls how quickly the EWMA responds to changes in throughput.
@@ -50,6 +47,7 @@ impl BandwidthStats {
     /// let stats = BandwidthStats::new(0.5); // Equal weight to recent and historical data
     /// ```
     pub fn new(alpha: f64) -> Self {
+
         Self {
             storage_packet_count: 0,
             total_byte_count: 0,
@@ -58,6 +56,7 @@ impl BandwidthStats {
             recent_timer: Instant::now(),
             update_interval: Duration::from_millis(100),
         }
+
     }
 
     /// Records bytes sent and updates the throughput statistics
@@ -115,5 +114,4 @@ impl BandwidthStats {
         self.recent_timer = Instant::now();
 
     }
-
 }

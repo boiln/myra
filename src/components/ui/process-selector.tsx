@@ -6,14 +6,12 @@ import { ProcessIcon } from "@/components/ui/process-icon";
 import { Input } from "@/components/ui/input";
 
 interface ProcessSelectorProps {
-
     processes: ProcessInfo[];
     value: string;
     onValueChange: (value: string) => void;
     disabled?: boolean;
     placeholder?: string;
     className?: string;
-
 }
 
 export function ProcessSelector({
@@ -33,23 +31,25 @@ export function ProcessSelector({
     const inputRef = useRef<HTMLInputElement>(null);
 
     const filteredProcesses = useMemo(() => {
+
         const searchLower = search.toLowerCase();
 
         return processes.filter(
-
             (p) =>
                 p.name.toLowerCase().includes(searchLower) ||
                 p.path?.toLowerCase().includes(searchLower)
         );
+
     }, [processes, search]);
 
     const { gameProcesses, otherProcesses, allFiltered } = useMemo(() => {
+
         const games = filteredProcesses.filter((p) => {
+
             const name = p.name.toLowerCase();
             const path = p.path?.toLowerCase() || "";
 
             return (
-
                 path.includes("steam") ||
                 path.includes("steamapps") ||
                 path.includes("epic games") ||
@@ -63,20 +63,20 @@ export function ProcessSelector({
                 name.endsWith("-win64-shipping.exe") ||
                 name.endsWith("-win32-shipping.exe")
             );
+
         });
-
         const others = filteredProcesses.filter((p) => !games.includes(p));
-
         const all = [...games, ...others];
 
         return { gameProcesses: games, otherProcesses: others, allFiltered: all };
+
     }, [filteredProcesses]);
 
     const selectedProcess = processes.find((p) => p.pid.toString() === value);
 
     const handleKeyDown = useCallback(
-
         (e: React.KeyboardEvent) => {
+
             if (!isOpen) {
                 if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
                     e.preventDefault();
@@ -96,7 +96,6 @@ export function ProcessSelector({
                     break;
                 case "Enter":
                     e.preventDefault();
-
                     if (allFiltered[highlightedIndex]) {
                         onValueChange(allFiltered[highlightedIndex].pid.toString());
                         closeDropdown();
@@ -115,31 +114,27 @@ export function ProcessSelector({
                     setHighlightedIndex(allFiltered.length - 1);
                     break;
                 default:
-
                     // Type-ahead: jump to first process starting with the typed letter
                     if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
                         const char = e.key.toLowerCase();
                         const currentIndex = highlightedIndex;
-
                         // Find next process starting with this letter after current position
                         let foundIndex = allFiltered.findIndex(
-
                             (p, i) => i > currentIndex && p.name.toLowerCase().startsWith(char)
                         );
-
                         // If not found after current, search from beginning
                         if (foundIndex === -1) {
                             foundIndex = allFiltered.findIndex((p) =>
                                 p.name.toLowerCase().startsWith(char)
                             );
                         }
-
                         if (foundIndex !== -1) {
                             setHighlightedIndex(foundIndex);
                         }
                     }
                     break;
             }
+
         },
         [isOpen, highlightedIndex, allFiltered, onValueChange]
     );
@@ -152,11 +147,12 @@ export function ProcessSelector({
 
     // Open the dropdown and prime the highlight to the currently selected item (event-driven, not effect-driven)
     const openDropdown = useCallback(() => {
-        const selectedIndex = allFiltered.findIndex((p) => p.pid.toString() === value);
 
+        const selectedIndex = allFiltered.findIndex((p) => p.pid.toString() === value);
         setHighlightedIndex(selectedIndex >= 0 ? selectedIndex : 0);
         setIsOpen(true);
         setTimeout(() => inputRef.current?.focus(), 0);
+
     }, [allFiltered, value]);
 
     const closeDropdown = () => {
@@ -166,37 +162,42 @@ export function ProcessSelector({
 
     // Scroll highlighted item into view (legitimate DOM sync effect)
     useEffect(() => {
+
         if (isOpen && listRef.current) {
             const highlightedEl = listRef.current.querySelector(
-
                 `[data-index="${highlightedIndex}"]`
             );
             highlightedEl?.scrollIntoView({ block: "nearest" });
         }
+
     }, [highlightedIndex, isOpen]);
 
     // Close on outside click
     useEffect(() => {
+
         const onMouseDown = (e: MouseEvent) => {
+
             if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
                 setIsOpen(false);
                 setSearch("");
             }
-        };
 
+        };
         document.addEventListener("mousedown", onMouseDown);
 
         return () => document.removeEventListener("mousedown", onMouseDown);
+
     }, []);
 
     return (
-
         <div ref={containerRef} className={cn("relative w-full", className)}>
             {/* Trigger Button */}
             <button
                 type="button"
                 onClick={() => {
+
                     if (disabled) return;
+
                     if (isOpen) {
                         closeDropdown();
                     } else {
@@ -228,7 +229,6 @@ export function ProcessSelector({
                 </div>
                 <ChevronDown className="size-4 opacity-50" />
             </button>
-
             {/* Dropdown */}
             {isOpen && (
                 <div
@@ -254,7 +254,6 @@ export function ProcessSelector({
                             Type a letter to jump • ↑↓ navigate • Enter select
                         </p>
                     </div>
-
                     {/* Process List */}
                     <div
                         ref={listRef}
@@ -274,10 +273,10 @@ export function ProcessSelector({
                                             Games & Launchers
                                         </div>
                                         {gameProcesses.map((p) => {
+
                                             const index = allFiltered.indexOf(p);
 
                                             return (
-
                                                 <ProcessItem
                                                     key={p.pid}
                                                     process={p}
@@ -294,7 +293,6 @@ export function ProcessSelector({
                                         })}
                                     </>
                                 )}
-
                                 {/* Other Processes Section */}
                                 {otherProcesses.length > 0 && (
                                     <>
@@ -303,10 +301,10 @@ export function ProcessSelector({
                                             All Processes
                                         </div>
                                         {otherProcesses.map((p) => {
+
                                             const index = allFiltered.indexOf(p);
 
                                             return (
-
                                                 <ProcessItem
                                                     key={p.pid}
                                                     process={p}
@@ -334,14 +332,12 @@ export function ProcessSelector({
 }
 
 interface ProcessItemProps {
-
     process: ProcessInfo;
     isSelected: boolean;
     isHighlighted: boolean;
     dataIndex: number;
     onClick: () => void;
     onMouseEnter: () => void;
-
 }
 
 function ProcessItem({
@@ -354,7 +350,6 @@ function ProcessItem({
 }: ProcessItemProps) {
 
     return (
-
         <button
             type="button"
             data-index={dataIndex}
@@ -374,5 +369,4 @@ function ProcessItem({
             {isSelected && <span className="flex-shrink-0 text-primary">✓</span>}
         </button>
     );
-
 }

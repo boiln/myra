@@ -35,21 +35,21 @@ function App() {
     useClassicTap();
 
     useEffect(() => {
+
         const initialize = async () => {
             await loadStatus();
             await initializeDefaultPreset();
             initializeClassic();
         };
-
         initialize();
 
         return () => {
             // Cleanup function
         };
+
     }, [loadStatus, loadPresets, initializeDefaultPreset, initializeClassic]);
 
     return (
-
         <LazyMotion features={domAnimation}>
             <TooltipProvider>
                 <div className="flex h-screen min-h-[520px] min-w-[800px] flex-col bg-muted/30">

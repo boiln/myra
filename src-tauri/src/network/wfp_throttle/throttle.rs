@@ -19,7 +19,6 @@ const TAURI_PORT: u16 = 1420;
 
 #[derive(Error, Debug)]
 pub enum WfpError {
-
     #[error("Failed to open WinDivert: {0}")]
     OpenFailed(String),
 
@@ -28,41 +27,35 @@ pub enum WfpError {
 
     #[error("Invalid parameter: {0}")]
     InvalidParam(String),
-
 }
 
 /// Shared buffer between receiver and sender threads
 struct SharedBuffer {
-
     packets: VecDeque<(WinDivertPacket<'static, NetworkLayer>, Instant)>, // (packet, queued_time)
     total_bytes: usize,
-
 }
 
 impl SharedBuffer {
-
     fn new() -> Self {
+
         Self {
             packets: VecDeque::new(),
             total_bytes: 0,
         }
-    }
 
+    }
 }
 
 /// High-precision bandwidth throttle
 pub struct WfpThrottle {
-
     running: Arc<AtomicBool>,
     receiver_handle: Option<JoinHandle<()>>,
     sender_handle: Option<JoinHandle<()>>,
     wd_handle: Arc<Mutex<Option<WinDivert<NetworkLayer>>>>,
     limit_kbps: f64,
-
 }
 
 impl WfpThrottle {
-
     /// Create and start a new bandwidth throttle
     ///
     /// # Arguments
@@ -92,7 +85,6 @@ impl WfpThrottle {
               limit_kbps, inbound, outbound);
 
         let filter = match (inbound, outbound) {
-
             (true, true) => format!(
                 "(tcp and tcp.DstPort != {} and tcp.SrcPort != {}) or udp",
                 TAURI_PORT, TAURI_PORT
@@ -105,11 +97,9 @@ impl WfpThrottle {
                 "(outbound and tcp and tcp.DstPort != {} and tcp.SrcPort != {}) or (outbound and udp)",
                 TAURI_PORT, TAURI_PORT
             ),
-
         };
 
         let wd = WinDivert::network(&filter, -1000, WinDivertFlags::new())
-
             .map_err(|e| WfpError::OpenFailed(e.to_string()))?;
 
         info!("WFP Throttle: WinDivert opened with filter: {}", filter);
@@ -121,7 +111,6 @@ impl WfpThrottle {
         let wd_rx = wd.clone();
 
         let receiver_handle = thread::Builder::new()
-
             .name("wfp-throttle-rx".into())
             .spawn(move || {
                 run_receiver(wd_rx, buffer_rx, running_rx);
@@ -133,7 +122,6 @@ impl WfpThrottle {
         let wd_tx = wd.clone();
 
         let sender_handle = thread::Builder::new()
-
             .name("wfp-throttle-tx".into())
             .spawn(move || {
                 run_sender(wd_tx, buffer_tx, running_tx, limit_kbps);
@@ -141,13 +129,11 @@ impl WfpThrottle {
             .map_err(|e| WfpError::ThreadFailed(e.to_string()))?;
 
         Ok(Self {
-
             running,
             receiver_handle: Some(receiver_handle),
             sender_handle: Some(sender_handle),
             wd_handle: wd,
             limit_kbps,
-
         })
 
     }
@@ -187,15 +173,12 @@ impl WfpThrottle {
         info!("WFP Throttle: Stopped");
 
     }
-
 }
 
 impl Drop for WfpThrottle {
-
     fn drop(&mut self) {
         self.stop();
     }
-
 }
 
 /// Receiver thread: captures packets and buffers them (or passes through small ones)

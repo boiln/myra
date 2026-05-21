@@ -20,11 +20,11 @@ export function useApiCall<T>(
     const [error, setError] = useState<Error | null>(null);
 
     const fetchData = useCallback(async () => {
+
         setLoading(true);
 
         try {
             const result = await invokeCommand<T>(command, args);
-
             setData(result);
             setError(null);
         } catch (err) {
@@ -33,6 +33,7 @@ export function useApiCall<T>(
         } finally {
             setLoading(false);
         }
+
     }, [command, ...Object.values(args), ...deps]);
 
     useEffect(() => {
@@ -53,9 +54,10 @@ export function useEventListener<T>(event: string) {
     const [data, setData] = useState<T | null>(null);
 
     useEffect(() => {
-        let unlistenFn: () => void;
 
+        let unlistenFn: () => void;
         const setupListener = async () => {
+
             try {
                 unlistenFn = await listen<T>(event, (e) => {
                     setData(e.payload as T);
@@ -63,8 +65,8 @@ export function useEventListener<T>(event: string) {
             } catch (err) {
                 console.error(`Error setting up event listener for ${event}:`, err);
             }
-        };
 
+        };
         setupListener();
 
         return () => {
@@ -72,6 +74,7 @@ export function useEventListener<T>(event: string) {
                 unlistenFn();
             }
         };
+
     }, [event]);
 
     return { data };

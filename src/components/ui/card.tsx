@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils";
 function Card({ className, ref, ...props }: React.ComponentProps<"div">) {
 
     return (
-
         <div
             ref={ref}
             className={cn(
@@ -25,7 +24,6 @@ function CardHeader({ className, ref, ...props }: React.ComponentProps<"div">) {
 function CardTitle({ className, ref, ...props }: React.ComponentProps<"div">) {
 
     return (
-
         <div
             ref={ref}
             className={cn("text-2xl font-semibold leading-none tracking-tight", className)}

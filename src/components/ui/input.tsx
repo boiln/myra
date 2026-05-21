@@ -3,15 +3,12 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-
     ref?: React.Ref<HTMLInputElement>;
-
 }
 
 function Input({ className, type, ref, ...props }: InputProps) {
 
     return (
-
         <input
             ref={ref}
             type={type}

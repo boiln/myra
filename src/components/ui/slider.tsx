@@ -9,7 +9,6 @@ import { cn } from "@/lib/utils";
 function Slider({ className, ref, ...props }: React.ComponentProps<typeof SliderPrimitive.Root>) {
 
     return (
-
         <SliderPrimitive.Root
             ref={ref}
             className={cn("relative flex w-full touch-none select-none items-center", className)}

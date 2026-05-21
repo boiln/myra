@@ -7,7 +7,6 @@ fn main() {
 
     // Test various filter combinations
     let filters = [
-
         "true",
         "outbound",
         "outbound and !loopback",
@@ -20,7 +19,6 @@ fn main() {
         println!("\n=== Testing filter: {} ===", filter);
 
         let wd = match WinDivert::<NetworkLayer>::network(
-
             filter,
             0, // Priority 0
             WinDivertFlags::new(),

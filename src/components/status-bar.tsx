@@ -3,7 +3,6 @@ import { useNetworkStore } from "@/lib/stores/network";
 import { FilterTarget } from "@/types";
 
 const StatusIndicator = ({ isActive }: { isActive: boolean }) => (
-
     <div className="flex items-center gap-1.5">
         <span className={isActive ? "text-green-500" : "text-foreground/70"}>
             {isActive ? "Filtering" : "Ready"}
@@ -16,6 +15,7 @@ const TargetIndicator = ({ target }: { target: FilterTarget | null }) => {
     if (!target) return null;
 
     const getTargetIcon = () => {
+
         switch (target.mode) {
             case "all":
 
@@ -33,9 +33,11 @@ const TargetIndicator = ({ target }: { target: FilterTarget | null }) => {
 
                 return <Code className="size-3 text-muted-foreground" />;
         }
+
     };
 
     const getTargetLabel = () => {
+
         switch (target.mode) {
             case "all":
 
@@ -48,17 +50,16 @@ const TargetIndicator = ({ target }: { target: FilterTarget | null }) => {
             case "device":
 
                 return target.deviceName
-
                     ? `${target.deviceIp} (${target.deviceName})`
                     : target.deviceIp;
             case "custom":
 
                 return "Custom";
         }
+
     };
 
     return (
-
         <div className="flex items-center gap-1.5">
             {getTargetIcon()}
             <span className="text-muted-foreground">Target:</span>
@@ -73,7 +74,6 @@ const PresetIndicator = ({ preset }: { preset: string | null }) => {
     if (!preset) return null;
 
     return (
-
         <div className="flex items-center gap-1.5">
             <FileText className="size-3 text-muted-foreground" />
             <span className="text-muted-foreground">Preset:</span>
@@ -88,7 +88,6 @@ const ModulesIndicator = ({ activeModules }: { activeModules: { display_name: st
     if (activeModules.length === 0) return null;
 
     return (
-
         <div className="flex items-center gap-1.5">
             <Database className="size-3 text-muted-foreground" />
             <span className="text-muted-foreground">Modules:</span>
@@ -107,7 +106,6 @@ export function StatusBar() {
     const activeModules = modules.filter((m) => m.enabled);
 
     return (
-
         <div className="fixed bottom-0 left-0 right-0 z-50 flex h-6 items-center justify-between border-t border-border/30 bg-background/60 px-3 text-xs backdrop-blur-md backdrop-saturate-150">
             <div className="flex items-center gap-3">
                 <StatusIndicator isActive={isActive} />

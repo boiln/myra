@@ -12,6 +12,7 @@ const buildSettings = (modules: ModuleInfo[]) => {
     const settings: PacketManipulationSettings = {};
 
     modules.forEach((module) => {
+
         // Always include settings, with enabled flag to track active state
         switch (module.name) {
             case "lag":
@@ -24,7 +25,6 @@ const buildSettings = (modules: ModuleInfo[]) => {
                     duration_ms: 0, // Effect duration (0 = infinite)
                 };
                 break;
-
             case "drop":
                 settings.drop = {
                     enabled: module.enabled,
@@ -34,7 +34,6 @@ const buildSettings = (modules: ModuleInfo[]) => {
                     duration_ms: module.config.duration_ms,
                 };
                 break;
-
             case "throttle":
                 settings.throttle = {
                     enabled: module.enabled,
@@ -46,7 +45,6 @@ const buildSettings = (modules: ModuleInfo[]) => {
                     freeze_mode: module.config.freeze_mode ?? false,
                 };
                 break;
-
             case "duplicate":
                 settings.duplicate = {
                     enabled: module.enabled,
@@ -57,7 +55,6 @@ const buildSettings = (modules: ModuleInfo[]) => {
                     count: module.config.count || 2,
                 };
                 break;
-
             case "bandwidth":
                 settings.bandwidth = {
                     enabled: module.enabled,
@@ -69,7 +66,6 @@ const buildSettings = (modules: ModuleInfo[]) => {
                     use_wfp: module.config.use_wfp ?? false,
                 };
                 break;
-
             case "corruption":
                 settings.corruption = {
                     enabled: module.enabled,
@@ -79,7 +75,6 @@ const buildSettings = (modules: ModuleInfo[]) => {
                     duration_ms: module.config.duration_ms,
                 };
                 break;
-
             case "reorder":
                 settings.reorder = {
                     enabled: module.enabled,
@@ -90,7 +85,6 @@ const buildSettings = (modules: ModuleInfo[]) => {
                     max_delay: module.config.throttle_ms || 100,
                 };
                 break;
-
             case "burst":
                 settings.burst = {
                     enabled: module.enabled,
@@ -105,6 +99,7 @@ const buildSettings = (modules: ModuleInfo[]) => {
                 };
                 break;
         }
+
     });
 
     // Always include burst_release_delay_us
@@ -119,9 +114,7 @@ const buildSettings = (modules: ModuleInfo[]) => {
 };
 
 interface NetworkStoreWithUtils extends NetworkStore {
-
     buildSettings: () => PacketManipulationSettings;
-
 }
 
 export const useNetworkStore = create<NetworkStoreWithUtils>()((...a) => ({

@@ -22,14 +22,11 @@
 /// ```
 #[derive(Debug)]
 pub struct Ewma {
-
     alpha: f64,
     current_value: Option<f64>,
-
 }
 
 impl Ewma {
-
     /// Creates a new `Ewma` instance with the specified smoothing factor `alpha`.
     ///
     /// # Arguments
@@ -81,11 +78,13 @@ impl Ewma {
     /// assert_eq!(ewma.get(), Some(15.0)); // 0.5 * 10.0 + 0.5 * 20.0 = 15.0
     /// ```
     pub fn update(&mut self, new_value: f64) -> f64 {
+
         self.current_value = Some(match self.current_value {
             Some(current) => current.mul_add(1.0 - self.alpha, new_value * self.alpha),
             None => new_value, // If no previous value exists, just set to new_value
         });
         self.current_value.unwrap()
+
     }
 
     /// Retrieves the current EWMA value.
@@ -143,20 +142,20 @@ impl Ewma {
     pub fn reset(&mut self) {
         self.current_value = None;
     }
-
 }
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
 
     #[test]
     fn test_new_ewma() {
+
         let ewma = Ewma::new(0.5);
 
         assert_eq!(ewma.alpha(), 0.5);
         assert_eq!(ewma.get(), None);
+
     }
 
     #[test]
@@ -200,5 +199,4 @@ mod tests {
         assert_eq!(ewma.get(), None);
 
     }
-
 }

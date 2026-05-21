@@ -5,7 +5,6 @@ import { ToggleButton } from "@/components/toggle-button";
 export function NetworkControls() {
 
     return (
-
         <m.div
             initial={{ opacity: 0.9, y: 5 }}
             animate={{ opacity: 1, y: 0 }}

@@ -5,13 +5,11 @@ import { useEffect, useRef, useState } from "react";
 import { LazyMotion, domAnimation, m } from "framer-motion";
 
 export interface AutoInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-
     onValueChange?: (value: string) => void;
     isLoading?: boolean;
     debounceMs?: number;
     containerClassName?: string;
     ref?: React.Ref<HTMLInputElement>;
-
 }
 
 export function AutoInput({
@@ -39,18 +37,18 @@ export function AutoInput({
 
     useEffect(() => {
         if (propValue === undefined || propValue === value) return;
-
         setValue(propValue);
     }, [propValue]);
 
     useEffect(() => {
-        if (value === propValue) return;
 
+        if (value === propValue) return;
         const timer = setTimeout(() => {
             onValueChangeRef.current?.(value as string);
         }, debounceMs);
 
         return () => clearTimeout(timer);
+
     }, [value, debounceMs, propValue]);
 
     const updateValueAndNotify = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,7 +57,6 @@ export function AutoInput({
     };
 
     return (
-
         <div className={cn("relative", containerClassName)}>
             <Input
                 ref={ref}

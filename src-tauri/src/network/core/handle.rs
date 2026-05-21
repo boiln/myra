@@ -10,10 +10,8 @@ use windivert_sys::WinDivertFlags;
 
 #[cfg(windows)]
 extern "system" {
-
     fn timeBeginPeriod(uPeriod: u32) -> u32;
     fn timeEndPeriod(uPeriod: u32) -> u32;
-
 }
 
 /// Timer resolution tracker for high-precision timing
@@ -47,6 +45,7 @@ pub fn set_high_precision_timer() {
 /// Restore Windows timer resolution
 #[cfg(windows)]
 pub fn restore_timer_resolution() {
+
     use std::sync::atomic::Ordering;
 
     if TIMER_RESOLUTION_SET.load(Ordering::SeqCst) {
@@ -56,6 +55,7 @@ pub fn restore_timer_resolution() {
             info!("Restored Windows timer resolution");
         }
     }
+
 }
 
 #[cfg(not(windows))]
@@ -73,7 +73,6 @@ const TAURI_PORT: u16 = 1420;
 /// Configuration for creating a `WinDivert` handle.
 #[derive(Debug, Clone)]
 pub struct HandleConfig {
-
     /// Filter expression for packet matching
     pub filter: String,
     /// Priority for the handle (higher = earlier interception)
@@ -82,30 +81,30 @@ pub struct HandleConfig {
     pub recv_only: bool,
     /// Whether to exclude Tauri port from capture
     pub exclude_tauri_port: bool,
-
 }
 
 impl Default for HandleConfig {
-
     fn default() -> Self {
+
         Self {
             filter: "true".to_string(),
             priority: DEFAULT_PRIORITY,
             recv_only: true,
             exclude_tauri_port: true,
         }
-    }
 
+    }
 }
 
 impl HandleConfig {
-
     /// Creates a new `HandleConfig` with the given filter.
     pub fn with_filter(filter: impl Into<String>) -> Self {
+
         Self {
             filter: filter.into(),
             ..Default::default()
         }
+
     }
 
     /// Sets the priority for the handle.
@@ -142,7 +141,6 @@ impl HandleConfig {
         format!("({}) and {}", self.filter, exclusion)
 
     }
-
 }
 
 /// Manages `WinDivert` handle lifecycle.
@@ -150,20 +148,19 @@ impl HandleConfig {
 /// This struct provides a safe wrapper around `WinDivert` handles,
 /// ensuring proper initialization and cleanup.
 pub struct HandleManager {
-
     handle: Option<WinDivert<NetworkLayer>>,
     current_config: Option<HandleConfig>,
-
 }
 
 impl HandleManager {
-
     /// Creates a new `HandleManager` without an active handle.
     pub fn new() -> Self {
+
         Self {
             handle: None,
             current_config: None,
         }
+
     }
 
     /// Returns whether a handle is currently active.
@@ -239,6 +236,7 @@ impl HandleManager {
     /// * `Ok(())` - If the handle was closed successfully or no handle was open
     /// * `Err(WinDivertError)` - If closing the handle failed
     pub fn close(&mut self) -> Result<(), WinDivertError> {
+
         if let Some(mut handle) = self.handle.take() {
             debug!("Closing WinDivert handle");
             handle.close(CloseAction::Nothing)?;
@@ -246,6 +244,7 @@ impl HandleManager {
             flush_wfp_cache();
         }
         Ok(())
+
     }
 
     /// Returns a reference to the underlying `WinDivert` handle.
@@ -267,25 +266,20 @@ impl HandleManager {
     pub fn handle_mut(&mut self) -> Option<&mut WinDivert<NetworkLayer>> {
         self.handle.as_mut()
     }
-
 }
 
 impl Default for HandleManager {
-
     fn default() -> Self {
         Self::new()
     }
-
 }
 
 impl Drop for HandleManager {
-
     fn drop(&mut self) {
         if let Err(e) = self.close() {
             error!("Error closing WinDivert handle on drop: {}", e);
         }
     }
-
 }
 
 /// Flushes the Windows Filtering Platform (WFP) cache.
@@ -293,6 +287,7 @@ impl Drop for HandleManager {
 /// This is a workaround for `WinDivert` caching issues. It opens and
 /// immediately closes a handle with a no-match filter to clear stale state.
 pub fn flush_wfp_cache() {
+
     for priority in [0, 1000, -1000] {
         if let Ok(mut handle) =
 
@@ -303,6 +298,7 @@ pub fn flush_wfp_cache() {
             debug!("Flushed WFP cache with priority {}", priority);
         }
     }
+
 }
 
 /// Creates a `WinDivert` filter that excludes Tauri app ports.
@@ -327,9 +323,7 @@ pub fn construct_filter_with_exclusions(user_filter: &Option<String>) -> Option<
         Some(filter) if !filter.is_empty() => {
             let filter_lower = filter.to_lowercase();
             let has_invalid_direction = filter_lower.contains("outbound and inbound")
-
                 || filter_lower.contains("inbound and outbound");
-
             let corrected_filter = if has_invalid_direction {
                 log::warn!("Filter '{}' is invalid: a packet cannot be both outbound AND inbound. Using 'true' to capture all traffic.", filter);
                 "true".to_string()
@@ -343,7 +337,6 @@ pub fn construct_filter_with_exclusions(user_filter: &Option<String>) -> Option<
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
 
     #[test]
@@ -362,7 +355,6 @@ mod tests {
     fn test_handle_config_builder() {
 
         let config = HandleConfig::with_filter("tcp")
-
             .priority(100)
             .recv_only(false)
             .exclude_tauri_port(false);
@@ -387,10 +379,12 @@ mod tests {
 
     #[test]
     fn test_build_filter_without_exclusions() {
+
         let config = HandleConfig::with_filter("tcp").exclude_tauri_port(false);
         let filter = config.build_filter();
 
         assert_eq!(filter, "tcp");
+
     }
 
     #[test]
@@ -400,10 +394,11 @@ mod tests {
 
     #[test]
     fn test_construct_filter_with_exclusions_some() {
+
         let filter = construct_filter_with_exclusions(&Some("tcp".to_string()));
 
         assert!(filter.is_some());
         assert!(filter.unwrap().contains("tcp"));
-    }
 
+    }
 }

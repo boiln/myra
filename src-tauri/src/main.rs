@@ -9,12 +9,12 @@ use myra::commands;
 struct SimpleLogger;
 
 impl log::Log for SimpleLogger {
-
     fn enabled(&self, metadata: &log::Metadata) -> bool {
         metadata.level() <= log::max_level()
     }
 
     fn log(&self, record: &log::Record) {
+
         if self.enabled(record.metadata()) {
             let mut stdout = io::stdout();
             let timestamp = chrono::Local::now().format("%H:%M:%S%.3f");
@@ -32,6 +32,7 @@ impl log::Log for SimpleLogger {
                 .flush()
                 .unwrap_or_else(|e| error!("Failed to flush stdout: {}", e));
         }
+
     }
 
     fn flush(&self) {
@@ -39,7 +40,6 @@ impl log::Log for SimpleLogger {
             .flush()
             .unwrap_or_else(|e| error!("Failed to flush stdout: {}", e));
     }
-
 }
 
 static LOGGER: SimpleLogger = SimpleLogger;
@@ -131,7 +131,6 @@ fn is_admin() -> bool {
         let sub_authorities = [SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS];
 
         if AllocateAndInitializeSid(
-
             &SECURITY_NT_AUTHORITY as *const _ as *mut _,
             2,
             sub_authorities[0],

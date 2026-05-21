@@ -10,10 +10,8 @@ use std::time::Instant;
 
 /// Trait for module options that can be enabled/disabled.
 pub trait ModuleOptions {
-
     /// Returns whether this module is enabled.
     fn is_enabled(&self) -> bool;
-
 }
 
 /// Context passed to packet modules during processing.
@@ -21,18 +19,15 @@ pub trait ModuleOptions {
 /// Contains shared state and timing information needed by modules
 /// to determine if effects should be applied.
 pub struct ModuleContext<'a, 'b> {
-
     /// Statistics tracker for all modules
     pub statistics: &'a Arc<RwLock<PacketProcessingStatistics>>,
     /// Whether there are packets to process
     pub has_packets: bool,
     /// Reference to effect start time for duration tracking
     pub effect_start: &'b mut Instant,
-
 }
 
 impl ModuleContext<'_, '_> {
-
     /// Acquires a write lock on the statistics, returning a Result instead of panicking.
     ///
     /// # Arguments
@@ -52,7 +47,6 @@ impl ModuleContext<'_, '_> {
             .map_err(|_| MyraError::stats_lock(module_name))
 
     }
-
 }
 
 /// Trait for packet manipulation modules.
@@ -86,7 +80,6 @@ impl ModuleContext<'_, '_> {
 /// }
 /// ```
 pub trait PacketModule {
-
     /// Configuration options for this module - must implement `ModuleOptions`
     type Options: ModuleOptions;
 
@@ -130,5 +123,4 @@ pub trait PacketModule {
     fn should_skip(&self, _options: &Self::Options) -> bool {
         false
     }
-
 }

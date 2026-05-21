@@ -58,7 +58,6 @@ pub fn process_bandwidth<'a>(
     // Process new incoming packets
     for packet in packets.drain(..) {
         let matches_direction = (packet.is_outbound && options.outbound)
-
             || (!packet.is_outbound && options.inbound);
 
         if !matches_direction {

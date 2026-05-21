@@ -72,12 +72,13 @@ pub async fn start_processing(
     let statistics = state.statistics.clone();
 
     thread::spawn(move || {
-        if let Err(e) =
 
+        if let Err(e) =
             start_packet_processing(settings_proc, packet_receiver, running_proc, statistics)
         {
             error!("Packet processing error: {}", e);
         }
+
     });
 
     info!("Started packet processing");

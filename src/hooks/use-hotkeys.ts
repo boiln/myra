@@ -9,7 +9,6 @@ export function useHotkeys() {
     const { toggleActive, applyModuleSettings, manipulationStatus } = useNetworkStore();
 
     const getModuleEnabled = useCallback(
-
         (moduleName: string) => {
             const module = manipulationStatus.modules.find((m) => m.name === moduleName);
 
@@ -19,19 +18,20 @@ export function useHotkeys() {
     );
 
     const toggleModule = useCallback(
-
         async (moduleName: string, displayName: string) => {
-            const currentEnabled = getModuleEnabled(moduleName);
 
+            const currentEnabled = getModuleEnabled(moduleName);
             await applyModuleSettings(moduleName, !currentEnabled);
             toast.success(`${displayName} ${currentEnabled ? "disabled" : "enabled"}`, {
                 duration: 1500,
             });
+
         },
         [getModuleEnabled, applyModuleSettings]
     );
 
     useEffect(() => {
+
         const handlers: Record<string, () => void> = {
             toggleFilter: () => {
                 console.log("Hotkey: Toggle Filter");
@@ -70,12 +70,12 @@ export function useHotkeys() {
                 toggleModule("burst", "Burst");
             },
         };
-
         registerAllHotkeys(handlers);
 
         return () => {
             unregisterAllHotkeys();
         };
+
     }, [registerAllHotkeys, unregisterAllHotkeys, toggleActive, toggleModule]);
 
 }

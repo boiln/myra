@@ -12,19 +12,16 @@ use crate::settings::Settings;
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum FilterTargetMode {
-
     #[default]
     All,
     Process,
     Device,
     Custom,
-
 }
 
 /// Filter target configuration for saving/loading
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct FilterTarget {
-
     pub mode: FilterTargetMode,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub process_id: Option<u32>,
@@ -42,7 +39,6 @@ pub struct FilterTarget {
     /// Include outbound traffic (default: true)
     #[serde(default = "default_true")]
     pub include_outbound: bool,
-
 }
 
 fn default_true() -> bool {
@@ -52,17 +48,14 @@ fn default_true() -> bool {
 /// Hotkey binding configuration
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct HotkeyBinding {
-
     pub action: String,
     pub shortcut: Option<String>,
     pub enabled: bool,
-
 }
 
 /// Tap feature settings (frontend-only, stored in config for persistence)
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct TapSettings {
-
     /// Whether tap is enabled (should always default to false)
     #[serde(default)]
     pub enabled: bool,
@@ -72,7 +65,6 @@ pub struct TapSettings {
     /// How long to keep modules off in milliseconds
     #[serde(default = "default_tap_duration")]
     pub duration_ms: u64,
-
 }
 
 fn default_tap_interval() -> u64 {
@@ -89,7 +81,6 @@ fn default_tap_duration() -> u64 {
 /// Used for serialization/deserialization when saving and loading configurations.
 #[derive(Serialize, Deserialize)]
 struct ConfigFile {
-
     /// Packet manipulation settings
     settings: Settings,
     /// `WinDivert` filter string
@@ -109,7 +100,6 @@ struct ConfigFile {
     /// Which mode was active (standard or classic)
     #[serde(default)]
     mode: Option<String>,
-
 }
 
 /// Saves the current configuration to a named file
@@ -137,14 +127,12 @@ pub async fn save_config(
 ) -> Result<(), String> {
 
     let settings = state
-
         .settings
         .lock()
         .map_err(|e| format!("Failed to lock settings mutex: {}", e))?
         .clone();
 
     let filter = state
-
         .filter
         .lock()
         .map_err(|e| format!("Failed to lock filter mutex: {}", e))?
@@ -152,12 +140,9 @@ pub async fn save_config(
 
     // Get classic settings from state if not provided
     let classic_settings = match classic {
-
         Some(c) => Some(c),
         None => {
-
             let cs = classic_state
-
                 .settings
                 .lock()
                 .map_err(|e| format!("Failed to lock classic settings: {}", e))?
@@ -168,15 +153,12 @@ pub async fn save_config(
             } else {
                 None
             }
-
         }
-
     };
 
     let config_path = get_config_path(&name)?;
 
     let config = ConfigFile {
-
         settings,
         filter,
         filter_target,
@@ -184,15 +166,12 @@ pub async fn save_config(
         tap,
         classic: classic_settings,
         mode,
-
     };
 
     let content = toml::to_string_pretty(&config)
-
         .map_err(|e| format!("Failed to serialize config: {}", e))?;
 
     let mut file = fs::File::create(&config_path)
-
         .map_err(|e| format!("Failed to create config file: {}", e))?;
 
     file.write_all(content.as_bytes())
@@ -207,7 +186,6 @@ pub async fn save_config(
 /// Response structure for `load_config` that includes filter target
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LoadConfigResponse {
-
     pub settings: Settings,
     pub filter: Option<String>,
     pub filter_target: Option<FilterTarget>,
@@ -215,7 +193,6 @@ pub struct LoadConfigResponse {
     pub tap: Option<TapSettings>,
     pub classic: Option<crate::settings::classic::ClassicSettings>,
     pub mode: Option<String>,
-
 }
 
 /// Loads a named configuration file and updates application state
@@ -239,7 +216,6 @@ pub async fn load_config(
     let config_path = get_config_path(&name)?;
 
     let content = fs::read_to_string(&config_path)
-
         .map_err(|e| format!("Failed to read config file: {}", e))?;
 
     let config: ConfigFile =
@@ -267,7 +243,6 @@ pub async fn load_config(
     info!("Loaded configuration from {}", name);
 
     Ok(LoadConfigResponse {
-
         settings: config.settings,
         filter: config.filter,
         filter_target: config.filter_target,
@@ -275,7 +250,6 @@ pub async fn load_config(
         tap: config.tap,
         classic: config.classic,
         mode: config.mode,
-
     })
 
 }
@@ -348,7 +322,6 @@ pub async fn delete_config(name: String) -> Result<(), String> {
 fn get_config_dir() -> Result<PathBuf, String> {
 
     let exe_dir = std::env::current_exe()
-
         .map_err(|e| format!("Could not determine executable path: {}", e))?
         .parent()
         .ok_or_else(|| "Could not determine executable directory".to_string())?
@@ -376,15 +349,16 @@ fn get_config_dir() -> Result<PathBuf, String> {
 /// * `Ok(PathBuf)` - Path to the configuration file
 /// * `Err(String)` - If there was an error determining the path
 fn get_config_path(name: &str) -> Result<PathBuf, String> {
+
     let mut path = get_config_dir()?;
 
     path.push(format!("{}.toml", name));
     Ok(path)
+
 }
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
 
     #[test]
@@ -555,5 +529,4 @@ mod tests {
         assert_eq!(parsed.hotkeys.unwrap().len(), 1);
 
     }
-
 }

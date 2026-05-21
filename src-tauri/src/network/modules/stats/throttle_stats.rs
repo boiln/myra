@@ -6,7 +6,6 @@
 /// - Current number of buffered packets
 #[derive(Debug)]
 pub struct ThrottleStats {
-
     /// Flag indicating whether throttling is currently active
     pub(crate) is_throttling: bool,
 
@@ -15,19 +14,15 @@ pub struct ThrottleStats {
 
     /// Current number of packets in the buffer
     pub(crate) buffered_count: usize,
-
 }
 
 impl Default for ThrottleStats {
-
     fn default() -> Self {
         Self::new()
     }
-
 }
 
 impl ThrottleStats {
-
     /// Creates a new `ThrottleStats` instance with default values
     ///
     /// # Returns
@@ -40,11 +35,13 @@ impl ThrottleStats {
     /// let stats = ThrottleStats::new();
     /// ```
     pub fn new() -> Self {
+
         Self {
             is_throttling: false,
             dropped_count: 0,
             buffered_count: 0,
         }
+
     }
 
     /// Returns whether throttling is currently active
@@ -78,12 +75,10 @@ impl ThrottleStats {
     pub fn buffered_count(&self) -> usize {
         self.buffered_count
     }
-
 }
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
 
     #[test]
@@ -122,5 +117,4 @@ mod tests {
         );
 
     }
-
 }

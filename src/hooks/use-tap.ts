@@ -28,6 +28,7 @@ export function useTap() {
 
     // Get list of currently enabled modules
     const getEnabledModules = useCallback(() => {
+
         const names: string[] = [];
 
         for (const m of manipulationStatus.modules) {
@@ -35,18 +36,17 @@ export function useTap() {
         }
 
         return names;
+
     }, [manipulationStatus.modules]);
 
     // Disable all enabled modules temporarily
     const startTap = useCallback(async () => {
-        if (isRunningRef.current) return;
 
+        if (isRunningRef.current) return;
         const enabledModules = getEnabledModules();
 
         if (enabledModules.length === 0) return;
-
         isRunningRef.current = true;
-
         // Save which modules were enabled
         savedModulesRef.current = enabledModules;
         setIsTapping(true);
@@ -55,16 +55,13 @@ export function useTap() {
             // Build settings with all previously enabled modules now disabled
             const currentSettings = buildSettings();
             const disabledSettings = { ...currentSettings };
-
             // Disable all modules
             for (const moduleName of enabledModules) {
                 const key = moduleName as keyof typeof disabledSettings;
-
                 if (disabledSettings[key] && typeof disabledSettings[key] === "object") {
                     (disabledSettings[key] as any).enabled = false;
                 }
             }
-
             // Use updateSettings instead of startProcessing - much lighter operation
             await ManipulationService.updateSettings(disabledSettings, true);
         } catch (error) {
@@ -72,10 +69,12 @@ export function useTap() {
         } finally {
             isRunningRef.current = false;
         }
+
     }, [getEnabledModules, buildSettings, setIsTapping]);
 
     // Re-enable modules after tap duration
     const endTap = useCallback(async () => {
+
         const modulesToRestore = savedModulesRef.current;
 
         if (modulesToRestore.length === 0) {
@@ -87,16 +86,13 @@ export function useTap() {
             // Build settings with saved modules re-enabled
             const currentSettings = buildSettings();
             const restoredSettings = { ...currentSettings };
-
             // Re-enable the modules that were previously enabled
             for (const moduleName of modulesToRestore) {
                 const key = moduleName as keyof typeof restoredSettings;
-
                 if (restoredSettings[key] && typeof restoredSettings[key] === "object") {
                     (restoredSettings[key] as any).enabled = true;
                 }
             }
-
             // Use updateSettings instead of startProcessing - much lighter operation
             await ManipulationService.updateSettings(restoredSettings, true);
         } catch (error) {
@@ -106,23 +102,25 @@ export function useTap() {
             savedModulesRef.current = [];
             lastTapEndedAtRef.current = Date.now();
         }
+
     }, [buildSettings, setIsTapping]);
 
     // Main tap cycle
     const runTapCycle = useCallback(async () => {
+
         // Don't tap if already tapping or if an operation is running
         if (isTapping || isRunningRef.current) return;
-
         await startTap();
-
         // Schedule end of tap
         tapTimeoutRef.current = setTimeout(async () => {
             await endTap();
         }, settings.durationMs);
+
     }, [isTapping, startTap, endTap, settings.durationMs]);
 
     // Setup/cleanup interval(s)
     useEffect(() => {
+
         // Clear existing intervals
         if (intervalRef.current) {
             clearInterval(intervalRef.current);
@@ -138,7 +136,6 @@ export function useTap() {
             clearTimeout(tapTimeoutRef.current);
             tapTimeoutRef.current = null;
         }
-
         // Only run if tap is enabled and manipulation is active
         const shouldRun = settings.enabled && isActive;
 
@@ -149,40 +146,34 @@ export function useTap() {
             }
             return;
         }
-
         // Check if any modules are enabled
         const enabledModules = getEnabledModules();
 
         if (enabledModules.length === 0) {
             return;
         }
-
         // Manual interval mode
         if (!settings.autoEnabled) {
             intervalRef.current = setInterval(() => {
                 runTapCycle();
             }, settings.intervalMs);
         }
-
         // Auto mode: poll backend stats and trigger taps when pressure is high
         if (settings.autoEnabled) {
             const pollMs = Math.max(
-
                 150,
                 Math.min(1000, Math.floor(settings.intervalMs / 3) || 250)
             );
             autoPollRef.current = setInterval(async () => {
-                if (isTapping || isRunningRef.current) return;
 
+                if (isTapping || isRunningRef.current) return;
                 // Respect cooldown between taps
                 const now = Date.now();
                 const cooldownMs = settings.cooldownMs ?? 1200;
 
                 if (now - lastTapEndedAtRef.current < cooldownMs) return;
-
                 // Require at least one outbound buffering module to be enabled
                 const outboundBufferingEnabled = manipulationStatus.modules.some(
-
                     (m) =>
                         m.enabled &&
                         m.config.outbound &&
@@ -194,31 +185,27 @@ export function useTap() {
                 try {
                     const status = await ManipulationService.getStatus();
                     const stats = status.statistics;
-
                     if (!stats) return;
-
                     const threshold = settings.minBufferForTap ?? 200;
                     const pressure = Math.max(
-
                         stats.burst_buffered_count ?? 0,
                         stats.throttle_buffered_count ?? 0,
                         stats.lag_current_lagged ?? 0,
                         stats.reorder_delayed_packets ?? 0
                     );
-
                     const throttling = !!stats.throttle_is_throttling;
-
                     if (pressure >= threshold || throttling) {
                         await runTapCycle();
                     }
                 } catch (e) {
                     console.error("AutoTap poll error:", e);
                 }
+
             }, pollMs);
         }
-
         // Cleanup on unmount or when dependencies change
         return () => {
+
             if (intervalRef.current) {
                 clearInterval(intervalRef.current);
                 intervalRef.current = null;
@@ -233,7 +220,9 @@ export function useTap() {
                 clearInterval(autoPollRef.current);
                 autoPollRef.current = null;
             }
+
         };
+
     }, [
         settings.enabled,
         settings.intervalMs,

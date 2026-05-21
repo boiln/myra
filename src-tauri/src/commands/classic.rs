@@ -59,8 +59,8 @@ pub async fn start_classic_processing(
 
     // Spawn packet receiver thread (reuses standard receiver)
     thread::spawn(move || {
-        if let Err(e) = crate::network::processing::receive_packets(
 
+        if let Err(e) = crate::network::processing::receive_packets(
             packet_sender,
             running_recv,
             settings_recv,
@@ -68,6 +68,7 @@ pub async fn start_classic_processing(
         ) {
             error!("Classic mode packet receiving error: {}", e);
         }
+
     });
 
     let running_proc = classic_state.running.clone();
@@ -75,14 +76,15 @@ pub async fn start_classic_processing(
 
     // Spawn Classic mode processor thread
     thread::spawn(move || {
-        if let Err(e) = start_classic_packet_processing(
 
+        if let Err(e) = start_classic_packet_processing(
             classic_settings,
             packet_receiver,
             running_proc,
         ) {
             error!("Classic mode packet processing error: {}", e);
         }
+
     });
 
     info!("Started Classic mode packet processing");
@@ -138,7 +140,6 @@ pub async fn get_classic_status(
 
     let running = classic_state.running.load(Ordering::SeqCst);
     let settings = classic_state
-
         .settings
         .lock()
         .map_err(|e| format!("Failed to lock classic settings mutex: {}", e))?
@@ -150,10 +151,8 @@ pub async fn get_classic_status(
 
 #[derive(serde::Serialize)]
 pub struct ClassicStatusResponse {
-
     pub running: bool,
     pub settings: ClassicSettings,
-
 }
 
 /// Classic mode packet processing loop.
@@ -170,7 +169,6 @@ fn start_classic_packet_processing(
 
     // Initialize WinDivert for sending packets only
     let mut wd = WinDivert::<NetworkLayer>::network(
-
         "false",
         0,
         WinDivertFlags::set_send_only(WinDivertFlags::new()),

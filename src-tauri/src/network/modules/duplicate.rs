@@ -15,7 +15,6 @@ use std::vec::Vec;
 pub struct DuplicateModule;
 
 impl PacketModule for DuplicateModule {
-
     type Options = DuplicateOptions;
     type State = ();
 
@@ -56,7 +55,6 @@ impl PacketModule for DuplicateModule {
         Ok(())
 
     }
-
 }
 
 /// Duplicates packets according to a probability
@@ -85,7 +83,6 @@ pub fn duplicate_packets(
     for packet_data in packets.iter() {
         // Check if this packet's direction should be affected
         let matches_direction = (packet_data.is_outbound && apply_outbound)
-
             || (!packet_data.is_outbound && apply_inbound);
 
         if !matches_direction {
@@ -112,7 +109,6 @@ pub fn duplicate_packets(
 
 #[cfg(test)]
 mod tests {
-
     use crate::network::core::packet::PacketData;
     use crate::network::modules::duplicate::duplicate_packets;
     use crate::network::modules::stats::duplicate_stats::DuplicateStats;
@@ -122,9 +118,9 @@ mod tests {
 
     #[test]
     fn test_packet_duplication() {
+
         unsafe {
             let original_packets = vec![PacketData::from(WinDivertPacket::<NetworkLayer>::new(
-
                 vec![1, 2, 3],
             ))];
 
@@ -151,6 +147,6 @@ mod tests {
                 }
             }
         }
-    }
 
+    }
 }

@@ -6,26 +6,25 @@ use crate::network::modules::stats::util::ewma::Ewma;
 /// exponentially weighted moving average of duplication rates.
 #[derive(Debug)]
 pub struct DuplicateStats {
-
     pub(crate) incoming_packet_count: usize,
     pub(crate) outgoing_packet_count: usize,
     ewma: Ewma,
-
 }
 
 impl DuplicateStats {
-
     /// Creates a new `DuplicateStats` with specified alpha for EWMA calculation
     ///
     /// # Arguments
     ///
     /// * `alpha` - Smoothing factor for exponentially weighted moving average
     pub fn new(alpha: f64) -> Self {
+
         Self {
             incoming_packet_count: 0,
             outgoing_packet_count: 0,
             ewma: Ewma::new(alpha),
         }
+
     }
 
     /// Records a packet duplication event
@@ -43,5 +42,4 @@ impl DuplicateStats {
         self.ewma.update(current_duplication_multiplier);
 
     }
-
 }

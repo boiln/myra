@@ -25,7 +25,6 @@ fn default_max_buffer() -> usize {
 /// Excess packets are buffered up to a limit, then dropped.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ClassicBandwidthOptions {
-
     /// Whether this module is enabled
     #[serde(default)]
     pub enabled: bool,
@@ -49,12 +48,11 @@ pub struct ClassicBandwidthOptions {
     /// Maximum packets to buffer before dropping
     #[serde(default = "default_max_buffer")]
     pub max_buffer: usize,
-
 }
 
 impl Default for ClassicBandwidthOptions {
-
     fn default() -> Self {
+
         Self {
             enabled: false,
             inbound: true,
@@ -63,6 +61,6 @@ impl Default for ClassicBandwidthOptions {
             limit_kbps: 115.0,
             max_buffer: 6000,
         }
-    }
 
+    }
 }

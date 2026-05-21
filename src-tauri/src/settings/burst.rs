@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Parser, Debug, Serialize, Deserialize, Default, Clone)]
 pub struct BurstOptions {
-
     /// Whether this module is enabled
     #[arg(skip)]
     #[serde(default)]
@@ -55,7 +54,6 @@ pub struct BurstOptions {
     #[arg(long = "burst-reverse", id = "burst-reverse", default_value_t = false)]
     #[serde(default)]
     pub reverse: bool,
-
 }
 
 fn default_release_delay() -> u64 {

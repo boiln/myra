@@ -3,10 +3,8 @@ import { useHotkeyStore } from "@/lib/stores/hotkey-store";
 import { cn } from "@/lib/utils";
 
 interface HotkeyBadgeProps {
-
     action: string;
     className?: string;
-
 }
 
 export function HotkeyBadge({ action, className }: HotkeyBadgeProps) {
@@ -20,6 +18,7 @@ export function HotkeyBadge({ action, className }: HotkeyBadgeProps) {
     const handleClickOutsideRef = useRef<(e: MouseEvent) => void>(() => {});
 
     handleKeyDownRef.current = (e: KeyboardEvent) => {
+
         if (!isRecordingThis) return;
 
         e.preventDefault();
@@ -56,9 +55,11 @@ export function HotkeyBadge({ action, className }: HotkeyBadgeProps) {
         }
 
         setBinding(action, key);
+
     };
 
     handleClickOutsideRef.current = (e: MouseEvent) => {
+
         if (!isRecordingThis) return;
 
         const target = e.target as HTMLElement;
@@ -66,9 +67,11 @@ export function HotkeyBadge({ action, className }: HotkeyBadgeProps) {
         if (target.closest(`[data-hotkey-action="${action}"]`)) return;
 
         stopRecording();
+
     };
 
     const toggleRecording = (e: React.MouseEvent) => {
+
         e.stopPropagation();
 
         if (isRecordingThis) {
@@ -77,14 +80,14 @@ export function HotkeyBadge({ action, className }: HotkeyBadgeProps) {
         }
 
         startRecording(action);
+
     };
 
     useEffect(() => {
-        if (!isRecordingThis) return;
 
+        if (!isRecordingThis) return;
         const forwardKeyDown = (e: KeyboardEvent) => handleKeyDownRef.current(e);
         const forwardOutsideClick = (e: MouseEvent) => handleClickOutsideRef.current(e);
-
         window.addEventListener("keydown", forwardKeyDown);
         window.addEventListener("mousedown", forwardOutsideClick);
 
@@ -92,6 +95,7 @@ export function HotkeyBadge({ action, className }: HotkeyBadgeProps) {
             window.removeEventListener("keydown", forwardKeyDown);
             window.removeEventListener("mousedown", forwardOutsideClick);
         };
+
     }, [isRecordingThis]);
 
     const displayText = isRecordingThis ? " .." : binding?.shortcut || "[-]";
@@ -99,7 +103,6 @@ export function HotkeyBadge({ action, className }: HotkeyBadgeProps) {
     const buttonClass = getButtonClass(isRecordingThis, binding?.shortcut);
 
     return (
-
         <button
             data-hotkey-action={action}
             onClick={toggleRecording}
@@ -119,7 +122,9 @@ export function HotkeyBadge({ action, className }: HotkeyBadgeProps) {
 function normalizeKey(key: string): string {
 
     if (key === " ") return "Space";
+
     if (key.startsWith("Arrow")) return key.replace("Arrow", "");
+
     if (key.length === 1) return key.toUpperCase();
 
     return key;
@@ -127,15 +132,21 @@ function normalizeKey(key: string): string {
 }
 
 function getTitle(isRecording: boolean, shortcut?: string | null): string {
+
     if (isRecording) return "Press a key (Esc to cancel, Del to clear)";
+
     if (shortcut) return `Hotkey: ${shortcut} (click to change)`;
 
     return "Click to set hotkey";
+
 }
 
 function getButtonClass(isRecording: boolean, shortcut?: string | null): string {
+
     if (isRecording) return "animate-pulse bg-primary text-primary-foreground";
+
     if (shortcut) return "bg-muted/80 text-muted-foreground hover:bg-muted";
 
     return "bg-muted/50 text-muted-foreground/60 hover:bg-muted/80 hover:text-muted-foreground";
+
 }

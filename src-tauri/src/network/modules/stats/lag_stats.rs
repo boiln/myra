@@ -4,7 +4,6 @@
 /// in the simulation.
 #[derive(Debug)]
 pub struct LagStats {
-
     /// Number of packets currently being lagged
     lagged_package_count: usize,
 
@@ -13,20 +12,16 @@ pub struct LagStats {
 
     /// Total number of packets that have been processed by the lag module
     total_processed: usize,
-
 }
 
 impl Default for LagStats {
-
     /// Creates a new `LagStats` instance with default values.
     fn default() -> Self {
         Self::new()
     }
-
 }
 
 impl LagStats {
-
     /// Creates a new `LagStats` instance with zeroed counters.
     ///
     /// # Returns
@@ -39,11 +34,13 @@ impl LagStats {
     /// let stats = LagStats::new();
     /// ```
     pub fn new() -> Self {
+
         Self {
             lagged_package_count: 0,
             max_lagged: 0,
             total_processed: 0,
         }
+
     }
 
     /// Updates the count of currently lagged packets.
@@ -106,12 +103,10 @@ impl LagStats {
         self.max_lagged = 0;
         self.total_processed = 0;
     }
-
 }
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
 
     #[test]
@@ -167,5 +162,4 @@ mod tests {
         assert_eq!(stats.total_processed(), 0);
 
     }
-
 }

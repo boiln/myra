@@ -17,7 +17,6 @@ use windivert_sys::ChecksumFlags;
 pub struct CorruptionModule;
 
 impl PacketModule for CorruptionModule {
-
     type Options = CorruptionOptions;
     type State = ();
 
@@ -55,7 +54,6 @@ impl PacketModule for CorruptionModule {
         Ok(())
 
     }
-
 }
 
 /// Randomly corruptions with packet data based on specified probabilities
@@ -105,7 +103,6 @@ pub fn corruption_packets(
     for packet_data in packets.iter_mut() {
         // Check if this packet's direction should be affected
         let matches_direction = (packet_data.is_outbound && apply_outbound)
-
             || (!packet_data.is_outbound && apply_inbound);
 
         if !matches_direction {
@@ -166,7 +163,6 @@ pub fn corruption_packets(
 
         if recalculate_checksums {
             if let Err(e) = packet_data
-
                 .packet
                 .recalculate_checksums(ChecksumFlags::new())
             {
@@ -281,10 +277,12 @@ fn get_ip_version(data: &[u8]) -> Option<(u8, &[u8])> {
 ///
 /// A tuple of (header length in bytes, protocol number)
 fn parse_ipv4_header(data: &[u8]) -> (usize, u8) {
+
     let header_length = ((data[0] & 0x0F) * 4) as usize;
     let protocol = data[9];
 
     (header_length, protocol)
+
 }
 
 /// Parses an IPv6 header to extract header length and next header type
@@ -297,10 +295,12 @@ fn parse_ipv4_header(data: &[u8]) -> (usize, u8) {
 ///
 /// A tuple of (header length in bytes, next header type)
 fn parse_ipv6_header(data: &[u8]) -> (usize, u8) {
+
     let header_length = 40; // IPv6 header is always 40 bytes
     let next_header = data[6];
 
     (header_length, next_header)
+
 }
 
 /// Calculates the total header length for a UDP packet

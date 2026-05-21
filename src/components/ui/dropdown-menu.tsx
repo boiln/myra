@@ -25,13 +25,10 @@ function DropdownMenuSubTrigger({
     ref,
     ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.SubTrigger> & {
-
     inset?: boolean;
-
 }) {
 
     return (
-
         <DropdownMenuPrimitive.SubTrigger
             ref={ref}
             className={cn(
@@ -55,7 +52,6 @@ function DropdownMenuSubContent({
 }: React.ComponentProps<typeof DropdownMenuPrimitive.SubContent>) {
 
     return (
-
         <DropdownMenuPrimitive.SubContent
             ref={ref}
             className={cn(
@@ -76,7 +72,6 @@ function DropdownMenuContent({
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Content>) {
 
     return (
-
         <DropdownMenuPrimitive.Portal>
             <DropdownMenuPrimitive.Content
                 ref={ref}
@@ -98,13 +93,10 @@ function DropdownMenuItem({
     ref,
     ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Item> & {
-
     inset?: boolean;
-
 }) {
 
     return (
-
         <DropdownMenuPrimitive.Item
             ref={ref}
             className={cn(
@@ -127,7 +119,6 @@ function DropdownMenuCheckboxItem({
 }: React.ComponentProps<typeof DropdownMenuPrimitive.CheckboxItem>) {
 
     return (
-
         <DropdownMenuPrimitive.CheckboxItem
             ref={ref}
             className={cn(
@@ -156,7 +147,6 @@ function DropdownMenuRadioItem({
 }: React.ComponentProps<typeof DropdownMenuPrimitive.RadioItem>) {
 
     return (
-
         <DropdownMenuPrimitive.RadioItem
             ref={ref}
             className={cn(
@@ -182,13 +172,10 @@ function DropdownMenuLabel({
     ref,
     ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Label> & {
-
     inset?: boolean;
-
 }) {
 
     return (
-
         <DropdownMenuPrimitive.Label
             ref={ref}
             className={cn("px-2 py-1.5 text-sm font-semibold", inset && "pl-8", className)}
@@ -205,7 +192,6 @@ function DropdownMenuSeparator({
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Separator>) {
 
     return (
-
         <DropdownMenuPrimitive.Separator
             ref={ref}
             className={cn("-mx-1 my-1 h-px bg-muted", className)}
@@ -217,7 +203,6 @@ function DropdownMenuSeparator({
 
 const DropdownMenuShortcut = ({ className, ...props }: React.HTMLAttributes<HTMLSpanElement>) => {
     return (
-
         <span className={cn("ml-auto text-xs tracking-widest opacity-60", className)} {...props} />
     );
 };

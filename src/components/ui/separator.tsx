@@ -14,7 +14,6 @@ function Separator({
 }: React.ComponentProps<typeof SeparatorPrimitive.Root>) {
 
     return (
-
         <SeparatorPrimitive.Root
             ref={ref}
             decorative={decorative}

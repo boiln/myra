@@ -21,19 +21,15 @@ pub struct BurstModule;
 #[derive(Debug)]
 #[derive(Default)]
 pub struct BurstState {
-
     /// Queue of buffered packets with their capture time
     pub buffer: VecDeque<(PacketData<'static>, Instant)>,
     /// When the current burst cycle started
     pub cycle_start: Option<Instant>,
     /// When the last keepalive packet was sent
     pub last_keepalive: Option<Instant>,
-
 }
 
-
 impl PacketModule for BurstModule {
-
     type Options = BurstOptions;
     type State = BurstState;
 
@@ -83,7 +79,6 @@ impl PacketModule for BurstModule {
         Ok(())
 
     }
-
 }
 
 /// Implements packet bursting by buffering packets then releasing all at once.
@@ -278,17 +273,16 @@ pub fn flush_buffer<'a>(
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
     use windivert::layer::NetworkLayer;
     use windivert::packet::WinDivertPacket;
 
     #[test]
     fn test_packet_buffering() {
+
         unsafe {
             // Create outbound packets for testing
             let mut packets = vec![
-
                 PacketData::new(WinDivertPacket::<NetworkLayer>::new(vec![1, 2, 3]), true),
                 PacketData::new(WinDivertPacket::<NetworkLayer>::new(vec![4, 5, 6]), true),
             ];
@@ -317,6 +311,6 @@ mod tests {
             assert_eq!(packets.len(), 0);
             assert_eq!(buffer.len(), 2);
         }
-    }
 
+    }
 }

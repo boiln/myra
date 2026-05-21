@@ -9,7 +9,6 @@ fn default_passthrough_threshold() -> usize {
 
 #[derive(Parser, Debug, Serialize, Deserialize, Default, Clone)]
 pub struct BandwidthOptions {
-
     /// Whether this module is enabled
     #[arg(skip)]
     #[serde(default)]
@@ -57,5 +56,4 @@ pub struct BandwidthOptions {
     #[arg(skip)]
     #[serde(default)]
     pub use_wfp: bool,
-
 }

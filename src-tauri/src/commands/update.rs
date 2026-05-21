@@ -40,7 +40,6 @@ pub async fn update_settings(
     let settings = build_settings_from_modules(modules)?;
 
     let mut state_settings = state
-
         .settings
         .lock()
         .map_err(|e| format!("Failed to lock settings mutex: {}", e))?;
@@ -105,7 +104,6 @@ fn build_settings_from_modules(modules: Vec<ModuleInfo>) -> Result<Settings, Str
 fn build_drop_options(module: &ModuleInfo) -> Result<DropOptions, String> {
 
     let probability = Probability::new(module.config.chance / 100.0)
-
         .map_err(|e| format!("Invalid drop probability: {}", e))?;
 
     Ok(DropOptions {
@@ -121,7 +119,6 @@ fn build_drop_options(module: &ModuleInfo) -> Result<DropOptions, String> {
 fn build_lag_options(module: &ModuleInfo) -> Result<LagOptions, String> {
 
     let probability = Probability::new(module.config.chance / 100.0)
-
         .map_err(|e| format!("Invalid lag probability: {}", e))?;
 
     let lag_time = module.config.duration_ms.unwrap_or(1000);
@@ -144,7 +141,6 @@ fn build_lag_options(module: &ModuleInfo) -> Result<LagOptions, String> {
 fn build_throttle_options(module: &ModuleInfo) -> Result<ThrottleOptions, String> {
 
     let probability = Probability::new(module.config.chance / 100.0)
-
         .map_err(|e| format!("Invalid throttle probability: {}", e))?;
 
     Ok(ThrottleOptions {
@@ -164,7 +160,6 @@ fn build_throttle_options(module: &ModuleInfo) -> Result<ThrottleOptions, String
 fn build_duplicate_options(module: &ModuleInfo) -> Result<DuplicateOptions, String> {
 
     let probability = Probability::new(module.config.chance / 100.0)
-
         .map_err(|e| format!("Invalid duplicate probability: {}", e))?;
 
     Ok(DuplicateOptions {
@@ -181,7 +176,6 @@ fn build_duplicate_options(module: &ModuleInfo) -> Result<DuplicateOptions, Stri
 fn build_bandwidth_options(module: &ModuleInfo) -> Result<BandwidthOptions, String> {
 
     let probability = Probability::new(module.config.chance / 100.0)
-
         .map_err(|e| format!("Invalid bandwidth probability: {}", e))?;
 
     let limit = module.config.limit_kbps.unwrap_or(0) as usize;
@@ -202,7 +196,6 @@ fn build_bandwidth_options(module: &ModuleInfo) -> Result<BandwidthOptions, Stri
 fn build_corruption_options(module: &ModuleInfo) -> Result<CorruptionOptions, String> {
 
     let probability = Probability::new(module.config.chance / 100.0)
-
         .map_err(|e| format!("Invalid corruption probability: {}", e))?;
 
     let amount = Probability::new(0.5).unwrap_or_default();
@@ -222,7 +215,6 @@ fn build_corruption_options(module: &ModuleInfo) -> Result<CorruptionOptions, St
 fn build_reorder_options(module: &ModuleInfo) -> Result<ReorderOptions, String> {
 
     let probability = Probability::new(module.config.chance / 100.0)
-
         .map_err(|e| format!("Invalid reorder probability: {}", e))?;
 
     Ok(ReorderOptions {
@@ -239,7 +231,6 @@ fn build_reorder_options(module: &ModuleInfo) -> Result<ReorderOptions, String> 
 fn build_burst_options(module: &ModuleInfo) -> Result<BurstOptions, String> {
 
     let probability = Probability::new(module.config.chance / 100.0)
-
         .map_err(|e| format!("Invalid burst probability: {}", e))?;
 
     Ok(BurstOptions {

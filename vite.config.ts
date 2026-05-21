@@ -4,11 +4,11 @@ import path from "node:path";
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => {
+
     const host = process.env.TAURI_DEV_HOST as string | undefined;
 
     return {
         plugins: [react()],
-
         // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
         //
         // 1. prevent vite from obscuring rust errors
@@ -36,4 +36,5 @@ export default defineConfig(async () => {
             },
         },
     };
+
 });

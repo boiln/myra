@@ -22,7 +22,6 @@ fn default_chance() -> f64 {
 /// the delay expires (with optional probability for which packets to affect).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ClassicLatencyOptions {
-
     /// Whether this module is enabled
     #[serde(default)]
     pub enabled: bool,
@@ -42,12 +41,11 @@ pub struct ClassicLatencyOptions {
     /// Fixed delay in milliseconds (0-15000)
     #[serde(default = "default_delay")]
     pub delay_ms: u64,
-
 }
 
 impl Default for ClassicLatencyOptions {
-
     fn default() -> Self {
+
         Self {
             enabled: false,
             inbound: true,
@@ -55,6 +53,6 @@ impl Default for ClassicLatencyOptions {
             chance: 100.0,
             delay_ms: 100,
         }
-    }
 
+    }
 }

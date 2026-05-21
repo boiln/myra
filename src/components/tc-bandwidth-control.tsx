@@ -9,14 +9,12 @@ import {
 import { MyraCheckbox } from "./ui/myra-checkbox";
 
 interface State {
-
     enabled: boolean;
     limitKbps: number;
     direction: TcDirection;
     status: TcBandwidthStatus | null;
     error: string | null;
     loading: boolean;
-
 }
 
 type Action =
@@ -27,17 +25,16 @@ type Action =
     | { type: "operationEnd"; enabled?: boolean; error?: string | null };
 
 const initialState: State = {
-
     enabled: false,
     limitKbps: 1.0,
     direction: "inbound",
     status: null,
     error: null,
     loading: false,
-
 };
 
 function reducer(state: State, action: Action): State {
+
     switch (action.type) {
         case "setLimit":
 
@@ -67,6 +64,7 @@ function reducer(state: State, action: Action): State {
 
             return state;
     }
+
 }
 
 export function TcBandwidthControl() {
@@ -75,24 +73,26 @@ export function TcBandwidthControl() {
     const { enabled, limitKbps, direction, status, error, loading } = state;
 
     useEffect(() => {
+
         const fetchStatus = async () => {
+
             try {
                 const s = await getTcBandwidthStatus();
-
                 dispatch({ type: "statusFetched", status: s });
             } catch (e) {
                 console.error("Failed to get TC status:", e);
             }
+
         };
-
         fetchStatus();
-
         const interval = setInterval(fetchStatus, 2000);
 
         return () => clearInterval(interval);
+
     }, []);
 
     const handleToggle = async (checked: boolean) => {
+
         dispatch({ type: "operationStart" });
 
         try {
@@ -107,9 +107,11 @@ export function TcBandwidthControl() {
         } catch (e: any) {
             dispatch({ type: "operationEnd", error: e.toString() });
         }
+
     };
 
     const handleApply = async () => {
+
         if (!enabled) return;
 
         dispatch({ type: "operationStart" });
@@ -122,10 +124,10 @@ export function TcBandwidthControl() {
         } catch (e: any) {
             dispatch({ type: "operationEnd", error: e.toString() });
         }
+
     };
 
     return (
-
         <div className="rounded-lg border border-zinc-700 bg-zinc-900/50 p-4">
             <div className="mb-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -139,12 +141,10 @@ export function TcBandwidthControl() {
                     label={enabled ? "Active" : "Inactive"}
                 />
             </div>
-
             <p className="mb-3 text-xs text-zinc-500">
                 Bandwidth limiting with packet pacing. Small packets (ACKs/keepalives) pass through
                 to maintain connection.
             </p>
-
             <div className="mb-3 flex items-center gap-3">
                 <div className="w-24">
                     <label htmlFor="tc-limit" className="mb-1 block text-xs text-zinc-400">
@@ -162,12 +162,10 @@ export function TcBandwidthControl() {
                                 type: "setLimit",
                                 value: Math.max(0.1, parseFloat(e.target.value) || 0.1),
                             })
-
                         }
                         className="w-full rounded border border-zinc-700 bg-zinc-800 px-2 py-1 text-sm text-zinc-200"
                     />
                 </div>
-
                 <div className="flex-1">
                     <label htmlFor="tc-direction" className="mb-1 block text-xs text-zinc-400">
                         Direction
@@ -185,7 +183,6 @@ export function TcBandwidthControl() {
                         <option value="both">Both</option>
                     </select>
                 </div>
-
                 {enabled && (
                     <button
                         onClick={handleApply}
@@ -196,13 +193,11 @@ export function TcBandwidthControl() {
                     </button>
                 )}
             </div>
-
             {status && status.active && (
                 <div className="text-xs text-green-400">
                     ✓ Active: {status.limit_kbps} KB/s ({status.direction})
                 </div>
             )}
-
             {error && <div className="mt-2 text-xs text-red-400">Error: {error}</div>}
         </div>
     );

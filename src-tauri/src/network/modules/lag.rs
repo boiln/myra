@@ -20,7 +20,6 @@ pub struct LagModule;
 pub type LagState = VecDeque<PacketData<'static>>;
 
 impl PacketModule for LagModule {
-
     type Options = LagOptions;
     type State = LagState;
 
@@ -64,7 +63,6 @@ impl PacketModule for LagModule {
         Ok(())
 
     }
-
 }
 
 /// Simulates network lag by holding packets for a specified duration.
@@ -118,7 +116,6 @@ pub fn lag_packets<'a>(
     for packet in packets.drain(..) {
         // Check if this packet's direction should be affected
         let matches_direction = (packet.is_outbound && apply_outbound)
-
             || (!packet.is_outbound && apply_inbound);
 
         if !matches_direction {
@@ -156,7 +153,6 @@ pub fn lag_packets<'a>(
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
     use crate::network::modules::stats::lag_stats::LagStats;
     use std::time::{Duration, Instant};
@@ -165,6 +161,7 @@ mod tests {
 
     #[test]
     fn test_lag_packets_immediate_release_after_lag() {
+
         unsafe {
             // Create test packet with an arrival time in the past
             let mut old_packet =
@@ -197,10 +194,12 @@ mod tests {
             assert_eq!(storage.len(), 0);
             assert_eq!(stats.current_lagged(), 0);
         }
+
     }
 
     #[test]
     fn test_lag_packets_held_until_lag_elapsed() {
+
         unsafe {
             // Create a new packet (will have recent arrival time)
             let packet = PacketData::from(WinDivertPacket::<NetworkLayer>::new(vec![1, 2, 3]));
@@ -225,10 +224,12 @@ mod tests {
             assert_eq!(storage.len(), 1);
             assert_eq!(stats.current_lagged(), 1);
         }
+
     }
 
     #[test]
     fn test_all_packets_lagged_with_100_percent() {
+
         unsafe {
             // Create multiple packets
             let packet1 = PacketData::from(WinDivertPacket::<NetworkLayer>::new(vec![1, 2, 3]));
@@ -255,6 +256,6 @@ mod tests {
             assert_eq!(storage.len(), 3);
             assert_eq!(stats.current_lagged(), 3);
         }
-    }
 
+    }
 }

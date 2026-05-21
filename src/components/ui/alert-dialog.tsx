@@ -19,7 +19,6 @@ function AlertDialogOverlay({
 }: React.ComponentProps<typeof AlertDialogPrimitive.Overlay>) {
 
     return (
-
         <AlertDialogPrimitive.Overlay
             ref={ref}
             className={cn(
@@ -39,7 +38,6 @@ function AlertDialogContent({
 }: React.ComponentProps<typeof AlertDialogPrimitive.Content>) {
 
     return (
-
         <AlertDialogPortal>
             <AlertDialogOverlay />
             <AlertDialogPrimitive.Content
@@ -56,13 +54,11 @@ function AlertDialogContent({
 }
 
 const AlertDialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-
     <div className={cn("flex flex-col gap-2 text-center sm:text-left", className)} {...props} />
 );
 AlertDialogHeader.displayName = "AlertDialogHeader";
 
 const AlertDialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-
     <div
         className={cn("flex flex-col-reverse gap-2 sm:flex-row sm:justify-end", className)}
         {...props}
@@ -77,7 +73,6 @@ function AlertDialogTitle({
 }: React.ComponentProps<typeof AlertDialogPrimitive.Title>) {
 
     return (
-
         <AlertDialogPrimitive.Title
             ref={ref}
             className={cn("text-lg font-semibold", className)}
@@ -94,7 +89,6 @@ function AlertDialogDescription({
 }: React.ComponentProps<typeof AlertDialogPrimitive.Description>) {
 
     return (
-
         <AlertDialogPrimitive.Description
             ref={ref}
             className={cn("text-sm text-muted-foreground", className)}
@@ -111,7 +105,6 @@ function AlertDialogAction({
 }: React.ComponentProps<typeof AlertDialogPrimitive.Action>) {
 
     return (
-
         <AlertDialogPrimitive.Action
             ref={ref}
             className={cn(buttonVariants(), className)}
@@ -128,7 +121,6 @@ function AlertDialogCancel({
 }: React.ComponentProps<typeof AlertDialogPrimitive.Cancel>) {
 
     return (
-
         <AlertDialogPrimitive.Cancel
             ref={ref}
             className={cn(buttonVariants({ variant: "outline" }), "mt-2 sm:mt-0", className)}

@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Parser, Debug, Serialize, Deserialize, Clone)]
 pub struct DuplicateOptions {
-
     /// Whether this module is enabled
     #[arg(skip)]
     #[serde(default)]
@@ -39,12 +38,11 @@ pub struct DuplicateOptions {
     )]
     #[serde(default)]
     pub duration_ms: u64,
-
 }
 
 impl Default for DuplicateOptions {
-
     fn default() -> Self {
+
         Self {
             enabled: false,
             inbound: true,
@@ -53,6 +51,6 @@ impl Default for DuplicateOptions {
             probability: Probability::default(),
             duration_ms: 0,
         }
-    }
 
+    }
 }

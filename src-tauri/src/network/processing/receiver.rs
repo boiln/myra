@@ -64,7 +64,6 @@ pub fn receive_packets(
             match &current_filter {
                 Some(filter_str) => {
                     let config = HandleConfig::with_filter(filter_str)
-
                         .priority(0)
                         .recv_only(false)
                         .exclude_tauri_port(false); // Already excluded in construct_filter_with_exclusions
@@ -153,10 +152,12 @@ pub fn receive_packets(
 
 /// Checks if the thread should shut down.
 fn should_shutdown(running: &Arc<AtomicBool>) -> bool {
+
     if !running.load(Ordering::SeqCst) {
         debug!("Packet receiving thread exiting due to shutdown signal.");
 
         return true;
     }
     false
+
 }

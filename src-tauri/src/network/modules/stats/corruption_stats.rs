@@ -12,7 +12,6 @@ use std::time::{Duration, Instant};
 /// to avoid excessive resource usage when monitoring high-traffic networks.
 #[derive(Debug)]
 pub struct CorruptionStats {
-
     /// Raw payload data from the most recently corruptioned packet
     pub(crate) data: Vec<u8>,
 
@@ -27,11 +26,9 @@ pub struct CorruptionStats {
 
     /// How often statistics should be updated
     pub update_interval: Duration,
-
 }
 
 impl CorruptionStats {
-
     /// Creates a new `CorruptionStats` instance with the specified refresh interval
     ///
     /// # Arguments
@@ -48,6 +45,7 @@ impl CorruptionStats {
     /// let stats = CorruptionStats::new(Duration::from_millis(100));
     /// ```
     pub fn new(refresh_interval: Duration) -> Self {
+
         Self {
             data: vec![],
             corruption_flags: vec![],
@@ -55,6 +53,7 @@ impl CorruptionStats {
             last_update: Instant::now().sub(refresh_interval),
             update_interval: refresh_interval,
         }
+
     }
 
     /// Determines if it's time to update the statistics
@@ -128,12 +127,10 @@ impl CorruptionStats {
             .count()
 
     }
-
 }
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
 
     #[test]
@@ -174,5 +171,4 @@ mod tests {
         assert_eq!(stats.corruptioned_byte_count(), 0);
 
     }
-
 }

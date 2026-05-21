@@ -36,7 +36,6 @@ pub async fn stop_processing(state: State<'_, PacketProcessingState>) -> Result<
 
     {
         let mut settings = state
-
             .settings
             .lock()
             .map_err(|e| format!("Failed to lock settings mutex: {}", e))?;
@@ -49,7 +48,6 @@ pub async fn stop_processing(state: State<'_, PacketProcessingState>) -> Result<
 
     {
         let mut settings = state
-
             .settings
             .lock()
             .map_err(|e| format!("Failed to lock settings mutex: {}", e))?;

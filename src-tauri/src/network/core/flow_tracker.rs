@@ -15,42 +15,37 @@ use windivert::WinDivert;
 /// Tracked flow information
 #[derive(Debug, Clone)]
 pub struct FlowInfo {
-
     pub local_addr: IpAddr,
     pub remote_addr: IpAddr,
     pub local_port: u16,
     pub remote_port: u16,
     pub protocol: u8,
-
 }
 
 /// Tracks active flows for a specific process
 #[derive(Debug, Default)]
 pub struct ProcessFlows {
-
     pub flows: Vec<FlowInfo>,
-
 }
 
 /// Flow tracker that monitors connections for target processes
 pub struct FlowTracker {
-
     running: Arc<AtomicBool>,
     thread_handle: Option<JoinHandle<()>>,
     flows: Arc<RwLock<HashMap<u32, ProcessFlows>>>,
     target_pid: Arc<RwLock<Option<u32>>>,
-
 }
 
 impl FlowTracker {
-
     pub fn new() -> Self {
+
         Self {
             running: Arc::new(AtomicBool::new(false)),
             thread_handle: None,
             flows: Arc::new(RwLock::new(HashMap::new())),
             target_pid: Arc::new(RwLock::new(None)),
         }
+
     }
 
     /// Start tracking flows for a specific process
@@ -165,23 +160,18 @@ impl FlowTracker {
     pub fn is_running(&self) -> bool {
         self.running.load(Ordering::SeqCst)
     }
-
 }
 
 impl Default for FlowTracker {
-
     fn default() -> Self {
         Self::new()
     }
-
 }
 
 impl Drop for FlowTracker {
-
     fn drop(&mut self) {
         self.stop();
     }
-
 }
 
 fn run_flow_tracker(

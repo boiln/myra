@@ -30,13 +30,10 @@ use crate::settings::throttle::ThrottleOptions;
 /// Provides a fluent API for configuring network condition simulations.
 #[derive(Debug, Default)]
 pub struct SettingsBuilder {
-
     settings: Settings,
-
 }
 
 impl SettingsBuilder {
-
     /// Creates a new builder with default (empty) settings.
     pub fn new() -> Self {
         Self::default()
@@ -68,10 +65,12 @@ impl SettingsBuilder {
     ///
     /// * `duration_ms` - Duration in milliseconds (0 = infinite)
     pub fn with_drop_duration(mut self, duration_ms: u64) -> Self {
+
         if let Some(ref mut drop) = self.settings.drop {
             drop.duration_ms = duration_ms;
         }
         self
+
     }
 
     /// Enables packet lag with the given lag time.
@@ -80,6 +79,7 @@ impl SettingsBuilder {
     ///
     /// * `delay_ms` - Lag in milliseconds
     pub fn lag(mut self, delay_ms: u64) -> Self {
+
         self.settings.lag = Some(LagOptions {
             enabled: true,
             inbound: true,
@@ -89,6 +89,7 @@ impl SettingsBuilder {
             duration_ms: 0,
         });
         self
+
     }
 
     /// Sets the probability for the lag effect.
@@ -97,10 +98,12 @@ impl SettingsBuilder {
     ///
     /// * `chance` - Probability as percentage (0.0 to 100.0)
     pub fn with_lag_chance(mut self, chance: f64) -> Self {
+
         if let Some(ref mut lag) = self.settings.lag {
             lag.probability = Probability::new(chance / 100.0).unwrap_or_default();
         }
         self
+
     }
 
     /// Sets the duration for the lag effect.
@@ -109,10 +112,12 @@ impl SettingsBuilder {
     ///
     /// * `duration_ms` - Duration in milliseconds (0 = infinite)
     pub fn with_lag_duration(mut self, duration_ms: u64) -> Self {
+
         if let Some(ref mut lag) = self.settings.lag {
             lag.duration_ms = duration_ms;
         }
         self
+
     }
 
     /// Enables network throttling with the given throttle time.
@@ -121,6 +126,7 @@ impl SettingsBuilder {
     ///
     /// * `throttle_ms` - Throttle time in milliseconds
     pub fn throttle(mut self, throttle_ms: u64) -> Self {
+
         self.settings.throttle = Some(ThrottleOptions {
             enabled: true,
             inbound: true,
@@ -133,6 +139,7 @@ impl SettingsBuilder {
             freeze_mode: false,
         });
         self
+
     }
 
     /// Sets the probability for the throttle effect.
@@ -141,10 +148,12 @@ impl SettingsBuilder {
     ///
     /// * `chance` - Probability as percentage (0.0 to 100.0)
     pub fn with_throttle_chance(mut self, chance: f64) -> Self {
+
         if let Some(ref mut throttle) = self.settings.throttle {
             throttle.probability = Probability::new(chance / 100.0).unwrap_or_default();
         }
         self
+
     }
 
     /// Sets whether throttling should drop packets instead of delaying.
@@ -153,10 +162,12 @@ impl SettingsBuilder {
     ///
     /// * `drop` - Whether to drop packets
     pub fn with_throttle_drop(mut self, drop: bool) -> Self {
+
         if let Some(ref mut throttle) = self.settings.throttle {
             throttle.drop = drop;
         }
         self
+
     }
 
     /// Enables packet reordering with the given max delay.
@@ -165,6 +176,7 @@ impl SettingsBuilder {
     ///
     /// * `max_delay_ms` - Maximum reorder delay in milliseconds
     pub fn reorder(mut self, max_delay_ms: u64) -> Self {
+
         self.settings.reorder = Some(ReorderOptions {
             enabled: true,
             inbound: true,
@@ -174,6 +186,7 @@ impl SettingsBuilder {
             duration_ms: 0,
         });
         self
+
     }
 
     /// Sets the probability for the reorder effect.
@@ -182,10 +195,12 @@ impl SettingsBuilder {
     ///
     /// * `chance` - Probability as percentage (0.0 to 100.0)
     pub fn with_reorder_chance(mut self, chance: f64) -> Self {
+
         if let Some(ref mut reorder) = self.settings.reorder {
             reorder.probability = Probability::new(chance / 100.0).unwrap_or_default();
         }
         self
+
     }
 
     /// Enables packet corruptioning/corruption.
@@ -194,6 +209,7 @@ impl SettingsBuilder {
     ///
     /// * `chance` - Probability as percentage (0.0 to 100.0)
     pub fn corruption(mut self, chance: f64) -> Self {
+
         self.settings.corruption = Some(CorruptionOptions {
             enabled: true,
             inbound: true,
@@ -204,6 +220,7 @@ impl SettingsBuilder {
             recalculate_checksums: Some(true),
         });
         self
+
     }
 
     /// Sets the corruption amount for corruptioning.
@@ -212,10 +229,12 @@ impl SettingsBuilder {
     ///
     /// * `amount` - Amount of corruption as percentage (0.0 to 100.0)
     pub fn with_corruption_amount(mut self, amount: f64) -> Self {
+
         if let Some(ref mut corruption) = self.settings.corruption {
             corruption.amount = Probability::new(amount / 100.0).unwrap_or_default();
         }
         self
+
     }
 
     /// Sets whether to recalculate checksums after corruptioning.
@@ -224,10 +243,12 @@ impl SettingsBuilder {
     ///
     /// * `recalculate` - Whether to recalculate checksums
     pub fn with_corruption_checksums(mut self, recalculate: bool) -> Self {
+
         if let Some(ref mut corruption) = self.settings.corruption {
             corruption.recalculate_checksums = Some(recalculate);
         }
         self
+
     }
 
     /// Enables packet duplication.
@@ -236,6 +257,7 @@ impl SettingsBuilder {
     ///
     /// * `count` - Number of duplicates to create
     pub fn duplicate(mut self, count: usize) -> Self {
+
         self.settings.duplicate = Some(DuplicateOptions {
             enabled: true,
             inbound: true,
@@ -245,6 +267,7 @@ impl SettingsBuilder {
             duration_ms: 0,
         });
         self
+
     }
 
     /// Sets the probability for the duplicate effect.
@@ -253,10 +276,12 @@ impl SettingsBuilder {
     ///
     /// * `chance` - Probability as percentage (0.0 to 100.0)
     pub fn with_duplicate_chance(mut self, chance: f64) -> Self {
+
         if let Some(ref mut duplicate) = self.settings.duplicate {
             duplicate.probability = Probability::new(chance / 100.0).unwrap_or_default();
         }
         self
+
     }
 
     /// Enables bandwidth limitation.
@@ -265,6 +290,7 @@ impl SettingsBuilder {
     ///
     /// * `limit_kbps` - Bandwidth limit in KB/s
     pub fn bandwidth(mut self, limit_kbps: usize) -> Self {
+
         self.settings.bandwidth = Some(BandwidthOptions {
             enabled: true,
             inbound: true,
@@ -276,6 +302,7 @@ impl SettingsBuilder {
             use_wfp: false,
         });
         self
+
     }
 
     /// Sets the probability for the bandwidth effect.
@@ -284,10 +311,12 @@ impl SettingsBuilder {
     ///
     /// * `chance` - Probability as percentage (0.0 to 100.0)
     pub fn with_bandwidth_chance(mut self, chance: f64) -> Self {
+
         if let Some(ref mut bandwidth) = self.settings.bandwidth {
             bandwidth.probability = Probability::new(chance / 100.0).unwrap_or_default();
         }
         self
+
     }
 
     /// Clears all settings, resetting to default.
@@ -300,12 +329,10 @@ impl SettingsBuilder {
     pub fn build(self) -> Settings {
         self.settings
     }
-
 }
 
 /// Extension trait for `Settings`.
 impl Settings {
-
     /// Creates a new builder from existing settings.
     pub fn builder() -> SettingsBuilder {
         SettingsBuilder::new()
@@ -359,12 +386,10 @@ impl Settings {
         names
 
     }
-
 }
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
 
     #[test]
@@ -376,17 +401,18 @@ mod tests {
 
     #[test]
     fn test_builder_drop() {
+
         let settings = SettingsBuilder::new().drop(50.0).build();
 
         assert!(settings.drop.is_some());
         assert!((settings.drop.unwrap().probability.value() - 0.5).abs() < 0.001);
+
     }
 
     #[test]
     fn test_builder_lag_with_chance() {
 
         let settings = SettingsBuilder::new()
-
             .lag(100)
             .with_lag_chance(75.0)
             .build();
@@ -404,7 +430,6 @@ mod tests {
     fn test_builder_multiple_modules() {
 
         let settings = SettingsBuilder::new()
-
             .drop(25.0)
             .lag(50)
             .throttle(30)
@@ -421,7 +446,6 @@ mod tests {
     fn test_builder_clear() {
 
         let settings = SettingsBuilder::new()
-
             .drop(50.0)
             .lag(100)
             .clear()
@@ -435,7 +459,6 @@ mod tests {
     fn test_active_module_names() {
 
         let settings = SettingsBuilder::new()
-
             .drop(10.0)
             .bandwidth(1000)
             .build();
@@ -447,5 +470,4 @@ mod tests {
         assert!(!names.contains(&"lag"));
 
     }
-
 }

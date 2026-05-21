@@ -14,6 +14,7 @@ export function useActiveTimer(isActive: boolean) {
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
+
         if (!isActive) {
             // Stop timer and reset
             if (intervalRef.current) {
@@ -24,27 +25,26 @@ export function useActiveTimer(isActive: boolean) {
             setElapsedMs(0);
             return;
         }
-
         // Start or resume timer
         if (startTimeRef.current === null) {
             startTimeRef.current = Date.now();
         }
-
         intervalRef.current = setInterval(() => {
             if (startTimeRef.current !== null) {
                 setElapsedMs(Date.now() - startTimeRef.current);
             }
         }, 100); // Update every 100ms for smooth display
-
         return () => {
             if (intervalRef.current) {
                 clearInterval(intervalRef.current);
             }
         };
+
     }, [isActive]);
 
     // Format elapsed time like Google timer (with tenths of seconds)
     const formatTime = (ms: number): string => {
+
         const totalSeconds = Math.floor(ms / 1000);
         const tenths = Math.floor((ms % 1000) / 100);
         const hours = Math.floor(totalSeconds / 3600);
@@ -56,6 +56,7 @@ export function useActiveTimer(isActive: boolean) {
         }
 
         return `${minutes}:${seconds.toString().padStart(2, "0")}.${tenths}`;
+
     };
 
     return {

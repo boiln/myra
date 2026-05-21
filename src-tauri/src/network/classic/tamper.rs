@@ -18,7 +18,6 @@ pub fn process_tamper<'a>(
 
     for packet in packets.iter_mut() {
         let matches_direction = (packet.is_outbound && options.outbound)
-
             || (!packet.is_outbound && options.inbound);
 
         if !matches_direction {

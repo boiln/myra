@@ -21,7 +21,6 @@ use serde::{Deserialize, Serialize};
 /// All Classic mode settings combined.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ClassicSettings {
-
     /// Latency module - holds packets for fixed duration
     #[serde(default)]
     pub latency: Option<ClassicLatencyOptions>,
@@ -45,11 +44,9 @@ pub struct ClassicSettings {
     /// Bandwidth module - rate limiting
     #[serde(default)]
     pub bandwidth: Option<ClassicBandwidthOptions>,
-
 }
 
 impl ClassicSettings {
-
     /// Returns true if any classic module is enabled.
     pub fn has_any_enabled(&self) -> bool {
 
@@ -61,5 +58,4 @@ impl ClassicSettings {
             || self.bandwidth.as_ref().is_some_and(|o| o.enabled)
 
     }
-
 }

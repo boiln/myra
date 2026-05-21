@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Parser, Debug, Serialize, Deserialize, Clone, Default)]
 pub struct DropOptions {
-
     /// Whether this module is enabled
     #[arg(skip)]
     #[serde(default)]
@@ -30,5 +29,4 @@ pub struct DropOptions {
     #[arg(long = "drop-duration", id = "drop-duration", default_value_t = 0)]
     #[serde(default)]
     pub duration_ms: u64,
-
 }
