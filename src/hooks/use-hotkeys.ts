@@ -6,15 +6,20 @@ import { toast } from "sonner";
 export function useHotkeys() {
 
     const { registerAllHotkeys, unregisterAllHotkeys } = useHotkeyStore();
-    const { toggleActive, applyModuleSettings, manipulationStatus } = useNetworkStore();
+    const { toggleActive, applyModuleSettings, manipulationStatus } =
+        useNetworkStore();
 
     const getModuleEnabled = useCallback(
         (moduleName: string) => {
-            const module = manipulationStatus.modules.find((m) => m.name === moduleName);
+
+            const module = manipulationStatus.modules.find(
+                (m) => m.name === moduleName,
+            );
 
             return module?.enabled ?? false;
+
         },
-        [manipulationStatus.modules]
+        [manipulationStatus.modules],
     );
 
     const toggleModule = useCallback(
@@ -22,12 +27,15 @@ export function useHotkeys() {
 
             const currentEnabled = getModuleEnabled(moduleName);
             await applyModuleSettings(moduleName, !currentEnabled);
-            toast.success(`${displayName} ${currentEnabled ? "disabled" : "enabled"}`, {
-                duration: 1500,
-            });
+            toast.success(
+                `${displayName} ${currentEnabled ? "disabled" : "enabled"}`,
+                {
+                    duration: 1500,
+                },
+            );
 
         },
-        [getModuleEnabled, applyModuleSettings]
+        [getModuleEnabled, applyModuleSettings],
     );
 
     useEffect(() => {

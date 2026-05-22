@@ -10,7 +10,10 @@ export const createCoreSlice: StateCreator<
     NetworkStore,
     [],
     [],
-    Pick<NetworkStore, "toggleActive" | "updateFilter" | "setFilterTarget" | "loadStatus">
+    Pick<
+        NetworkStore,
+        "toggleActive" | "updateFilter" | "setFilterTarget" | "loadStatus"
+    >
 > = (set, get) => ({
     loadStatus: async () => {
 
@@ -26,7 +29,9 @@ export const createCoreSlice: StateCreator<
             // Helper to get existing direction settings for a module
             const getExistingDirections = (moduleName: string) => {
 
-                const existing = existingModules.find((m) => m.name === moduleName);
+                const existing = existingModules.find(
+                    (m) => m.name === moduleName,
+                );
 
                 return {
                     inbound: existing?.config.inbound ?? true,
@@ -35,10 +40,22 @@ export const createCoreSlice: StateCreator<
 
             };
             // Helper to get existing config value - preserves UI state when backend returns undefined
-            const getExistingConfig = <T>(moduleName: string, key: string, defaultValue: T): T => {
-                const existing = existingModules.find((m) => m.name === moduleName);
+            const getExistingConfig = <T>(
+                moduleName: string,
+                key: string,
+                defaultValue: T,
+            ): T => {
 
-                return (existing?.config[key as keyof typeof existing.config] as T) ?? defaultValue;
+                const existing = existingModules.find(
+                    (m) => m.name === moduleName,
+                );
+
+                return (
+                    (existing?.config[
+                        key as keyof typeof existing.config
+                    ] as T) ?? defaultValue
+                );
+
             };
             // Create modules array from settings, preserving direction settings
             const modules: ModuleInfo[] = [
@@ -47,14 +64,19 @@ export const createCoreSlice: StateCreator<
                     display_name: "Lag",
                     enabled: settings.lag?.enabled ?? false,
                     config: {
-                        inbound: settings.lag?.inbound ?? getExistingDirections("lag").inbound,
-                        outbound: settings.lag?.outbound ?? getExistingDirections("lag").outbound,
+                        inbound:
+                            settings.lag?.inbound ??
+                            getExistingDirections("lag").inbound,
+                        outbound:
+                            settings.lag?.outbound ??
+                            getExistingDirections("lag").outbound,
                         chance: settings.lag
                             ? Math.round(settings.lag.probability * 100)
                             : getExistingConfig("lag", "chance", 100),
                         enabled: settings.lag?.enabled ?? false,
                         duration_ms:
-                            settings.lag?.delay_ms || getExistingConfig("lag", "duration_ms", 1000),
+                            settings.lag?.delay_ms ||
+                            getExistingConfig("lag", "duration_ms", 1000),
                     },
                 },
                 {
@@ -62,8 +84,12 @@ export const createCoreSlice: StateCreator<
                     display_name: "Drop",
                     enabled: settings.drop?.enabled ?? false,
                     config: {
-                        inbound: settings.drop?.inbound ?? getExistingDirections("drop").inbound,
-                        outbound: settings.drop?.outbound ?? getExistingDirections("drop").outbound,
+                        inbound:
+                            settings.drop?.inbound ??
+                            getExistingDirections("drop").inbound,
+                        outbound:
+                            settings.drop?.outbound ??
+                            getExistingDirections("drop").outbound,
                         chance: settings.drop
                             ? Math.round(settings.drop.probability * 100)
                             : getExistingConfig("drop", "chance", 100),
@@ -77,7 +103,8 @@ export const createCoreSlice: StateCreator<
                     enabled: settings.throttle?.enabled ?? false,
                     config: {
                         inbound:
-                            settings.throttle?.inbound ?? getExistingDirections("throttle").inbound,
+                            settings.throttle?.inbound ??
+                            getExistingDirections("throttle").inbound,
                         outbound:
                             settings.throttle?.outbound ??
                             getExistingDirections("throttle").outbound,
@@ -110,7 +137,8 @@ export const createCoreSlice: StateCreator<
                             : getExistingConfig("duplicate", "chance", 100),
                         enabled: settings.duplicate?.enabled ?? false,
                         count:
-                            settings.duplicate?.count || getExistingConfig("duplicate", "count", 2),
+                            settings.duplicate?.count ||
+                            getExistingConfig("duplicate", "count", 2),
                         duration_ms: 0, // 0 = infinite effect duration
                     },
                 },
@@ -162,9 +190,11 @@ export const createCoreSlice: StateCreator<
                     enabled: settings.reorder?.enabled ?? false,
                     config: {
                         inbound:
-                            settings.reorder?.inbound ?? getExistingDirections("reorder").inbound,
+                            settings.reorder?.inbound ??
+                            getExistingDirections("reorder").inbound,
                         outbound:
-                            settings.reorder?.outbound ?? getExistingDirections("reorder").outbound,
+                            settings.reorder?.outbound ??
+                            getExistingDirections("reorder").outbound,
                         chance: settings.reorder
                             ? Math.round(settings.reorder.probability * 100)
                             : getExistingConfig("reorder", "chance", 100),
@@ -180,13 +210,19 @@ export const createCoreSlice: StateCreator<
                     display_name: "Burst",
                     enabled: settings.burst?.enabled ?? false,
                     config: {
-                        inbound: settings.burst?.inbound ?? getExistingDirections("burst").inbound,
+                        inbound:
+                            settings.burst?.inbound ??
+                            getExistingDirections("burst").inbound,
                         outbound:
-                            settings.burst?.outbound ?? getExistingDirections("burst").outbound,
-                        chance: settings.burst ? Math.round(settings.burst.probability * 100) : 100,
+                            settings.burst?.outbound ??
+                            getExistingDirections("burst").outbound,
+                        chance: settings.burst
+                            ? Math.round(settings.burst.probability * 100)
+                            : 100,
                         enabled: settings.burst?.enabled ?? false,
                         buffer_ms:
-                            settings.burst?.buffer_ms ?? getExistingConfig("burst", "buffer_ms", 0),
+                            settings.burst?.buffer_ms ??
+                            getExistingConfig("burst", "buffer_ms", 0),
                         keepalive_ms:
                             settings.burst?.keepalive_ms ??
                             getExistingConfig("burst", "keepalive_ms", 0),
@@ -196,7 +232,8 @@ export const createCoreSlice: StateCreator<
                             settings.burst?.release_delay_us ??
                             getExistingConfig("burst", "release_delay_us", 500),
                         reverse:
-                            settings.burst?.reverse ?? getExistingConfig("burst", "reverse", false),
+                            settings.burst?.reverse ??
+                            getExistingConfig("burst", "reverse", false),
                         duration_ms: 0, // 0 = infinite effect duration
                     },
                 },
@@ -207,7 +244,8 @@ export const createCoreSlice: StateCreator<
             // Check if Classic mode is running - if so, use that status instead
             const mode = useModeStore.getState().mode;
             const classicStore = useClassicStore.getState();
-            const isRunning = mode === "classic" ? classicStore.isProcessing : status.running;
+            const isRunning =
+                mode === "classic" ? classicStore.isProcessing : status.running;
             set({
                 isActive: isRunning,
                 filter: newFilter,

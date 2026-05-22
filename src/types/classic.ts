@@ -110,7 +110,10 @@ export interface ClassicModuleInfo {
 /**
  * Default configurations for Classic modules
  */
-export const CLASSIC_MODULE_DEFAULTS: Record<ClassicModuleName, ClassicModuleInfo> = {
+export const CLASSIC_MODULE_DEFAULTS: Record<
+    ClassicModuleName,
+    ClassicModuleInfo
+> = {
     classic_latency: {
         name: "classic_latency",
         display_name: "Latency",
@@ -257,7 +260,9 @@ export interface ClassicBackendSettings {
 /**
  * Convert frontend module array to backend settings format.
  */
-export function modulesToBackendSettings(modules: ClassicModuleInfo[]): ClassicBackendSettings {
+export function modulesToBackendSettings(
+    modules: ClassicModuleInfo[],
+): ClassicBackendSettings {
 
     const settings: ClassicBackendSettings = {};
 
@@ -289,7 +294,8 @@ export function modulesToBackendSettings(modules: ClassicModuleInfo[]): ClassicB
                     outbound: config.outbound,
                     chance: config.chance,
                     window_ms: (config.window_ms as number) ?? 30,
-                    drop_on_release: (config.drop_on_release as boolean) ?? false,
+                    drop_on_release:
+                        (config.drop_on_release as boolean) ?? false,
                     max_buffer: (config.max_buffer as number) ?? 1000,
                 };
                 break;
@@ -308,7 +314,8 @@ export function modulesToBackendSettings(modules: ClassicModuleInfo[]): ClassicB
                     inbound: config.inbound,
                     outbound: config.outbound,
                     chance: config.chance,
-                    recalc_checksum: (config.recalc_checksum as boolean) ?? true,
+                    recalc_checksum:
+                        (config.recalc_checksum as boolean) ?? true,
                 };
                 break;
             case "classic_bandwidth":
@@ -331,7 +338,9 @@ export function modulesToBackendSettings(modules: ClassicModuleInfo[]): ClassicB
 /**
  * Convert backend settings to frontend module array.
  */
-export function backendSettingsToModules(settings: ClassicBackendSettings): ClassicModuleInfo[] {
+export function backendSettingsToModules(
+    settings: ClassicBackendSettings,
+): ClassicModuleInfo[] {
 
     const modules: ClassicModuleInfo[] = [];
     const defaults = CLASSIC_MODULE_DEFAULTS;

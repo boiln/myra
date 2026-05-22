@@ -1,5 +1,9 @@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { ManipulationMode } from "@/lib/stores/mode-store";
 
 interface ModeSelectorProps {
@@ -8,7 +12,11 @@ interface ModeSelectorProps {
     disabled?: boolean;
 }
 
-export function ModeSelector({ mode, onModeChange, disabled }: ModeSelectorProps) {
+export function ModeSelector({
+    mode,
+    onModeChange,
+    disabled,
+}: ModeSelectorProps) {
 
     return (
         <Tabs
@@ -29,7 +37,8 @@ export function ModeSelector({ mode, onModeChange, disabled }: ModeSelectorProps
                     </TooltipTrigger>
                     <TooltipContent side="bottom">
                         <p className="text-xs">
-                            Per-packet probabilistic manipulation with duration controls
+                            Per-packet probabilistic manipulation with duration
+                            controls
                         </p>
                     </TooltipContent>
                 </Tooltip>
@@ -45,7 +54,8 @@ export function ModeSelector({ mode, onModeChange, disabled }: ModeSelectorProps
                     </TooltipTrigger>
                     <TooltipContent side="bottom">
                         <p className="text-xs">
-                            Timer-based deterministic manipulation with fixed windows
+                            Timer-based deterministic manipulation with fixed
+                            windows
                         </p>
                     </TooltipContent>
                 </Tooltip>

@@ -56,8 +56,14 @@ const usePresetUIStore = create<PresetUIState>((set) => ({
 
 export function PresetManager() {
 
-    const { loadPresets, presets, currentPreset, loadPreset, deletePreset, savePreset } =
-        useNetworkStore();
+    const {
+        loadPresets,
+        presets,
+        currentPreset,
+        loadPreset,
+        deletePreset,
+        savePreset,
+    } = useNetworkStore();
 
     const { mode, setMode } = useModeStore();
     const {
@@ -143,7 +149,12 @@ export function PresetManager() {
     const handleDeletePreset = async (name: string) => {
 
         if (!name) return;
-        if (!confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`))
+
+        if (
+            !confirm(
+                `Are you sure you want to delete "${name}"? This action cannot be undone.`,
+            )
+        )
             return;
 
         setIsLoading(true);
@@ -166,11 +177,18 @@ export function PresetManager() {
         <Card className="border-border bg-card/90">
             <CardContent className="p-2">
                 <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">Configs:</span>
-                    <span className="text-sm font-medium">{currentPreset || "default"}</span>
+                    <span className="text-sm text-muted-foreground">
+                        Configs:
+                    </span>
+                    <span className="text-sm font-medium">
+                        {currentPreset || "default"}
+                    </span>
                     <div className="flex-1" />
                     <QuickPresets />
-                    <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
+                    <Dialog
+                        open={saveDialogOpen}
+                        onOpenChange={setSaveDialogOpen}
+                    >
                         <DialogTrigger asChild>
                             <Button
                                 variant="outline"
@@ -190,13 +208,18 @@ export function PresetManager() {
                                 </DialogDescription>
                             </DialogHeader>
                             <div className="py-3">
-                                <Label htmlFor="preset-name" className="mb-1.5 block">
+                                <Label
+                                    htmlFor="preset-name"
+                                    className="mb-1.5 block"
+                                >
                                     Config Name
                                 </Label>
                                 <Input
                                     id="preset-name"
                                     value={presetName}
-                                    onChange={(e) => setPresetName(e.target.value)}
+                                    onChange={(e) =>
+                                        setPresetName(e.target.value)
+                                    }
                                     onKeyDown={handleKeyDown}
                                     placeholder="Enter config name"
                                     className="w-full border-input/50 bg-background/80 hover:border-primary/40 focus:border-primary focus:ring-1 focus:ring-primary/30"

@@ -3,7 +3,11 @@ import { ClassicModuleInfo, ClassicModuleName } from "@/types/classic";
 import { MyraCheckbox } from "@/components/ui/myra-checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
 
 interface ClassicModuleRowProps {
@@ -11,9 +15,13 @@ interface ClassicModuleRowProps {
     onModuleToggle: (module: ClassicModuleInfo) => Promise<void>;
     onDirectionToggle: (
         module: ClassicModuleInfo,
-        direction: "inbound" | "outbound"
+        direction: "inbound" | "outbound",
     ) => Promise<void>;
-    onSettingChange: (module: ClassicModuleInfo, setting: string, value: number | boolean) => void;
+    onSettingChange: (
+        module: ClassicModuleInfo,
+        setting: string,
+        value: number | boolean,
+    ) => void;
 }
 
 // Module-specific parameter configurations
@@ -104,7 +112,9 @@ export function ClassicModuleRow({
     onSettingChange,
 }: ClassicModuleRowProps) {
 
-    const [inputValues, setInputValues] = React.useState<Record<string, string>>({});
+    const [inputValues, setInputValues] = React.useState<
+        Record<string, string>
+    >({});
 
     const params = MODULE_PARAMS[module.name] || [];
     const toggles = MODULE_TOGGLES[module.name] || [];
@@ -114,7 +124,7 @@ export function ClassicModuleRow({
         setting: string,
         _min: number,
         _max: number,
-        isInteger = false
+        isInteger = false,
     ) => {
 
         const input = e.target.value;
@@ -133,7 +143,12 @@ export function ClassicModuleRow({
 
     };
 
-    const handleInputBlur = (setting: string, min: number, max: number, isInteger = false) => {
+    const handleInputBlur = (
+        setting: string,
+        min: number,
+        max: number,
+        isInteger = false,
+    ) => {
 
         const input = inputValues[setting];
 
@@ -217,11 +232,16 @@ export function ClassicModuleRow({
                                     param.key,
                                     param.min,
                                     param.max,
-                                    param.isInteger
+                                    param.isInteger,
                                 )
                             }
                             onBlur={() =>
-                                handleInputBlur(param.key, param.min, param.max, param.isInteger)
+                                handleInputBlur(
+                                    param.key,
+                                    param.min,
+                                    param.max,
+                                    param.isInteger,
+                                )
                             }
                             className="h-6 w-[55px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
                             disabled={!module.enabled}
@@ -243,7 +263,11 @@ export function ClassicModuleRow({
                                         ] as boolean) ?? false
                                     }
                                     onCheckedChange={(checked) =>
-                                        onSettingChange(module, toggle.key, checked === true)
+                                        onSettingChange(
+                                            module,
+                                            toggle.key,
+                                            checked === true,
+                                        )
                                     }
                                     disabled={!module.enabled}
                                     label={toggle.label}
@@ -274,7 +298,9 @@ export function ClassicModuleRow({
                 <MyraCheckbox
                     id={`${module.name}-outbound`}
                     checked={module.config.outbound}
-                    onCheckedChange={() => onDirectionToggle(module, "outbound")}
+                    onCheckedChange={() =>
+                        onDirectionToggle(module, "outbound")
+                    }
                     disabled={!module.enabled}
                     label="Out"
                     labelClassName={`text-xs text-foreground ${!module.enabled ? "opacity-50" : ""}`}

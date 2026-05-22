@@ -20,8 +20,14 @@ export function Header({ mode, onModeChange }: HeaderProps) {
         <header className="sticky top-0 z-10 border-b border-border/40 bg-background/80 backdrop-blur-md backdrop-saturate-150 transition-colors">
             <div className="container flex h-9 items-center justify-between px-2">
                 <div className="flex items-center gap-3">
-                    <h1 className="text-base font-semibold tracking-tight">Myra</h1>
-                    <ModeSelector mode={mode} onModeChange={onModeChange} disabled={isActive} />
+                    <h1 className="text-base font-semibold tracking-tight">
+                        Myra
+                    </h1>
+                    <ModeSelector
+                        mode={mode}
+                        onModeChange={onModeChange}
+                        disabled={isActive}
+                    />
                 </div>
                 {/* Active Timer - centered */}
                 {showTimer && (

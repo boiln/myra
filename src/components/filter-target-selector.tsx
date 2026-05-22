@@ -5,7 +5,11 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useNetworkStore } from "@/lib/stores/network";
 import { ProcessInfo } from "@/types";
 import { ProcessSelector } from "@/components/ui/process-selector";
@@ -25,8 +29,15 @@ interface FilterTargetSelectorProps {
 }
 
 export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
-    const { isActive, filter, updateFilter, filterTarget, setFilterTarget, isInitialized } =
-        useNetworkStore();
+
+    const {
+        isActive,
+        filter,
+        updateFilter,
+        filterTarget,
+        setFilterTarget,
+        isInitialized,
+    } = useNetworkStore();
 
     // Grouped UI state for the filter input field
     const [filterUi, setFilterUi] = useState<{
@@ -39,7 +50,11 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
         history: [],
     });
 
-    const { localFilter, error: filterError, history: previousFilters } = filterUi;
+    const {
+        localFilter,
+        error: filterError,
+        history: previousFilters,
+    } = filterUi;
 
     // Grouped process-list state
     const [processList, setProcessList] = useState<{
@@ -85,7 +100,9 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
             // Skip auto-apply when syncing from preset - the filter was already set
             skipAutoApplyRef.current = true;
             setTarget({
-                selectedProcess: filterTarget.processId ? filterTarget.processId.toString() : "",
+                selectedProcess: filterTarget.processId
+                    ? filterTarget.processId.toString()
+                    : "",
                 includeInbound: filterTarget.includeInbound ?? false,
                 includeOutbound: filterTarget.includeOutbound ?? true,
             });
@@ -125,23 +142,26 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
     }, [loadProcesses]);
 
     // Validate filter with backend
-    const validateFilter = useCallback(async (filterStr: string): Promise<boolean> => {
+    const validateFilter = useCallback(
+        async (filterStr: string): Promise<boolean> => {
 
-        try {
-            const isValid = await invoke<boolean>("validate_filter", {
-                filter: filterStr,
-            });
-            if (isValid) {
-                setFilterUi((s) => ({ ...s, error: null }));
-                return true;
+            try {
+                const isValid = await invoke<boolean>("validate_filter", {
+                    filter: filterStr,
+                });
+                if (isValid) {
+                    setFilterUi((s) => ({ ...s, error: null }));
+                    return true;
+                }
+                return false;
+            } catch (error) {
+                setFilterUi((s) => ({ ...s, error: error as string }));
+                return false;
             }
-            return false;
-        } catch (error) {
-            setFilterUi((s) => ({ ...s, error: error as string }));
-            return false;
-        }
 
-    }, []);
+        },
+        [],
+    );
 
     // Build filter string from current state
     const buildFilterString = useCallback(async (): Promise<string> => {
@@ -149,18 +169,25 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
         let baseFilter = "";
         // Build direction part
         const dirFilter =
-            includeInbound && includeOutbound ? "true" : includeInbound ? "inbound" : "outbound";
+            includeInbound && includeOutbound
+                ? "true"
+                : includeInbound
+                  ? "inbound"
+                  : "outbound";
         // If process is selected, build process filter
         if (selectedProcess) {
             const pid = parseInt(selectedProcess);
             // Stop flow tracking if we had a different process
-            if (prevProcessRef.current && prevProcessRef.current !== selectedProcess) {
+            if (
+                prevProcessRef.current &&
+                prevProcessRef.current !== selectedProcess
+            ) {
                 await invoke("stop_flow_tracking").catch(() => {});
             }
             prevProcessRef.current = selectedProcess;
             // Start flow tracking for this process
             await invoke("start_flow_tracking", { pid }).catch((e) =>
-                console.warn("Flow tracking start failed:", e)
+                console.warn("Flow tracking start failed:", e),
             );
             // Get process filter
             baseFilter = await invoke<string>("build_process_filter", {
@@ -169,7 +196,9 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                 includeOutbound,
             });
             // Try to get flow-based filter if available
-            const flowFilter = await invoke<string | null>("get_flow_filter").catch(() => null);
+            const flowFilter = await invoke<string | null>(
+                "get_flow_filter",
+            ).catch(() => null);
             if (flowFilter) {
                 baseFilter = flowFilter;
             }
@@ -198,7 +227,13 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
 
         return baseFilter;
 
-    }, [selectedProcess, includeInbound, includeOutbound, processes, setFilterTarget]);
+    }, [
+        selectedProcess,
+        includeInbound,
+        includeOutbound,
+        processes,
+        setFilterTarget,
+    ]);
 
     // Auto-apply filter when dependencies change
     useEffect(() => {
@@ -234,7 +269,14 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
             }
         };
 
-    }, [selectedProcess, includeInbound, includeOutbound, isActive, isInitialized, filter]);
+    }, [
+        selectedProcess,
+        includeInbound,
+        includeOutbound,
+        isActive,
+        isInitialized,
+        filter,
+    ]);
 
     // Handle manual filter input change
     const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -279,21 +321,26 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
     };
 
     // Handle direction change
-    const handleDirectionChange = (direction: "inbound" | "outbound", checked: boolean) => {
+    const handleDirectionChange = (
+        direction: "inbound" | "outbound",
+        checked: boolean,
+    ) => {
 
         if (direction === "inbound") {
             setTarget((s) => ({
                 ...s,
                 includeInbound: checked,
                 // Ensure at least one is selected
-                includeOutbound: !checked && !s.includeOutbound ? true : s.includeOutbound,
+                includeOutbound:
+                    !checked && !s.includeOutbound ? true : s.includeOutbound,
             }));
         } else {
             setTarget((s) => ({
                 ...s,
                 includeOutbound: checked,
                 // Ensure at least one is selected
-                includeInbound: !checked && !s.includeInbound ? true : s.includeInbound,
+                includeInbound:
+                    !checked && !s.includeInbound ? true : s.includeInbound,
             }));
         }
 
@@ -338,10 +385,13 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                         <TooltipContent side="bottom" className="max-w-xs">
                             <p className="text-xs">
                                 WinDivert filter syntax. Examples:
-                                <br />• <code>outbound</code> - outgoing traffic only
-                                <br />• <code>inbound</code> - incoming traffic only
+                                <br />• <code>outbound</code> - outgoing traffic
+                                only
+                                <br />• <code>inbound</code> - incoming traffic
+                                only
                                 <br />• <code>true</code> - all traffic
-                                <br />• <code>tcp.DstPort == 80</code> - HTTP traffic
+                                <br />• <code>tcp.DstPort == 80</code> - HTTP
+                                traffic
                             </p>
                         </TooltipContent>
                     </Tooltip>
@@ -354,7 +404,7 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                         className={cn(
                             "h-8 flex-1 font-mono text-sm",
                             filterError && "border-red-500",
-                            isActive && "cursor-not-allowed opacity-60"
+                            isActive && "cursor-not-allowed opacity-60",
                         )}
                         disabled={disabled || isActive}
                     />
@@ -371,11 +421,18 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                                 <ChevronDown className="size-4" />
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start" className="min-w-[240px]">
-                            <DropdownMenuLabel>Recent Filters</DropdownMenuLabel>
+                        <DropdownMenuContent
+                            align="start"
+                            className="min-w-[240px]"
+                        >
+                            <DropdownMenuLabel>
+                                Recent Filters
+                            </DropdownMenuLabel>
                             <DropdownMenuSeparator />
                             {previousFilters.length === 0 ? (
-                                <DropdownMenuItem disabled>No recent filters</DropdownMenuItem>
+                                <DropdownMenuItem disabled>
+                                    No recent filters
+                                </DropdownMenuItem>
                             ) : (
                                 previousFilters.map((f) => (
                                     <DropdownMenuItem
@@ -402,7 +459,11 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                                     } catch {}
                                 }}
                                 className="text-xs text-muted-foreground"
-                                disabled={disabled || isActive || previousFilters.length === 0}
+                                disabled={
+                                    disabled ||
+                                    isActive ||
+                                    previousFilters.length === 0
+                                }
                             >
                                 Clear history
                             </DropdownMenuItem>
@@ -414,7 +475,9 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                     <MyraCheckbox
                         id="filter-inbound"
                         checked={includeInbound}
-                        onCheckedChange={(checked) => handleDirectionChange("inbound", !!checked)}
+                        onCheckedChange={(checked) =>
+                            handleDirectionChange("inbound", !!checked)
+                        }
                         disabled={disabled || isActive}
                         label="In"
                         labelClassName="text-xs"
@@ -422,7 +485,9 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                     <MyraCheckbox
                         id="filter-outbound"
                         checked={includeOutbound}
-                        onCheckedChange={(checked) => handleDirectionChange("outbound", !!checked)}
+                        onCheckedChange={(checked) =>
+                            handleDirectionChange("outbound", !!checked)
+                        }
                         disabled={disabled || isActive}
                         label="Out"
                         labelClassName="text-xs"
@@ -455,12 +520,20 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
                         onClick={loadProcesses}
                         disabled={loadingProcesses || isActive}
                     >
-                        <RefreshCw className={cn("size-3.5", loadingProcesses && "animate-spin")} />
+                        <RefreshCw
+                            className={cn(
+                                "size-3.5",
+                                loadingProcesses && "animate-spin",
+                            )}
+                        />
                     </Button>
                 </div>
             </div>
             {/* Error message */}
-            {filterError && <p className="text-xs text-red-500">{filterError}</p>}
+            {filterError && (
+                <p className="text-xs text-red-500">{filterError}</p>
+            )}
         </div>
     );
+
 }

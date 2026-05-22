@@ -12,7 +12,11 @@ export const createPresetSlice: StateCreator<
     [],
     Pick<
         NetworkStore,
-        "loadPresets" | "savePreset" | "loadPreset" | "deletePreset" | "initializeDefaultPreset"
+        | "loadPresets"
+        | "savePreset"
+        | "loadPreset"
+        | "deletePreset"
+        | "initializeDefaultPreset"
     >
 > = (set, get) => ({
     loadPresets: async () => {
@@ -53,7 +57,9 @@ export const createPresetSlice: StateCreator<
                 duration_ms: tapSettings.durationMs,
             };
             // Get classic settings
-            const classicSettings = useClassicStore.getState().getBackendSettings();
+            const classicSettings = useClassicStore
+                .getState()
+                .getBackendSettings();
             await Promise.all([
                 ManipulationService.updateSettings(settings, get().isActive),
                 ManipulationService.updateFilter(filter),
@@ -63,7 +69,7 @@ export const createPresetSlice: StateCreator<
                     hotkeys,
                     tap,
                     classicSettings,
-                    mode
+                    mode,
                 ),
             ]);
             await get().loadPresets();
@@ -78,7 +84,10 @@ export const createPresetSlice: StateCreator<
         try {
             const response = await ManipulationService.loadConfig(name);
             if (!response) return;
-            await ManipulationService.updateSettings(response.settings, get().isActive);
+            await ManipulationService.updateSettings(
+                response.settings,
+                get().isActive,
+            );
             // Restore filter - update both backend and store
             if (response.filter) {
                 await ManipulationService.updateFilter(response.filter);
@@ -88,7 +97,8 @@ export const createPresetSlice: StateCreator<
             if (response.filter_target) {
                 // Direction is now radio-style (only one can be active)
                 const inbound = response.filter_target.include_inbound ?? false;
-                const outbound = response.filter_target.include_outbound ?? true;
+                const outbound =
+                    response.filter_target.include_outbound ?? true;
                 // If both true or both undefined, default to outbound only
                 const finalInbound = inbound && !outbound;
                 const finalOutbound = !finalInbound;
@@ -111,7 +121,9 @@ export const createPresetSlice: StateCreator<
             }
             // Restore hotkey bindings if present
             if (response.hotkeys && response.hotkeys.length > 0) {
-                await useHotkeyStore.getState().restoreBindings(response.hotkeys);
+                await useHotkeyStore
+                    .getState()
+                    .restoreBindings(response.hotkeys);
             }
             // Restore tap settings if present (respect saved enabled state)
             if (response.tap) {
@@ -123,10 +135,13 @@ export const createPresetSlice: StateCreator<
             }
             // Restore classic settings if present
             if (response.classic) {
-                useClassicStore.getState().initializeFromBackend(response.classic);
+                useClassicStore
+                    .getState()
+                    .initializeFromBackend(response.classic);
             }
             // Return mode so caller can update UI
-            const loadedMode = (response.mode as "standard" | "classic") ?? "standard";
+            const loadedMode =
+                (response.mode as "standard" | "classic") ?? "standard";
             await get().loadStatus();
             set({ currentPreset: name });
             // Return the loaded mode for the caller to handle
@@ -182,7 +197,7 @@ export const createPresetSlice: StateCreator<
                     DEFAULT_PRESET_NAME,
                     filterTarget || undefined,
                     undefined,
-                    tap
+                    tap,
                 ),
             ]);
             await get().loadPresets();

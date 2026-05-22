@@ -28,7 +28,7 @@ export function TapControl() {
     const handleInputChange = (
         e: ChangeEvent<HTMLInputElement>,
         key: "intervalMs" | "durationMs" | "minBufferForTap" | "cooldownMs",
-        isInteger = true
+        isInteger = true,
     ) => {
 
         const input = e.target.value;
@@ -38,7 +38,14 @@ export function TapControl() {
         // Allow empty and partial numeric input during typing
         if (input === "") return;
         if (!/^-?\d*\.?\d*$/.test(input)) return;
-        if (input === "." || input === "-" || input === "-." || input.endsWith(".")) return;
+
+        if (
+            input === "." ||
+            input === "-" ||
+            input === "-." ||
+            input.endsWith(".")
+        )
+            return;
 
         const parsed = isInteger ? parseInt(input, 10) : parseFloat(input);
 
@@ -66,11 +73,13 @@ export function TapControl() {
         key: "intervalMs" | "durationMs" | "minBufferForTap" | "cooldownMs",
         min: number,
         max: number,
-        isInteger = true
+        isInteger = true,
     ) => {
 
         const input = inputValues[key];
-        const parsed = isInteger ? parseInt(input ?? "", 10) : parseFloat(input ?? "");
+        const parsed = isInteger
+            ? parseInt(input ?? "", 10)
+            : parseFloat(input ?? "");
 
         let clamped: number;
 
@@ -109,7 +118,12 @@ export function TapControl() {
             cooldownMs: (settings.cooldownMs ?? 1200).toString(),
         });
 
-    }, [settings.intervalMs, settings.durationMs, settings.minBufferForTap, settings.cooldownMs]);
+    }, [
+        settings.intervalMs,
+        settings.durationMs,
+        settings.minBufferForTap,
+        settings.cooldownMs,
+    ]);
 
     return (
         <div className="flex items-center gap-3 rounded-lg border border-border bg-card/90 p-2 shadow-sm backdrop-blur-sm">
@@ -133,7 +147,9 @@ export function TapControl() {
                     id="tap-interval"
                     value={getDisplayValue("intervalMs", settings.intervalMs)}
                     onChange={(e) => handleInputChange(e, "intervalMs", true)}
-                    onBlur={() => handleInputBlur("intervalMs", 100, 60000, true)}
+                    onBlur={() =>
+                        handleInputBlur("intervalMs", 100, 60000, true)
+                    }
                     className="h-7 w-20 px-2 text-center text-xs"
                     disabled={!settings.enabled}
                     type="text"
@@ -153,7 +169,9 @@ export function TapControl() {
                     id="tap-duration"
                     value={getDisplayValue("durationMs", settings.durationMs)}
                     onChange={(e) => handleInputChange(e, "durationMs", true)}
-                    onBlur={() => handleInputBlur("durationMs", 50, 10000, true)}
+                    onBlur={() =>
+                        handleInputBlur("durationMs", 50, 10000, true)
+                    }
                     className="h-7 w-20 px-2 text-center text-xs"
                     disabled={!settings.enabled}
                     type="text"
@@ -180,11 +198,20 @@ export function TapControl() {
                 </Label>
                 <Input
                     id="tap-buffer-threshold"
-                    value={getDisplayValue("minBufferForTap", settings.minBufferForTap ?? 200)}
-                    onChange={(e) => handleInputChange(e, "minBufferForTap", true)}
-                    onBlur={() => handleInputBlur("minBufferForTap", 10, 100000, true)}
+                    value={getDisplayValue(
+                        "minBufferForTap",
+                        settings.minBufferForTap ?? 200,
+                    )}
+                    onChange={(e) =>
+                        handleInputChange(e, "minBufferForTap", true)
+                    }
+                    onBlur={() =>
+                        handleInputBlur("minBufferForTap", 10, 100000, true)
+                    }
                     className="h-7 w-20 px-2 text-center text-xs"
-                    disabled={!settings.enabled || !(settings.autoEnabled ?? false)}
+                    disabled={
+                        !settings.enabled || !(settings.autoEnabled ?? false)
+                    }
                     type="text"
                     inputMode="numeric"
                 />
@@ -198,11 +225,18 @@ export function TapControl() {
                 </Label>
                 <Input
                     id="tap-cooldown"
-                    value={getDisplayValue("cooldownMs", settings.cooldownMs ?? 1200)}
+                    value={getDisplayValue(
+                        "cooldownMs",
+                        settings.cooldownMs ?? 1200,
+                    )}
                     onChange={(e) => handleInputChange(e, "cooldownMs", true)}
-                    onBlur={() => handleInputBlur("cooldownMs", 100, 10000, true)}
+                    onBlur={() =>
+                        handleInputBlur("cooldownMs", 100, 10000, true)
+                    }
                     className="h-7 w-20 px-2 text-center text-xs"
-                    disabled={!settings.enabled || !(settings.autoEnabled ?? false)}
+                    disabled={
+                        !settings.enabled || !(settings.autoEnabled ?? false)
+                    }
                     type="text"
                     inputMode="numeric"
                 />

@@ -32,7 +32,9 @@ export function InfinityInput({
     const numValue = typeof value === "string" ? parseFloat(value) || 0 : value;
     const isInfinity = numValue === 0;
     const [isEditing, setIsEditing] = useState(false);
-    const [localValue, setLocalValue] = useState(isInfinity ? "" : value.toString());
+    const [localValue, setLocalValue] = useState(
+        isInfinity ? "" : value.toString(),
+    );
     const inputRef = useRef<HTMLInputElement>(null);
 
     // Sync local value when prop changes (but not during editing)
@@ -109,7 +111,7 @@ export function InfinityInput({
                     "hover:border-primary/50 hover:text-primary",
                     "focus:outline-none focus:ring-1 focus:ring-primary",
                     disabled && "cursor-not-allowed opacity-50",
-                    className
+                    className,
                 )}
                 title="Click to set a specific duration (0 = infinite)"
             >
@@ -128,7 +130,7 @@ export function InfinityInput({
             onKeyDown={commitOnEnter}
             className={cn(
                 "h-6 rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary",
-                className
+                className,
             )}
             disabled={disabled}
             type="text"

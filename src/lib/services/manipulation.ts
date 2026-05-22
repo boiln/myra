@@ -12,7 +12,10 @@ import { ClassicBackendSettings } from "@/types/classic";
 let wfpThrottleActive = false;
 
 export const ManipulationService = {
-    async startProcessing(settings: PacketManipulationSettings, filter?: string): Promise<void> {
+    async startProcessing(
+        settings: PacketManipulationSettings,
+        filter?: string,
+    ): Promise<void> {
         // Start the filtering first
         await invoke("start_processing", { settings, filter });
         // Then start WFP throttle if needed (filtering is now active)
@@ -31,7 +34,7 @@ export const ManipulationService = {
     },
     async updateSettings(
         settings: PacketManipulationSettings,
-        isFilteringActive: boolean = false
+        isFilteringActive: boolean = false,
     ): Promise<void> {
         // Handle WFP throttle based on bandwidth settings AND filtering state
         await this.handleWfpThrottle(settings, isFilteringActive);
@@ -44,11 +47,12 @@ export const ManipulationService = {
     // Handle WFP throttle based on bandwidth settings - only starts when filtering is active
     async handleWfpThrottle(
         settings: PacketManipulationSettings,
-        isFilteringActive: boolean
+        isFilteringActive: boolean,
     ): Promise<void> {
         const bandwidth = settings.bandwidth;
         // WFP should only be active when: bandwidth enabled + use_wfp checked + filtering is running
-        const shouldBeActive = bandwidth?.enabled && bandwidth?.use_wfp && isFilteringActive;
+        const shouldBeActive =
+            bandwidth?.enabled && bandwidth?.use_wfp && isFilteringActive;
 
         if (shouldBeActive && !wfpThrottleActive) {
             // Start WFP throttle
@@ -80,7 +84,10 @@ export const ManipulationService = {
             await this.startWfpThrottle(bandwidth!.limit || 1, direction);
         }
     },
-    async startWfpThrottle(limitKbps: number, direction: string): Promise<void> {
+    async startWfpThrottle(
+        limitKbps: number,
+        direction: string,
+    ): Promise<void> {
         try {
             await invoke("start_tc_bandwidth", { limitKbps, direction });
             wfpThrottleActive = true;
@@ -326,7 +333,7 @@ export const ManipulationService = {
         }[],
         tap?: { enabled: boolean; interval_ms: number; duration_ms: number },
         classic?: ClassicBackendSettings,
-        mode?: ManipulationMode
+        mode?: ManipulationMode,
     ): Promise<void> {
         // Convert camelCase to snake_case for Rust
         const rustFilterTarget = filterTarget

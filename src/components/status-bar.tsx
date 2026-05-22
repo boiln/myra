@@ -1,4 +1,11 @@
-import { Database, FileText, Monitor, Gamepad2, Globe, Code } from "lucide-react";
+import {
+    Database,
+    FileText,
+    Monitor,
+    Gamepad2,
+    Globe,
+    Code,
+} from "lucide-react";
 import { useNetworkStore } from "@/lib/stores/network";
 import { FilterTarget } from "@/types";
 
@@ -75,7 +82,11 @@ const PresetIndicator = ({ preset }: { preset: string | null }) => {
 
 };
 
-const ModulesIndicator = ({ activeModules }: { activeModules: { display_name: string }[] }) => {
+const ModulesIndicator = ({
+    activeModules,
+}: {
+    activeModules: { display_name: string }[];
+}) => {
 
     if (activeModules.length === 0) return null;
 
@@ -93,7 +104,8 @@ const ModulesIndicator = ({ activeModules }: { activeModules: { display_name: st
 
 export function StatusBar() {
 
-    const { isActive, manipulationStatus, currentPreset, filterTarget } = useNetworkStore();
+    const { isActive, manipulationStatus, currentPreset, filterTarget } =
+        useNetworkStore();
     const modules = manipulationStatus.modules;
     const activeModules = modules.filter((m) => m.enabled);
 

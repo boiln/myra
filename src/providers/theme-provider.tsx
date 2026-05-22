@@ -21,7 +21,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         // Check if theme exists in localStorage
         const savedTheme = localStorage.getItem("theme") as ThemeId | null;
 
-        return savedTheme && themes.some((t) => t.id === savedTheme) ? savedTheme : defaultTheme;
+        return savedTheme && themes.some((t) => t.id === savedTheme)
+            ? savedTheme
+            : defaultTheme;
 
     });
 
@@ -39,7 +41,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     }, [theme]);
 
-    return <ThemeContext.Provider value={{ theme, setTheme }}>{children}</ThemeContext.Provider>;
+    return (
+        <ThemeContext.Provider value={{ theme, setTheme }}>
+            {children}
+        </ThemeContext.Provider>
+    );
 
 }
 

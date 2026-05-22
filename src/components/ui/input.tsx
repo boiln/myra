@@ -19,7 +19,7 @@ function Input({ className, type, ref, ...props }: InputProps) {
                 "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-0",
                 "disabled:cursor-not-allowed disabled:opacity-50",
                 "transition-colors duration-200 hover:border-primary/50",
-                className
+                className,
             )}
             {...props}
         />

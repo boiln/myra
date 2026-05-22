@@ -58,7 +58,10 @@ export function useTap() {
             // Disable all modules
             for (const moduleName of enabledModules) {
                 const key = moduleName as keyof typeof disabledSettings;
-                if (disabledSettings[key] && typeof disabledSettings[key] === "object") {
+                if (
+                    disabledSettings[key] &&
+                    typeof disabledSettings[key] === "object"
+                ) {
                     (disabledSettings[key] as any).enabled = false;
                 }
             }
@@ -89,7 +92,10 @@ export function useTap() {
             // Re-enable the modules that were previously enabled
             for (const moduleName of modulesToRestore) {
                 const key = moduleName as keyof typeof restoredSettings;
-                if (restoredSettings[key] && typeof restoredSettings[key] === "object") {
+                if (
+                    restoredSettings[key] &&
+                    typeof restoredSettings[key] === "object"
+                ) {
                     (restoredSettings[key] as any).enabled = true;
                 }
             }
@@ -162,7 +168,7 @@ export function useTap() {
         if (settings.autoEnabled) {
             const pollMs = Math.max(
                 150,
-                Math.min(1000, Math.floor(settings.intervalMs / 3) || 250)
+                Math.min(1000, Math.floor(settings.intervalMs / 3) || 250),
             );
             autoPollRef.current = setInterval(async () => {
 
@@ -173,12 +179,15 @@ export function useTap() {
 
                 if (now - lastTapEndedAtRef.current < cooldownMs) return;
                 // Require at least one outbound buffering module to be enabled
-                const outboundBufferingEnabled = manipulationStatus.modules.some(
-                    (m) =>
-                        m.enabled &&
-                        m.config.outbound &&
-                        ["burst", "throttle", "lag", "reorder"].includes(m.name)
-                );
+                const outboundBufferingEnabled =
+                    manipulationStatus.modules.some(
+                        (m) =>
+                            m.enabled &&
+                            m.config.outbound &&
+                            ["burst", "throttle", "lag", "reorder"].includes(
+                                m.name,
+                            ),
+                    );
 
                 if (!outboundBufferingEnabled) return;
 
@@ -191,7 +200,7 @@ export function useTap() {
                         stats.burst_buffered_count ?? 0,
                         stats.throttle_buffered_count ?? 0,
                         stats.lag_current_lagged ?? 0,
-                        stats.reorder_delayed_packets ?? 0
+                        stats.reorder_delayed_packets ?? 0,
                     );
                     const throttling = !!stats.throttle_is_throttling;
                     if (pressure >= threshold || throttling) {

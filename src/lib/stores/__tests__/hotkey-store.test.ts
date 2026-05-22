@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { register, unregister, isRegistered } from "@tauri-apps/plugin-global-shortcut";
+import {
+    register,
+    unregister,
+    isRegistered,
+} from "@tauri-apps/plugin-global-shortcut";
 import { useHotkeyStore } from "../hotkey-store";
 
 vi.mock("@tauri-apps/plugin-global-shortcut");
@@ -169,14 +173,18 @@ describe("HotkeyStore", () => {
                 },
             });
             await useHotkeyStore.getState().toggleBinding("toggleDrop");
-            expect(useHotkeyStore.getState().bindings.toggleDrop.enabled).toBe(false);
+            expect(useHotkeyStore.getState().bindings.toggleDrop.enabled).toBe(
+                false,
+            );
 
         });
         it("should not toggle if no shortcut is set", async () => {
 
             await useHotkeyStore.getState().toggleBinding("toggleDrop");
             // Should remain unchanged
-            expect(useHotkeyStore.getState().bindings.toggleDrop.enabled).toBe(false);
+            expect(useHotkeyStore.getState().bindings.toggleDrop.enabled).toBe(
+                false,
+            );
             expect(unregister).not.toHaveBeenCalled();
 
         });
@@ -339,7 +347,9 @@ describe("HotkeyStore", () => {
             vi.clearAllMocks();
             await useHotkeyStore
                 .getState()
-                .restoreBindings([{ action: "toggleFilter", shortcut: "F1", enabled: true }]);
+                .restoreBindings([
+                    { action: "toggleFilter", shortcut: "F1", enabled: true },
+                ]);
             expect(unregister).toHaveBeenCalled();
 
         });

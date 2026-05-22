@@ -35,7 +35,9 @@ export function MyraCheckbox({
                     type="checkbox"
                     id={checkboxId}
                     checked={checked}
-                    onChange={(e) => onCheckedChange && onCheckedChange(e.target.checked)}
+                    onChange={(e) =>
+                        onCheckedChange && onCheckedChange(e.target.checked)
+                    }
                     disabled={disabled}
                     className="sr-only"
                 />
@@ -49,7 +51,7 @@ export function MyraCheckbox({
                         disabled && "cursor-not-allowed opacity-50",
                         !disabled && "cursor-pointer",
                         isHighlighted && checked && "ring-2 ring-primary/30",
-                        className
+                        className,
                     )}
                 >
                     {/* SVG Checkmark - much more reliable than CSS */}
@@ -57,7 +59,7 @@ export function MyraCheckbox({
                         className={cn(
                             "size-3 text-primary-foreground",
                             "transition-transform duration-200 ease-in-out",
-                            checked ? "scale-100" : "scale-0"
+                            checked ? "scale-100" : "scale-0",
                         )}
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 24 24"
@@ -78,7 +80,7 @@ export function MyraCheckbox({
                     className={cn(
                         "ml-2 cursor-pointer text-sm font-medium transition-colors",
                         disabled && "cursor-not-allowed opacity-50",
-                        labelClassName
+                        labelClassName,
                     )}
                 >
                     {label}

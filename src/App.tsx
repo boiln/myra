@@ -23,7 +23,9 @@ function App() {
 
     const loadStatus = useNetworkStore((state) => state.loadStatus);
     const loadPresets = useNetworkStore((state) => state.loadPresets);
-    const initializeDefaultPreset = useNetworkStore((state) => state.initializeDefaultPreset);
+    const initializeDefaultPreset = useNetworkStore(
+        (state) => state.initializeDefaultPreset,
+    );
 
     const initializeClassic = useClassicStore((state) => state.initialize);
 
@@ -61,7 +63,11 @@ function App() {
                                 <NetworkControls />
                             </div>
                             <TapControl />
-                            {mode === "standard" ? <ModulePanel /> : <ClassicModulePanel />}
+                            {mode === "standard" ? (
+                                <ModulePanel />
+                            ) : (
+                                <ClassicModulePanel />
+                            )}
                         </div>
                     </main>
                     <StatusBar />

@@ -9,10 +9,16 @@ export const createModuleSlice: StateCreator<
     [],
     Pick<
         NetworkStore,
-        "updateModuleConfig" | "updateModuleSettings" | "toggleDirection" | "applyModuleSettings"
+        | "updateModuleConfig"
+        | "updateModuleSettings"
+        | "toggleDirection"
+        | "applyModuleSettings"
     >
 > = (set, get) => ({
-    updateModuleConfig: async (moduleName: string, config: Record<string, any>) => {
+    updateModuleConfig: async (
+        moduleName: string,
+        config: Record<string, any>,
+    ) => {
 
         const newSettings: PacketManipulationSettings = {
             ...(await ManipulationService.getSettings()),
@@ -71,7 +77,9 @@ export const createModuleSlice: StateCreator<
             case "burst":
                 // Use preserved release_delay_us from settings if available
                 const preservedReleaseDelay =
-                    newSettings.burst_release_delay_us ?? config.release_delay_us ?? 500;
+                    newSettings.burst_release_delay_us ??
+                    config.release_delay_us ??
+                    500;
                 newSettings.burst = {
                     probability,
                     buffer_ms: config.buffer_ms ?? 0,
@@ -85,7 +93,10 @@ export const createModuleSlice: StateCreator<
         }
 
         try {
-            await ManipulationService.updateSettings(newSettings, get().isActive);
+            await ManipulationService.updateSettings(
+                newSettings,
+                get().isActive,
+            );
             await get().loadStatus();
         } catch (error) {
             console.error("Failed to update module config:", error);
@@ -95,7 +106,9 @@ export const createModuleSlice: StateCreator<
     updateModuleSettings: async (moduleName: string, config: ModuleConfig) => {
 
         const { manipulationStatus } = get();
-        const moduleIndex = manipulationStatus.modules.findIndex((m) => m.name === moduleName);
+        const moduleIndex = manipulationStatus.modules.findIndex(
+            (m) => m.name === moduleName,
+        );
 
         if (moduleIndex === -1) return;
         const updatedModules = [...manipulationStatus.modules];
@@ -114,16 +127,24 @@ export const createModuleSlice: StateCreator<
         });
 
         try {
-            await ManipulationService.updateSettings(await get().buildSettings(), get().isActive);
+            await ManipulationService.updateSettings(
+                await get().buildSettings(),
+                get().isActive,
+            );
         } catch (error) {
             console.error("Failed to update module settings:", error);
         }
 
     },
-    toggleDirection: async (moduleName: string, direction: "inbound" | "outbound") => {
+    toggleDirection: async (
+        moduleName: string,
+        direction: "inbound" | "outbound",
+    ) => {
 
         const { manipulationStatus } = get();
-        const moduleIndex = manipulationStatus.modules.findIndex((m) => m.name === moduleName);
+        const moduleIndex = manipulationStatus.modules.findIndex(
+            (m) => m.name === moduleName,
+        );
 
         if (moduleIndex === -1) return;
         const module = manipulationStatus.modules[moduleIndex];
@@ -137,7 +158,9 @@ export const createModuleSlice: StateCreator<
     applyModuleSettings: async (moduleName: string, enabled: boolean) => {
 
         const { manipulationStatus } = get();
-        const moduleIndex = manipulationStatus.modules.findIndex((m) => m.name === moduleName);
+        const moduleIndex = manipulationStatus.modules.findIndex(
+            (m) => m.name === moduleName,
+        );
 
         if (moduleIndex === -1) return;
         const updatedModules = [...manipulationStatus.modules];
@@ -157,7 +180,10 @@ export const createModuleSlice: StateCreator<
         });
 
         try {
-            await ManipulationService.updateSettings(await get().buildSettings(), get().isActive);
+            await ManipulationService.updateSettings(
+                await get().buildSettings(),
+                get().isActive,
+            );
         } catch (error) {
             console.error("Failed to apply module settings:", error);
         }

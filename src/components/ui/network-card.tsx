@@ -32,8 +32,10 @@ export function NetworkCard({
                     "backdrop-blur-[2px] transition-all duration-150",
                     isActive && "border-primary/40 bg-primary/5",
                     isFeatured && !isActive && "border-border/50",
-                    isHovered && !isActive && "border-border/60 bg-background/70",
-                    className
+                    isHovered &&
+                        !isActive &&
+                        "border-border/60 bg-background/70",
+                    className,
                 )}
                 initial={{ opacity: 0.9, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}

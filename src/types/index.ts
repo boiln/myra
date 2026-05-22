@@ -280,7 +280,7 @@ declare global {
             event: {
                 listen: (
                     event: string,
-                    callback: (event: { payload: any }) => void
+                    callback: (event: { payload: any }) => void,
                 ) => Promise<() => void>;
             };
         };

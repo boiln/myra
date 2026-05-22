@@ -6,8 +6,13 @@ import { Loader2 } from "lucide-react";
 
 export function ClassicModulePanel() {
 
-    const { modules, isLoading, updateModuleConfig, toggleModule, toggleDirection } =
-        useClassicStore();
+    const {
+        modules,
+        isLoading,
+        updateModuleConfig,
+        toggleModule,
+        toggleDirection,
+    } = useClassicStore();
 
     const handleModuleToggle = async (module: ClassicModuleInfo) => {
 
@@ -21,7 +26,7 @@ export function ClassicModulePanel() {
 
     const handleDirectionToggle = async (
         module: ClassicModuleInfo,
-        direction: "inbound" | "outbound"
+        direction: "inbound" | "outbound",
     ) => {
 
         try {
@@ -35,7 +40,7 @@ export function ClassicModulePanel() {
     const handleSettingChange = async (
         module: ClassicModuleInfo,
         setting: string,
-        value: number | boolean
+        value: number | boolean,
     ) => {
 
         try {

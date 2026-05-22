@@ -9,7 +9,8 @@ interface HotkeyBadgeProps {
 
 export function HotkeyBadge({ action, className }: HotkeyBadgeProps) {
 
-    const { bindings, isRecording, setBinding, startRecording, stopRecording } = useHotkeyStore();
+    const { bindings, isRecording, setBinding, startRecording, stopRecording } =
+        useHotkeyStore();
     const binding = bindings[action];
     const isRecordingThis = isRecording === action;
 
@@ -36,7 +37,12 @@ export function HotkeyBadge({ action, className }: HotkeyBadgeProps) {
             return;
         }
 
-        if (key === "Control" || key === "Alt" || key === "Shift" || key === "Meta") {
+        if (
+            key === "Control" ||
+            key === "Alt" ||
+            key === "Shift" ||
+            key === "Meta"
+        ) {
             return;
         }
 
@@ -47,7 +53,13 @@ export function HotkeyBadge({ action, className }: HotkeyBadgeProps) {
         }
 
         // Build modifier prefix
-        const modifier = e.ctrlKey ? "Ctrl" : e.altKey ? "Alt" : e.shiftKey ? "Shift" : null;
+        const modifier = e.ctrlKey
+            ? "Ctrl"
+            : e.altKey
+              ? "Alt"
+              : e.shiftKey
+                ? "Shift"
+                : null;
 
         if (modifier) {
             setBinding(action, `${modifier}+${key}`);
@@ -86,8 +98,10 @@ export function HotkeyBadge({ action, className }: HotkeyBadgeProps) {
     useEffect(() => {
 
         if (!isRecordingThis) return;
-        const forwardKeyDown = (e: KeyboardEvent) => handleKeyDownRef.current(e);
-        const forwardOutsideClick = (e: MouseEvent) => handleClickOutsideRef.current(e);
+        const forwardKeyDown = (e: KeyboardEvent) =>
+            handleKeyDownRef.current(e);
+        const forwardOutsideClick = (e: MouseEvent) =>
+            handleClickOutsideRef.current(e);
         window.addEventListener("keydown", forwardKeyDown);
         window.addEventListener("mousedown", forwardOutsideClick);
 
@@ -109,7 +123,7 @@ export function HotkeyBadge({ action, className }: HotkeyBadgeProps) {
             className={cn(
                 "inline-flex items-center justify-center rounded px-1.5 py-0.5 font-mono text-[10px] transition-all",
                 buttonClass,
-                className
+                className,
             )}
             title={title}
         >
@@ -138,7 +152,10 @@ function getTitle(isRecording: boolean, shortcut?: string | null): string {
 
 }
 
-function getButtonClass(isRecording: boolean, shortcut?: string | null): string {
+function getButtonClass(
+    isRecording: boolean,
+    shortcut?: string | null,
+): string {
 
     if (isRecording) return "animate-pulse bg-primary text-primary-foreground";
     if (shortcut) return "bg-muted/80 text-muted-foreground hover:bg-muted";

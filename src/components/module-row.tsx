@@ -22,9 +22,20 @@ interface ModuleRowProps {
     module: ModuleInfo;
     isActive: boolean;
     onModuleToggle: (module: ModuleInfo) => Promise<void>;
-    onDirectionToggle: (module: ModuleInfo, direction: "inbound" | "outbound") => Promise<void>;
-    onSettingChange: (module: ModuleInfo, setting: string, value: number) => void;
-    onBooleanSettingChange?: (module: ModuleInfo, setting: string, value: boolean) => void;
+    onDirectionToggle: (
+        module: ModuleInfo,
+        direction: "inbound" | "outbound",
+    ) => Promise<void>;
+    onSettingChange: (
+        module: ModuleInfo,
+        setting: string,
+        value: number,
+    ) => void;
+    onBooleanSettingChange?: (
+        module: ModuleInfo,
+        setting: string,
+        value: boolean,
+    ) => void;
 }
 
 export function ModuleRow({
@@ -35,7 +46,9 @@ export function ModuleRow({
     onBooleanSettingChange,
 }: ModuleRowProps) {
 
-    const [inputValues, setInputValues] = React.useState<Record<string, string>>({});
+    const [inputValues, setInputValues] = React.useState<
+        Record<string, string>
+    >({});
 
     // Handle input change - allow any valid number format during typing
     const handleInputChange = (
@@ -43,7 +56,7 @@ export function ModuleRow({
         setting: string,
         _min: number,
         _max: number,
-        isInteger = false
+        isInteger = false,
     ) => {
 
         const input = e.target.value;
@@ -58,7 +71,14 @@ export function ModuleRow({
 
         // Allow partial number input during typing (like "0.", ".", "-", etc.)
         if (!/^-?\d*\.?\d*$/.test(input)) return;
-        if (input === "." || input === "-" || input === "-." || input.endsWith(".")) return;
+
+        if (
+            input === "." ||
+            input === "-" ||
+            input === "-." ||
+            input.endsWith(".")
+        )
+            return;
 
         const parsed = isInteger ? parseInt(input, 10) : parseFloat(input);
 
@@ -71,7 +91,12 @@ export function ModuleRow({
     };
 
     // Handle blur - clamp value to valid range
-    const handleInputBlur = (setting: string, min: number, max: number, isInteger = false) => {
+    const handleInputBlur = (
+        setting: string,
+        min: number,
+        max: number,
+        isInteger = false,
+    ) => {
 
         const input = inputValues[setting];
 
@@ -131,7 +156,10 @@ export function ModuleRow({
     };
 
     return (
-        <div key={module.name} className="flex items-center gap-x-3 py-2 first:pt-0.5 last:pb-0.5">
+        <div
+            key={module.name}
+            className="flex items-center gap-x-3 py-2 first:pt-0.5 last:pb-0.5"
+        >
             {/* Module Enable Checkbox */}
             <div className="flex shrink-0 items-center gap-1.5">
                 <MyraCheckbox
@@ -158,8 +186,12 @@ export function ModuleRow({
                         <Input
                             id={`${module.name}-time`}
                             value={getDisplayValue("duration_ms")}
-                            onChange={(e) => handleInputChange(e, "duration_ms", 0, 999999)}
-                            onBlur={() => handleInputBlur("duration_ms", 0, 999999)}
+                            onChange={(e) =>
+                                handleInputChange(e, "duration_ms", 0, 999999)
+                            }
+                            onBlur={() =>
+                                handleInputBlur("duration_ms", 0, 999999)
+                            }
                             className="h-6 w-[50px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
                             disabled={!module.enabled}
                             type="text"
@@ -180,9 +212,22 @@ export function ModuleRow({
                                 id={`${module.name}-throttle-time`}
                                 value={getDisplayValue("throttle_ms")}
                                 onChange={(e) =>
-                                    handleInputChange(e, "throttle_ms", 1, 60000, true)
+                                    handleInputChange(
+                                        e,
+                                        "throttle_ms",
+                                        1,
+                                        60000,
+                                        true,
+                                    )
                                 }
-                                onBlur={() => handleInputBlur("throttle_ms", 1, 60000, true)}
+                                onBlur={() =>
+                                    handleInputBlur(
+                                        "throttle_ms",
+                                        1,
+                                        60000,
+                                        true,
+                                    )
+                                }
                                 className="h-6 w-[50px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
                                 disabled={!module.enabled}
                                 type="text"
@@ -193,7 +238,11 @@ export function ModuleRow({
                             id={`${module.name}-freeze-mode`}
                             checked={module.config.freeze_mode ?? false}
                             onCheckedChange={(checked) =>
-                                onBooleanSettingChange?.(module, "freeze_mode", checked === true)
+                                onBooleanSettingChange?.(
+                                    module,
+                                    "freeze_mode",
+                                    checked === true,
+                                )
                             }
                             disabled={!module.enabled}
                             label="Freeze"
@@ -212,8 +261,12 @@ export function ModuleRow({
                         <Input
                             id={`${module.name}-count`}
                             value={getDisplayValue("count")}
-                            onChange={(e) => handleInputChange(e, "count", 1, 9999, true)}
-                            onBlur={() => handleInputBlur("count", 1, 9999, true)}
+                            onChange={(e) =>
+                                handleInputChange(e, "count", 1, 9999, true)
+                            }
+                            onBlur={() =>
+                                handleInputBlur("count", 1, 9999, true)
+                            }
                             className="h-6 w-[50px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
                             disabled={!module.enabled}
                             type="text"
@@ -234,9 +287,22 @@ export function ModuleRow({
                                 id={`${module.name}-limit`}
                                 value={getDisplayValue("limit_kbps")}
                                 onChange={(e) =>
-                                    handleInputChange(e, "limit_kbps", 0.1, 100000, false)
+                                    handleInputChange(
+                                        e,
+                                        "limit_kbps",
+                                        0.1,
+                                        100000,
+                                        false,
+                                    )
                                 }
-                                onBlur={() => handleInputBlur("limit_kbps", 0.1, 100000, false)}
+                                onBlur={() =>
+                                    handleInputBlur(
+                                        "limit_kbps",
+                                        0.1,
+                                        100000,
+                                        false,
+                                    )
+                                }
                                 className="h-6 w-[55px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
                                 disabled={!module.enabled}
                                 type="text"
@@ -248,7 +314,11 @@ export function ModuleRow({
                             id={`${module.name}-use-wfp`}
                             checked={module.config.use_wfp ?? false}
                             onCheckedChange={(checked) =>
-                                onBooleanSettingChange?.(module, "use_wfp", checked === true)
+                                onBooleanSettingChange?.(
+                                    module,
+                                    "use_wfp",
+                                    checked === true,
+                                )
                             }
                             disabled={!module.enabled}
                             label="WFP"
@@ -269,9 +339,22 @@ export function ModuleRow({
                                 id={`${module.name}-max-delay`}
                                 value={getDisplayValue("throttle_ms")}
                                 onChange={(e) =>
-                                    handleInputChange(e, "throttle_ms", 1, 60000, true)
+                                    handleInputChange(
+                                        e,
+                                        "throttle_ms",
+                                        1,
+                                        60000,
+                                        true,
+                                    )
                                 }
-                                onBlur={() => handleInputBlur("throttle_ms", 1, 60000, true)}
+                                onBlur={() =>
+                                    handleInputBlur(
+                                        "throttle_ms",
+                                        1,
+                                        60000,
+                                        true,
+                                    )
+                                }
                                 className="h-6 w-[50px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
                                 disabled={!module.enabled}
                                 type="text"
@@ -292,7 +375,15 @@ export function ModuleRow({
                             <InfinityInput
                                 id={`${module.name}-buffer`}
                                 value={getDisplayValue("buffer_ms")}
-                                onChange={(e) => handleInputChange(e, "buffer_ms", 0, 10000, true)}
+                                onChange={(e) =>
+                                    handleInputChange(
+                                        e,
+                                        "buffer_ms",
+                                        0,
+                                        10000,
+                                        true,
+                                    )
+                                }
                                 className="w-[45px]"
                                 disabled={!module.enabled}
                                 infinityLabel="∞"
@@ -310,9 +401,22 @@ export function ModuleRow({
                                 id={`${module.name}-release-delay`}
                                 value={getDisplayValue("release_delay_us")}
                                 onChange={(e) =>
-                                    handleInputChange(e, "release_delay_us", 0, 50000, true)
+                                    handleInputChange(
+                                        e,
+                                        "release_delay_us",
+                                        0,
+                                        50000,
+                                        true,
+                                    )
                                 }
-                                onBlur={() => handleInputBlur("release_delay_us", 0, 50000, true)}
+                                onBlur={() =>
+                                    handleInputBlur(
+                                        "release_delay_us",
+                                        0,
+                                        50000,
+                                        true,
+                                    )
+                                }
                                 className="h-6 w-[50px] rounded border-border bg-background/80 px-1 text-center text-sm text-foreground focus:border-primary"
                                 disabled={!module.enabled}
                                 type="text"
@@ -323,7 +427,11 @@ export function ModuleRow({
                             id={`${module.name}-reverse`}
                             checked={module.config.reverse ?? false}
                             onCheckedChange={() =>
-                                onBooleanSettingChange?.(module, "reverse", !module.config.reverse)
+                                onBooleanSettingChange?.(
+                                    module,
+                                    "reverse",
+                                    !module.config.reverse,
+                                )
                             }
                             disabled={!module.enabled}
                             label="Reverse"
@@ -347,7 +455,9 @@ export function ModuleRow({
                 <MyraCheckbox
                     id={`${module.name}-outbound`}
                     checked={module.config.outbound}
-                    onCheckedChange={() => onDirectionToggle(module, "outbound")}
+                    onCheckedChange={() =>
+                        onDirectionToggle(module, "outbound")
+                    }
                     disabled={!module.enabled}
                     label="Out"
                     labelClassName={`text-xs text-foreground ${!module.enabled ? "opacity-50" : ""}`}
@@ -384,7 +494,9 @@ export function ModuleRow({
                     <InfinityInput
                         id={`${module.name}-duration`}
                         value={getDisplayValue("duration_ms")}
-                        onChange={(e) => handleInputChange(e, "duration_ms", 0, 999999)}
+                        onChange={(e) =>
+                            handleInputChange(e, "duration_ms", 0, 999999)
+                        }
                         className="w-[45px]"
                         disabled={!module.enabled}
                         infinityLabel="∞"

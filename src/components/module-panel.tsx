@@ -34,7 +34,7 @@ export function ModulePanel() {
             }
 
         },
-        300
+        300,
     );
 
     const handleModuleToggle = async (module: ModuleInfo) => {
@@ -47,7 +47,11 @@ export function ModulePanel() {
 
     };
 
-    const handleSettingChange = async (module: ModuleInfo, setting: string, value: number) => {
+    const handleSettingChange = async (
+        module: ModuleInfo,
+        setting: string,
+        value: number,
+    ) => {
 
         // For burst release_delay_us, update immediately (no debounce) since it affects flush behavior
         if (module.name === "burst" && setting === "release_delay_us") {
@@ -65,7 +69,10 @@ export function ModulePanel() {
 
     };
 
-    const handleDirectionToggle = async (module: ModuleInfo, direction: "inbound" | "outbound") => {
+    const handleDirectionToggle = async (
+        module: ModuleInfo,
+        direction: "inbound" | "outbound",
+    ) => {
 
         try {
             await toggleDirection(module.name || "", direction);
@@ -78,7 +85,7 @@ export function ModulePanel() {
     const handleBooleanSettingChange = async (
         module: ModuleInfo,
         setting: string,
-        value: boolean
+        value: boolean,
     ) => {
 
         try {
@@ -96,7 +103,9 @@ export function ModulePanel() {
             <Card className="border-border bg-card/90">
                 <CardHeader className="rounded-t-lg bg-card/90 pb-2">
                     <div className="flex">
-                        <CardTitle className="text-lg text-foreground">Modules</CardTitle>
+                        <CardTitle className="text-lg text-foreground">
+                            Modules
+                        </CardTitle>
                     </div>
                 </CardHeader>
                 <CardContent className="bg-card/90 px-3 py-2">
@@ -114,7 +123,9 @@ export function ModulePanel() {
                                     onModuleToggle={handleModuleToggle}
                                     onDirectionToggle={handleDirectionToggle}
                                     onSettingChange={handleSettingChange}
-                                    onBooleanSettingChange={handleBooleanSettingChange}
+                                    onBooleanSettingChange={
+                                        handleBooleanSettingChange
+                                    }
                                 />
                             ))}
                         </div>

@@ -43,7 +43,7 @@ export function ToggleButton() {
                         isActive
                             ? "bg-rose-600 text-white shadow-rose-500/20 hover:bg-rose-700 dark:bg-rose-700 dark:shadow-rose-900/30 dark:hover:bg-rose-600"
                             : "bg-emerald-600 text-white shadow-emerald-500/20 hover:bg-emerald-700 dark:bg-emerald-700 dark:shadow-emerald-900/30 dark:hover:bg-emerald-600",
-                        "border border-transparent hover:border-white/10"
+                        "border border-transparent hover:border-white/10",
                     )}
                 >
                     {isTogglingActive ? (

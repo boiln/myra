@@ -10,7 +10,11 @@ interface ProcessIconProps {
 /**
  * Renders a process icon from base64 data or falls back to a default icon
  */
-export function ProcessIcon({ icon, name, className = "size-4" }: ProcessIconProps) {
+export function ProcessIcon({
+    icon,
+    name,
+    className = "size-4",
+}: ProcessIconProps) {
 
     const [imageError, setImageError] = useState(false);
 

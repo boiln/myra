@@ -13,8 +13,16 @@ describe("cn utility", () => {
         expect(result).toBe("base active");
     });
     it("should exclude falsy values", () => {
-        const result = cn("base", false && "excluded", null, undefined, "included");
+
+        const result = cn(
+            "base",
+            false && "excluded",
+            null,
+            undefined,
+            "included",
+        );
         expect(result).toBe("base included");
+
     });
     it("should merge tailwind classes correctly", () => {
         // twMerge should override conflicting classes

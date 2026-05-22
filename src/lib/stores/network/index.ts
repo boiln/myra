@@ -106,7 +106,8 @@ const buildSettings = (modules: ModuleInfo[]) => {
     const burstModule = modules.find((m) => m.name === "burst");
 
     if (burstModule) {
-        settings.burst_release_delay_us = burstModule.config.release_delay_us ?? 500;
+        settings.burst_release_delay_us =
+            burstModule.config.release_delay_us ?? 500;
     }
 
     return settings;

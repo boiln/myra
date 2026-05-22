@@ -25,7 +25,8 @@ describe("ManipulationService", () => {
                     duration_ms: 0,
                 },
             };
-            const modules = ManipulationService.createModulesFromSettings(settings);
+            const modules =
+                ManipulationService.createModulesFromSettings(settings);
             const lagModule = modules.find((m) => m.name === "lag");
             expect(lagModule).toBeDefined();
             expect(lagModule?.enabled).toBe(true);
@@ -46,7 +47,8 @@ describe("ManipulationService", () => {
                     duration_ms: 1000,
                 },
             };
-            const modules = ManipulationService.createModulesFromSettings(settings);
+            const modules =
+                ManipulationService.createModulesFromSettings(settings);
             const dropModule = modules.find((m) => m.name === "drop");
             expect(dropModule).toBeDefined();
             expect(dropModule?.enabled).toBe(true);
@@ -69,7 +71,8 @@ describe("ManipulationService", () => {
                     freeze_mode: true, // This should be preserved
                 },
             };
-            const modules = ManipulationService.createModulesFromSettings(settings);
+            const modules =
+                ManipulationService.createModulesFromSettings(settings);
             const throttleModule = modules.find((m) => m.name === "throttle");
             expect(throttleModule).toBeDefined();
             expect(throttleModule?.config.freeze_mode).toBe(true);
@@ -88,7 +91,8 @@ describe("ManipulationService", () => {
                     throttle_ms: 300,
                 },
             };
-            const modules = ManipulationService.createModulesFromSettings(settings);
+            const modules =
+                ManipulationService.createModulesFromSettings(settings);
             const throttleModule = modules.find((m) => m.name === "throttle");
             expect(throttleModule?.config.freeze_mode).toBe(false);
 
@@ -105,7 +109,8 @@ describe("ManipulationService", () => {
                     duration_ms: 0,
                 },
             };
-            const modules = ManipulationService.createModulesFromSettings(settings);
+            const modules =
+                ManipulationService.createModulesFromSettings(settings);
             const duplicateModule = modules.find((m) => m.name === "duplicate");
             expect(duplicateModule).toBeDefined();
             expect(duplicateModule?.config.count).toBe(5);
@@ -126,7 +131,8 @@ describe("ManipulationService", () => {
                     reverse: true, // This should be preserved
                 },
             };
-            const modules = ManipulationService.createModulesFromSettings(settings);
+            const modules =
+                ManipulationService.createModulesFromSettings(settings);
             const burstModule = modules.find((m) => m.name === "burst");
             expect(burstModule).toBeDefined();
             expect(burstModule?.config.reverse).toBe(true);
@@ -149,7 +155,8 @@ describe("ManipulationService", () => {
                     release_delay_us: 1000,
                 },
             };
-            const modules = ManipulationService.createModulesFromSettings(settings);
+            const modules =
+                ManipulationService.createModulesFromSettings(settings);
             const burstModule = modules.find((m) => m.name === "burst");
             expect(burstModule?.config.reverse).toBe(false);
 
@@ -167,7 +174,8 @@ describe("ManipulationService", () => {
                     use_wfp: true,
                 },
             };
-            const modules = ManipulationService.createModulesFromSettings(settings);
+            const modules =
+                ManipulationService.createModulesFromSettings(settings);
             const bandwidthModule = modules.find((m) => m.name === "bandwidth");
             expect(bandwidthModule).toBeDefined();
             expect(bandwidthModule?.config.limit_kbps).toBe(100);
@@ -177,7 +185,8 @@ describe("ManipulationService", () => {
         it("should create all 8 modules even with empty settings", () => {
 
             const settings: PacketManipulationSettings = {};
-            const modules = ManipulationService.createModulesFromSettings(settings);
+            const modules =
+                ManipulationService.createModulesFromSettings(settings);
             expect(modules).toHaveLength(8);
             expect(modules.map((m) => m.name)).toEqual([
                 "lag",
@@ -194,7 +203,8 @@ describe("ManipulationService", () => {
         it("should set all modules as disabled by default", () => {
 
             const settings: PacketManipulationSettings = {};
-            const modules = ManipulationService.createModulesFromSettings(settings);
+            const modules =
+                ManipulationService.createModulesFromSettings(settings);
             modules.forEach((module) => {
                 expect(module.enabled).toBe(false);
                 expect(module.config.enabled).toBe(false);
@@ -216,7 +226,8 @@ describe("ManipulationService", () => {
                     release_delay_us: 1000,
                 },
             };
-            const modules = ManipulationService.createModulesFromSettings(settings);
+            const modules =
+                ManipulationService.createModulesFromSettings(settings);
             const burstModule = modules.find((m) => m.name === "burst");
             expect(burstModule?.config.lag_bypass).toBe(true);
 
@@ -258,7 +269,10 @@ describe("ManipulationService", () => {
                 },
             };
             await ManipulationService.startProcessing(settings, "outbound");
-            expect(invoke).toHaveBeenCalledWith("start_processing", expect.anything());
+            expect(invoke).toHaveBeenCalledWith(
+                "start_processing",
+                expect.anything(),
+            );
             expect(invoke).toHaveBeenCalledWith("start_tc_bandwidth", {
                 limitKbps: 100,
                 direction: "both",
@@ -306,9 +320,16 @@ describe("ManipulationService", () => {
                 includeInbound: true,
                 includeOutbound: true,
             };
-            const hotkeys = [{ action: "toggle", shortcut: "Ctrl+1", enabled: true }];
+            const hotkeys = [
+                { action: "toggle", shortcut: "Ctrl+1", enabled: true },
+            ];
             const tap = { enabled: true, interval_ms: 100, duration_ms: 50 };
-            await ManipulationService.saveConfig("test-config", filterTarget, hotkeys, tap);
+            await ManipulationService.saveConfig(
+                "test-config",
+                filterTarget,
+                hotkeys,
+                tap,
+            );
             expect(invoke).toHaveBeenCalledWith("save_config", {
                 name: "test-config",
                 filterTarget: {

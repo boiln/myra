@@ -63,7 +63,7 @@ export function AutoInput({
                 className={cn(
                     "transition-all duration-200",
                     isFocused && "shadow-[0_0_0_1px] shadow-primary/30",
-                    className
+                    className,
                 )}
                 value={value}
                 onChange={updateValueAndNotify}

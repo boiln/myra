@@ -56,7 +56,9 @@ function reducer(state: State, action: Action): State {
             return {
                 ...state,
                 loading: false,
-                ...(action.enabled !== undefined ? { enabled: action.enabled } : {}),
+                ...(action.enabled !== undefined
+                    ? { enabled: action.enabled }
+                    : {}),
                 ...(action.error !== undefined ? { error: action.error } : {}),
             };
         default:
@@ -66,6 +68,7 @@ function reducer(state: State, action: Action): State {
 }
 
 export function TcBandwidthControl() {
+
     const [state, dispatch] = useReducer(reducer, initialState);
     const { enabled, limitKbps, direction, status, error, loading } = state;
 
@@ -128,8 +131,12 @@ export function TcBandwidthControl() {
         <div className="rounded-lg border border-zinc-700 bg-zinc-900/50 p-4">
             <div className="mb-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-medium text-zinc-200">NetLimiter Mode</h3>
-                    <span className="text-xs text-zinc-500">(Traffic Control)</span>
+                    <h3 className="text-sm font-medium text-zinc-200">
+                        NetLimiter Mode
+                    </h3>
+                    <span className="text-xs text-zinc-500">
+                        (Traffic Control)
+                    </span>
                 </div>
                 <MyraCheckbox
                     checked={enabled}
@@ -139,12 +146,15 @@ export function TcBandwidthControl() {
                 />
             </div>
             <p className="mb-3 text-xs text-zinc-500">
-                Bandwidth limiting with packet pacing. Small packets (ACKs/keepalives) pass through
-                to maintain connection.
+                Bandwidth limiting with packet pacing. Small packets
+                (ACKs/keepalives) pass through to maintain connection.
             </p>
             <div className="mb-3 flex items-center gap-3">
                 <div className="w-24">
-                    <label htmlFor="tc-limit" className="mb-1 block text-xs text-zinc-400">
+                    <label
+                        htmlFor="tc-limit"
+                        className="mb-1 block text-xs text-zinc-400"
+                    >
                         Limit (KB/s)
                     </label>
                     <input
@@ -157,14 +167,20 @@ export function TcBandwidthControl() {
                         onChange={(e) =>
                             dispatch({
                                 type: "setLimit",
-                                value: Math.max(0.1, parseFloat(e.target.value) || 0.1),
+                                value: Math.max(
+                                    0.1,
+                                    parseFloat(e.target.value) || 0.1,
+                                ),
                             })
                         }
                         className="w-full rounded border border-zinc-700 bg-zinc-800 px-2 py-1 text-sm text-zinc-200"
                     />
                 </div>
                 <div className="flex-1">
-                    <label htmlFor="tc-direction" className="mb-1 block text-xs text-zinc-400">
+                    <label
+                        htmlFor="tc-direction"
+                        className="mb-1 block text-xs text-zinc-400"
+                    >
                         Direction
                     </label>
                     <select
@@ -198,7 +214,10 @@ export function TcBandwidthControl() {
                     ✓ Active: {status.limit_kbps} KB/s ({status.direction})
                 </div>
             )}
-            {error && <div className="mt-2 text-xs text-red-400">Error: {error}</div>}
+            {error && (
+                <div className="mt-2 text-xs text-red-400">Error: {error}</div>
+            )}
         </div>
     );
+
 }

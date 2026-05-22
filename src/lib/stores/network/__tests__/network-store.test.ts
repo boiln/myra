@@ -202,7 +202,9 @@ describe("NetworkStore", () => {
         it("should map duplicate count correctly", () => {
 
             const modules = createMockModules();
-            const duplicateModule = modules.find((m) => m.name === "duplicate")!;
+            const duplicateModule = modules.find(
+                (m) => m.name === "duplicate",
+            )!;
             duplicateModule.enabled = true;
             duplicateModule.config.count = 5;
             useNetworkStore.setState({
@@ -215,7 +217,9 @@ describe("NetworkStore", () => {
         it("should map bandwidth limit correctly", () => {
 
             const modules = createMockModules();
-            const bandwidthModule = modules.find((m) => m.name === "bandwidth")!;
+            const bandwidthModule = modules.find(
+                (m) => m.name === "bandwidth",
+            )!;
             bandwidthModule.enabled = true;
             bandwidthModule.config.limit_kbps = 200;
             bandwidthModule.config.use_wfp = true;
@@ -255,7 +259,9 @@ describe("NetworkStore", () => {
             vi.mocked(invoke).mockImplementation(async (cmd: string) => {
 
                 if (cmd === "update_filter") return undefined;
-                if (cmd === "get_status") return { running: false, modules: createMockModules() };
+
+                if (cmd === "get_status")
+                    return { running: false, modules: createMockModules() };
 
                 return undefined;
 
@@ -276,14 +282,19 @@ describe("NetworkStore", () => {
             vi.mocked(invoke).mockImplementation(async (cmd: string) => {
 
                 if (cmd === "start_processing") return undefined;
-                if (cmd === "get_status") return { running: true, modules: createMockModules() };
+
+                if (cmd === "get_status")
+                    return { running: true, modules: createMockModules() };
 
                 return undefined;
 
             });
             useNetworkStore.setState({ isActive: false });
             await useNetworkStore.getState().toggleActive();
-            expect(invoke).toHaveBeenCalledWith("start_processing", expect.anything());
+            expect(invoke).toHaveBeenCalledWith(
+                "start_processing",
+                expect.anything(),
+            );
 
         });
         it("should stop processing when active", async () => {
@@ -291,7 +302,9 @@ describe("NetworkStore", () => {
             vi.mocked(invoke).mockImplementation(async (cmd: string) => {
 
                 if (cmd === "stop_processing") return undefined;
-                if (cmd === "get_status") return { running: false, modules: createMockModules() };
+
+                if (cmd === "get_status")
+                    return { running: false, modules: createMockModules() };
 
                 return undefined;
 
@@ -310,7 +323,10 @@ describe("NetworkStore", () => {
             vi.mocked(invoke).mockResolvedValue(["preset1", "preset2"]);
             await useNetworkStore.getState().loadPresets();
             expect(invoke).toHaveBeenCalledWith("list_configs");
-            expect(useNetworkStore.getState().presets).toEqual(["preset1", "preset2"]);
+            expect(useNetworkStore.getState().presets).toEqual([
+                "preset1",
+                "preset2",
+            ]);
 
         });
 

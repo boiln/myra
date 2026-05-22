@@ -27,14 +27,19 @@ export function ThemeSelector() {
                     <span className="sr-only">Toggle theme</span>
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40 bg-card/80 backdrop-blur-md">
+            <DropdownMenuContent
+                align="end"
+                className="w-40 bg-card/80 backdrop-blur-md"
+            >
                 {themes.map((t) => (
                     <DropdownMenuItem
                         key={t.id}
                         onClick={() => setTheme(t.id)}
                         className={cn(
                             "group flex items-center gap-3 rounded-sm px-2 py-1.5 text-sm text-foreground transition-colors",
-                            theme === t.id ? "bg-accent/20" : "hover:bg-accent/10"
+                            theme === t.id
+                                ? "bg-accent/20"
+                                : "hover:bg-accent/10",
                         )}
                     >
                         <div
@@ -42,7 +47,7 @@ export function ThemeSelector() {
                                 "size-3 rounded-full transition-all duration-300",
                                 theme === t.id
                                     ? "scale-110 shadow-[0_0_8px_var(--glow-color)]"
-                                    : "group-hover:scale-105 group-hover:shadow-[0_0_5px_var(--glow-color)]"
+                                    : "group-hover:scale-105 group-hover:shadow-[0_0_5px_var(--glow-color)]",
                             )}
                             style={
                                 {
@@ -51,7 +56,11 @@ export function ThemeSelector() {
                                 } as React.CSSProperties
                             }
                         />
-                        <span className={cn(theme === t.id ? "font-medium" : "font-normal")}>
+                        <span
+                            className={cn(
+                                theme === t.id ? "font-medium" : "font-normal",
+                            )}
+                        >
                             {t.name}
                         </span>
                     </DropdownMenuItem>

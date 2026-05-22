@@ -17,7 +17,7 @@ export interface TcBandwidthStatus {
  */
 export async function startTcBandwidth(
     limitKbps: number,
-    direction: TcDirection = "inbound"
+    direction: TcDirection = "inbound",
 ): Promise<string> {
     return await invoke<string>("start_tc_bandwidth", {
         limitKbps,

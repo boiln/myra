@@ -39,7 +39,7 @@ export function useClassicTap() {
             "enabled=",
             settings.enabled,
             "isProcessing=",
-            isProcessing
+            isProcessing,
         );
         // Helper to get enabled modules from store
         const getEnabledModules = (): ClassicModuleName[] => {
@@ -63,7 +63,11 @@ export function useClassicTap() {
             console.log("[ClassicTap] Restoring modules:", modulesToRestore);
 
             try {
-                await Promise.all(modulesToRestore.map((moduleName) => toggleModule(moduleName)));
+                await Promise.all(
+                    modulesToRestore.map((moduleName) =>
+                        toggleModule(moduleName),
+                    ),
+                );
             } catch (error) {
                 console.error("Error restoring modules:", error);
             } finally {
@@ -100,7 +104,9 @@ export function useClassicTap() {
 
             // Don't start if we're already tapping
             if (isTappingRef.current) {
-                console.log("[ClassicTap] runTapCycle: Already tapping, skipping");
+                console.log(
+                    "[ClassicTap] runTapCycle: Already tapping, skipping",
+                );
                 return;
             }
             // Check cooldown
@@ -114,12 +120,14 @@ export function useClassicTap() {
             const enabledModules = getEnabledModules();
 
             if (enabledModules.length === 0) {
-                console.log("[ClassicTap] runTapCycle: No enabled modules, skipping");
+                console.log(
+                    "[ClassicTap] runTapCycle: No enabled modules, skipping",
+                );
                 return;
             }
             console.log(
                 "[ClassicTap] runTapCycle: Starting tap - disabling modules:",
-                enabledModules
+                enabledModules,
             );
             // Start tap (disable modules)
             savedModulesRef.current = enabledModules;
@@ -127,8 +135,14 @@ export function useClassicTap() {
             setIsTapping(true);
 
             try {
-                await Promise.all(enabledModules.map((moduleName) => toggleModule(moduleName)));
-                console.log("[ClassicTap] runTapCycle: Modules disabled successfully");
+                await Promise.all(
+                    enabledModules.map((moduleName) =>
+                        toggleModule(moduleName),
+                    ),
+                );
+                console.log(
+                    "[ClassicTap] runTapCycle: Modules disabled successfully",
+                );
             } catch (error) {
                 console.error("Error disabling modules:", error);
                 isTappingRef.current = false;
@@ -140,7 +154,10 @@ export function useClassicTap() {
             tapTimeoutRef.current = setTimeout(async () => {
 
                 const modulesToRestore = [...savedModulesRef.current];
-                console.log("[ClassicTap] Tap duration ended, re-enabling:", modulesToRestore);
+                console.log(
+                    "[ClassicTap] Tap duration ended, re-enabling:",
+                    modulesToRestore,
+                );
 
                 if (modulesToRestore.length === 0) {
                     isTappingRef.current = false;
@@ -150,7 +167,9 @@ export function useClassicTap() {
 
                 try {
                     await Promise.all(
-                        modulesToRestore.map((moduleName) => toggleModule(moduleName))
+                        modulesToRestore.map((moduleName) =>
+                            toggleModule(moduleName),
+                        ),
                     );
                     console.log("[ClassicTap] Modules re-enabled successfully");
                 } catch (error) {
@@ -170,7 +189,7 @@ export function useClassicTap() {
             "[ClassicTap] Effect: Starting interval with intervalMs=",
             intervalMs,
             "durationMs=",
-            durationMs
+            durationMs,
         );
         intervalRef.current = setInterval(runTapCycle, intervalMs);
         // Run first cycle after a brief delay to let things settle

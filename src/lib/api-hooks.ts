@@ -12,7 +12,7 @@ import { invokeCommand } from "./tauri-api";
 export function useApiCall<T>(
     command: string,
     args: Record<string, unknown> = {},
-    deps: any[] = []
+    deps: any[] = [],
 ) {
 
     const [data, setData] = useState<T | null>(null);
@@ -63,7 +63,10 @@ export function useEventListener<T>(event: string) {
                     setData(e.payload as T);
                 });
             } catch (err) {
-                console.error(`Error setting up event listener for ${event}:`, err);
+                console.error(
+                    `Error setting up event listener for ${event}:`,
+                    err,
+                );
             }
 
         };
@@ -91,10 +94,15 @@ export function useEventListener<T>(event: string) {
 export function useRealTimeData<T>(
     command: string,
     eventName: string,
-    args: Record<string, unknown> = {}
+    args: Record<string, unknown> = {},
 ) {
 
-    const { data: initialData, loading, error, refetch } = useApiCall<T>(command, args);
+    const {
+        data: initialData,
+        loading,
+        error,
+        refetch,
+    } = useApiCall<T>(command, args);
     const { data: updateData } = useEventListener<T>(eventName);
     const [data, setData] = useState<T | null>(null);
 

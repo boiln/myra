@@ -44,7 +44,8 @@ export function QuickPresets() {
     const applyQuickPreset = async (preset: QuickPreset) => {
 
         try {
-            const { ManipulationService } = await import("@/lib/services/manipulation");
+            const { ManipulationService } =
+                await import("@/lib/services/manipulation");
 
             const currentModules = manipulationStatus.modules;
             const newSettings: PacketManipulationSettings = {};
@@ -161,7 +162,11 @@ export function QuickPresets() {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-7 gap-1.5 px-2">
+                <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 gap-1.5 px-2"
+                >
                     <Zap className="size-3.5" />
                     Quick
                 </Button>
@@ -174,7 +179,9 @@ export function QuickPresets() {
                         className="flex flex-col items-start gap-0.5 py-2 focus:text-foreground"
                     >
                         <span className="font-medium">{preset.name}</span>
-                        <span className="text-xs opacity-70">{preset.description}</span>
+                        <span className="text-xs opacity-70">
+                            {preset.description}
+                        </span>
                     </DropdownMenuItem>
                 ))}
             </DropdownMenuContent>

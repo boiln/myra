@@ -22,11 +22,11 @@ interface ClassicStore {
     toggleModule: (moduleName: ClassicModuleName) => Promise<void>;
     toggleDirection: (
         moduleName: ClassicModuleName,
-        direction: "inbound" | "outbound"
+        direction: "inbound" | "outbound",
     ) => Promise<void>;
     updateModuleConfig: (
         moduleName: ClassicModuleName,
-        config: Partial<Record<string, unknown>>
+        config: Partial<Record<string, unknown>>,
     ) => Promise<void>;
     setActive: (active: boolean) => void;
     startProcessing: (filter?: string) => Promise<void>;
@@ -62,7 +62,7 @@ export const useClassicStore = create<ClassicStore>()((set, get) => ({
                       enabled: !m.enabled,
                       config: { ...m.config, enabled: !m.enabled },
                   }
-                : m
+                : m,
         );
         set({ modules: updatedModules });
         // Sync to backend if processing is active
@@ -72,7 +72,10 @@ export const useClassicStore = create<ClassicStore>()((set, get) => ({
 
     },
     // Toggle inbound/outbound direction
-    toggleDirection: async (moduleName: ClassicModuleName, direction: "inbound" | "outbound") => {
+    toggleDirection: async (
+        moduleName: ClassicModuleName,
+        direction: "inbound" | "outbound",
+    ) => {
 
         const { modules, isProcessing, syncToBackend } = get();
         const updatedModules = modules.map((m) =>
@@ -84,7 +87,7 @@ export const useClassicStore = create<ClassicStore>()((set, get) => ({
                           [direction]: !m.config[direction],
                       },
                   }
-                : m
+                : m,
         );
         set({ modules: updatedModules });
         // Sync to backend if processing is active
@@ -96,7 +99,7 @@ export const useClassicStore = create<ClassicStore>()((set, get) => ({
     // Update module configuration
     updateModuleConfig: async (
         moduleName: ClassicModuleName,
-        config: Partial<Record<string, unknown>>
+        config: Partial<Record<string, unknown>>,
     ) => {
 
         const { modules, isProcessing, syncToBackend } = get();
@@ -106,7 +109,7 @@ export const useClassicStore = create<ClassicStore>()((set, get) => ({
                       ...m,
                       config: { ...m.config, ...config },
                   }
-                : m
+                : m,
         );
         set({ modules: updatedModules });
         // Sync to backend if processing is active

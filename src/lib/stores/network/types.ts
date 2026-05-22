@@ -27,15 +27,29 @@ export interface NetworkActions {
     loadStatus: () => Promise<void>;
 
     // Module actions
-    updateModuleConfig: (moduleName: string, config: Record<string, any>) => Promise<void>;
-    updateModuleSettings: (moduleName: string, config: ModuleConfig) => Promise<void>;
-    toggleDirection: (moduleName: string, direction: "inbound" | "outbound") => Promise<void>;
-    applyModuleSettings: (moduleName: string, enabled: boolean) => Promise<void>;
+    updateModuleConfig: (
+        moduleName: string,
+        config: Record<string, any>,
+    ) => Promise<void>;
+    updateModuleSettings: (
+        moduleName: string,
+        config: ModuleConfig,
+    ) => Promise<void>;
+    toggleDirection: (
+        moduleName: string,
+        direction: "inbound" | "outbound",
+    ) => Promise<void>;
+    applyModuleSettings: (
+        moduleName: string,
+        enabled: boolean,
+    ) => Promise<void>;
 
     // Preset actions
     loadPresets: () => Promise<void>;
     savePreset: (name: string, mode?: "standard" | "classic") => Promise<void>;
-    loadPreset: (name: string) => Promise<{ mode: "standard" | "classic" } | undefined>;
+    loadPreset: (
+        name: string,
+    ) => Promise<{ mode: "standard" | "classic" } | undefined>;
     deletePreset: (name: string) => Promise<void>;
     initializeDefaultPreset: () => Promise<void>;
 

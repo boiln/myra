@@ -75,6 +75,6 @@ export const useTapStore = create<TapStore>()(
         {
             name: "myra-tap-settings",
             partialize: (state) => ({ settings: state.settings }),
-        }
-    )
+        },
+    ),
 );
