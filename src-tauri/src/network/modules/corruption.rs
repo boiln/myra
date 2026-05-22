@@ -5,7 +5,7 @@ use crate::network::modules::traits::{ModuleContext, PacketModule};
 use crate::network::types::probability::Probability;
 use crate::settings::corruption::CorruptionOptions;
 use log::error;
-use rand::{rng, Rng};
+use rand::{Rng, rng};
 use std::collections::HashSet;
 use windivert_sys::ChecksumFlags;
 

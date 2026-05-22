@@ -18,7 +18,6 @@ interface ClassicModuleRowProps {
 
 // Module-specific parameter configurations
 const MODULE_PARAMS: Record<
-
     ClassicModuleName,
     Array<{
         key: string;
@@ -75,7 +74,6 @@ const MODULE_PARAMS: Record<
 
 // Boolean toggles for specific modules
 const MODULE_TOGGLES: Record<
-
     ClassicModuleName,
     Array<{ key: string; label: string; tooltip?: string }>
 > = {
@@ -124,9 +122,7 @@ export function ClassicModuleRow({
         setInputValues((prev) => ({ ...prev, [setting]: input }));
 
         if (input === "") return;
-
         if (!/^-?\d*\.?\d*$/.test(input)) return;
-
         if (input === "." || input === "-" || input === "-.") return;
 
         const parsed = isInteger ? parseInt(input, 10) : parseFloat(input);
@@ -158,11 +154,13 @@ export function ClassicModuleRow({
         let clamped = parsed;
 
         if (parsed < min) clamped = min;
-
         if (parsed > max) clamped = max;
 
         if (clamped !== parsed) {
-            setInputValues((prev) => ({ ...prev, [setting]: clamped.toString() }));
+            setInputValues((prev) => ({
+                ...prev,
+                [setting]: clamped.toString(),
+            }));
             onSettingChange(module, setting, clamped);
         }
 

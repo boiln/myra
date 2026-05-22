@@ -11,7 +11,7 @@ use tauri::State;
 use crate::commands::classic_state::ClassicProcessingState;
 use crate::commands::state::PacketProcessingState;
 use crate::network::classic::{
-    process_classic_packets, ClassicProcessingState as ClassicModuleState,
+    ClassicProcessingState as ClassicModuleState, process_classic_packets,
 };
 use crate::network::core::set_high_precision_timer;
 use crate::settings::classic::ClassicSettings;

@@ -98,7 +98,9 @@ export function PresetManager() {
 
         try {
             await savePreset(presetName, mode);
-            toast.success(`Preset "${presetName}" saved`, { dismissible: true });
+            toast.success(`Preset "${presetName}" saved`, {
+                dismissible: true,
+            });
 
             await loadPresets();
             setPresetName("");
@@ -107,7 +109,9 @@ export function PresetManager() {
 
             setTimeout(() => setShowPresetInfo(false), 5000);
         } catch (error) {
-            toast.error(`Failed to save preset: ${error}`, { dismissible: true });
+            toast.error(`Failed to save preset: ${error}`, {
+                dismissible: true,
+            });
         } finally {
             setIsLoading(false);
         }
@@ -127,7 +131,9 @@ export function PresetManager() {
             }
             toast.success(`Preset "${name}" loaded`, { dismissible: true });
         } catch (error) {
-            toast.error(`Failed to load preset: ${error}`, { dismissible: true });
+            toast.error(`Failed to load preset: ${error}`, {
+                dismissible: true,
+            });
         } finally {
             setIsLoading(false);
         }
@@ -137,7 +143,6 @@ export function PresetManager() {
     const handleDeletePreset = async (name: string) => {
 
         if (!name) return;
-
         if (!confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`))
             return;
 
@@ -148,7 +153,9 @@ export function PresetManager() {
             toast.success(`Preset "${name}" deleted`, { dismissible: true });
             await loadPresets();
         } catch (error) {
-            toast.error(`Failed to delete preset: ${error}`, { dismissible: true });
+            toast.error(`Failed to delete preset: ${error}`, {
+                dismissible: true,
+            });
         } finally {
             setIsLoading(false);
         }

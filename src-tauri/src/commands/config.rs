@@ -148,11 +148,7 @@ pub async fn save_config(
                 .map_err(|e| format!("Failed to lock classic settings: {}", e))?
                 .clone();
 
-            if cs.has_any_enabled() {
-                Some(cs)
-            } else {
-                None
-            }
+            if cs.has_any_enabled() { Some(cs) } else { None }
         }
     };
 

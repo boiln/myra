@@ -33,7 +33,6 @@ pub async fn stop_processing(state: State<'_, PacketProcessingState>) -> Result<
     }
 
     let original_settings: Settings;
-
     {
         let mut settings = state
             .settings
@@ -45,7 +44,6 @@ pub async fn stop_processing(state: State<'_, PacketProcessingState>) -> Result<
     }
 
     thread::sleep(Duration::from_millis(300));
-
     {
         let mut settings = state
             .settings

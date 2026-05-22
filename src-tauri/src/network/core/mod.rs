@@ -8,7 +8,7 @@ pub mod packet;
 
 pub use flow_tracker::FlowTracker;
 pub use handle::{
-    construct_filter_with_exclusions, flush_wfp_cache, restore_timer_resolution,
-    set_high_precision_timer, HandleConfig, HandleManager,
+    HandleConfig, HandleManager, construct_filter_with_exclusions, flush_wfp_cache,
+    restore_timer_resolution, set_high_precision_timer,
 };
 pub use packet::PacketData;

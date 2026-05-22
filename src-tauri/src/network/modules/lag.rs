@@ -4,7 +4,7 @@ use crate::network::modules::stats::lag_stats::LagStats;
 use crate::network::modules::traits::{ModuleContext, PacketModule};
 use crate::network::types::probability::Probability;
 use crate::settings::lag::LagOptions;
-use rand::{rng, Rng};
+use rand::{Rng, rng};
 use std::collections::VecDeque;
 use std::time::Duration;
 

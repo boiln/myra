@@ -151,7 +151,9 @@ export function QuickPresets() {
 
             toast.success(`Applied "${preset.name}"`, { dismissible: true });
         } catch (error) {
-            toast.error(`Failed to apply preset: ${error}`, { dismissible: true });
+            toast.error(`Failed to apply preset: ${error}`, {
+                dismissible: true,
+            });
         }
 
     };

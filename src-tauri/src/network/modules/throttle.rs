@@ -245,8 +245,12 @@ pub fn throttle_packets<'a>(
         }
 
         if buffered_this_cycle > 0 || passthrough_count > 0 {
-            debug!("THROTTLE: Buffered {} packets, {} small packets passed through (total buffered: {})",
-                  buffered_this_cycle, passthrough_count, buffer.len());
+            debug!(
+                "THROTTLE: Buffered {} packets, {} small packets passed through (total buffered: {})",
+                buffered_this_cycle,
+                passthrough_count,
+                buffer.len()
+            );
         }
 
         stats.is_throttling = true;

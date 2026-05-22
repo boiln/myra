@@ -17,8 +17,8 @@ pub use drop::DropModule;
 pub use duplicate::DuplicateModule;
 pub use lag::LagModule;
 pub use registry::{
-    find_module, get_enabled_modules, has_any_enabled, is_module_enabled, module_count,
-    module_names, process_all_modules, process_module, ModuleEntry, MODULES,
+    MODULES, ModuleEntry, find_module, get_enabled_modules, has_any_enabled, is_module_enabled,
+    module_count, module_names, process_all_modules, process_module,
 };
 pub use reorder::ReorderModule;
 pub use throttle::ThrottleModule;

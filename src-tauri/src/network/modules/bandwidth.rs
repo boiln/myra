@@ -313,8 +313,8 @@ mod tests {
     use super::*;
     use crate::network::core::packet::PacketData;
     use crate::network::modules::bandwidth::{
-        add_packet_to_buffer, add_packets_to_buffer, bandwidth_limiter, remove_packet_from_buffer,
-        MAX_BUFFER_SIZE,
+        MAX_BUFFER_SIZE, add_packet_to_buffer, add_packets_to_buffer, bandwidth_limiter,
+        remove_packet_from_buffer,
     };
     use std::collections::VecDeque;
     use std::time::Duration;

@@ -43,7 +43,11 @@ function reducer(state: State, action: Action): State {
             return { ...state, direction: action.value };
 
         case "statusFetched":
-            return { ...state, status: action.status, enabled: action.status.active };
+            return {
+                ...state,
+                status: action.status,
+                enabled: action.status.active,
+            };
 
         case "operationStart":
             return { ...state, loading: true, error: null };
@@ -167,7 +171,10 @@ export function TcBandwidthControl() {
                         id="tc-direction"
                         value={direction}
                         onChange={(e) =>
-                            dispatch({ type: "setDirection", value: e.target.value as TcDirection })
+                            dispatch({
+                                type: "setDirection",
+                                value: e.target.value as TcDirection,
+                            })
                         }
                         className="w-full rounded border border-zinc-700 bg-zinc-800 px-2 py-1 text-sm text-zinc-200"
                     >

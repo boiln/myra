@@ -60,11 +60,17 @@ export const useTapStore = create<TapStore>()(
                     settings: { ...state.settings, ...newSettings },
                 })),
             setAutoEnabled: (enabled) =>
-                set((state) => ({ settings: { ...state.settings, autoEnabled: enabled } })),
+                set((state) => ({
+                    settings: { ...state.settings, autoEnabled: enabled },
+                })),
             setMinBufferForTap: (n) =>
-                set((state) => ({ settings: { ...state.settings, minBufferForTap: n } })),
+                set((state) => ({
+                    settings: { ...state.settings, minBufferForTap: n },
+                })),
             setCooldownMs: (ms) =>
-                set((state) => ({ settings: { ...state.settings, cooldownMs: ms } })),
+                set((state) => ({
+                    settings: { ...state.settings, cooldownMs: ms },
+                })),
         }),
         {
             name: "myra-tap-settings",

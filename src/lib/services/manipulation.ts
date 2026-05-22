@@ -319,7 +319,11 @@ export const ManipulationService = {
     async saveConfig(
         name: string,
         filterTarget?: FilterTarget,
-        hotkeys?: { action: string; shortcut: string | null; enabled: boolean }[],
+        hotkeys?: {
+            action: string;
+            shortcut: string | null;
+            enabled: boolean;
+        }[],
         tap?: { enabled: boolean; interval_ms: number; duration_ms: number },
         classic?: ClassicBackendSettings,
         mode?: ManipulationMode

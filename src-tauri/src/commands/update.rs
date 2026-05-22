@@ -7,6 +7,7 @@ use tauri::State;
 use crate::commands::state::PacketProcessingState;
 use crate::commands::types::ModuleInfo;
 use crate::network::types::probability::Probability;
+use crate::settings::Settings;
 use crate::settings::bandwidth::BandwidthOptions;
 use crate::settings::burst::BurstOptions;
 use crate::settings::corruption::CorruptionOptions;
@@ -15,7 +16,6 @@ use crate::settings::duplicate::DuplicateOptions;
 use crate::settings::lag::LagOptions;
 use crate::settings::reorder::ReorderOptions;
 use crate::settings::throttle::ThrottleOptions;
-use crate::settings::Settings;
 
 /// Updates the packet manipulation settings.
 ///

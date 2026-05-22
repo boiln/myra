@@ -58,7 +58,6 @@ export function ModuleRow({
 
         // Allow partial number input during typing (like "0.", ".", "-", etc.)
         if (!/^-?\d*\.?\d*$/.test(input)) return;
-
         if (input === "." || input === "-" || input === "-." || input.endsWith(".")) return;
 
         const parsed = isInteger ? parseInt(input, 10) : parseFloat(input);
@@ -96,11 +95,13 @@ export function ModuleRow({
         let clamped = parsed;
 
         if (parsed < min) clamped = min;
-
         if (parsed > max) clamped = max;
 
         if (clamped !== parsed) {
-            setInputValues((prev) => ({ ...prev, [setting]: clamped.toString() }));
+            setInputValues((prev) => ({
+                ...prev,
+                [setting]: clamped.toString(),
+            }));
             onSettingChange(module, setting, clamped);
         }
 

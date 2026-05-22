@@ -1,7 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 #![warn(clippy::all)]
 
-use log::{error, info, LevelFilter, SetLoggerError};
+use log::{LevelFilter, SetLoggerError, error, info};
 use std::io::{self, Write};
 
 use myra::commands;
@@ -62,7 +62,9 @@ fn main() {
     info!("Myra starting up");
 
     if !is_admin() {
-        error!("Myra requires administrator privileges to capture network packets. Please run as administrator.");
+        error!(
+            "Myra requires administrator privileges to capture network packets. Please run as administrator."
+        );
         return;
     }
 

@@ -6,7 +6,7 @@ use crate::network::types::delayed_packet::DelayedPacket;
 use crate::network::types::probability::Probability;
 use crate::settings::reorder::ReorderOptions;
 use log::{debug, error, warn};
-use rand::{rng, Rng};
+use rand::{Rng, rng};
 use std::collections::BinaryHeap;
 use std::time::{Duration, Instant};
 

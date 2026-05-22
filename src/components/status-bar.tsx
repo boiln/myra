@@ -18,19 +18,15 @@ const TargetIndicator = ({ target }: { target: FilterTarget | null }) => {
 
         switch (target.mode) {
             case "all":
-
                 return <Globe className="size-3 text-muted-foreground" />;
 
             case "process":
-
                 return <Monitor className="size-3 text-muted-foreground" />;
 
             case "device":
-
                 return <Gamepad2 className="size-3 text-muted-foreground" />;
 
             case "custom":
-
                 return <Code className="size-3 text-muted-foreground" />;
         }
 
@@ -40,20 +36,16 @@ const TargetIndicator = ({ target }: { target: FilterTarget | null }) => {
 
         switch (target.mode) {
             case "all":
-
                 return "All";
 
             case "process":
-
                 return target.processName || `PID ${target.processId}`;
 
             case "device":
-
                 return target.deviceName
                     ? `${target.deviceIp} (${target.deviceName})`
                     : target.deviceIp;
             case "custom":
-
                 return "Custom";
         }
 

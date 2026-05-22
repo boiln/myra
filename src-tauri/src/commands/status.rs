@@ -75,10 +75,10 @@ pub async fn get_status(
 pub async fn get_settings(state: State<'_, PacketProcessingState>) -> Result<Settings, String> {
 
     Ok(state
-        .settings
-        .lock()
-        .map_err(|e| format!("Failed to lock settings mutex: {}", e))?
-        .clone())
+       .settings
+       .lock()
+       .map_err(|e| format!("Failed to lock settings mutex: {}", e))?
+       .clone())
 
 }
 
@@ -96,10 +96,10 @@ pub async fn get_settings(state: State<'_, PacketProcessingState>) -> Result<Set
 pub async fn get_filter(state: State<'_, PacketProcessingState>) -> Result<Option<String>, String> {
 
     Ok(state
-        .filter
-        .lock()
-        .map_err(|e| format!("Failed to lock filter mutex: {}", e))?
-        .clone())
+       .filter
+       .lock()
+       .map_err(|e| format!("Failed to lock filter mutex: {}", e))?
+       .clone())
 
 }
 

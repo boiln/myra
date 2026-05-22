@@ -5,9 +5,9 @@ use std::sync::{Arc, Mutex};
 use std::thread::{self, JoinHandle};
 use std::time::{Duration, Instant};
 use thiserror::Error;
+use windivert::CloseAction;
 use windivert::packet::WinDivertPacket;
 use windivert::prelude::*;
-use windivert::CloseAction;
 
 // Minimum packet size to be throttled - smaller packets pass through
 // TCP ACK with no payload: 20 (IP) + 20-40 (TCP) = 40-60 bytes

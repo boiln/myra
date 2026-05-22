@@ -21,7 +21,11 @@ export interface HotkeyActions {
     registerAllHotkeys: (handlers: Record<string, () => void>) => Promise<void>;
     unregisterAllHotkeys: () => Promise<void>;
     restoreBindings: (
-        bindings: { action: string; shortcut: string | null; enabled: boolean }[]
+        bindings: {
+            action: string;
+            shortcut: string | null;
+            enabled: boolean;
+        }[]
     ) => Promise<void>;
 }
 
@@ -233,7 +237,11 @@ export const useHotkeyStore = create<HotkeyState & HotkeyActions>()(
 
             },
             restoreBindings: async (
-                bindings: { action: string; shortcut: string | null; enabled: boolean }[]
+                bindings: {
+                    action: string;
+                    shortcut: string | null;
+                    enabled: boolean;
+                }[]
             ) => {
 
                 // Unregister all current hotkeys first
@@ -250,7 +258,9 @@ export const useHotkeyStore = create<HotkeyState & HotkeyActions>()(
                 );
                 registeredShortcuts.clear();
                 // Build new bindings record
-                const newBindings: Record<string, HotkeyBinding> = { ...get().bindings };
+                const newBindings: Record<string, HotkeyBinding> = {
+                    ...get().bindings,
+                };
 
                 for (const binding of bindings) {
                     newBindings[binding.action] = {

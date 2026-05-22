@@ -324,7 +324,10 @@ pub fn construct_filter_with_exclusions(user_filter: &Option<String>) -> Option<
             let has_invalid_direction = filter_lower.contains("outbound and inbound")
                 || filter_lower.contains("inbound and outbound");
             let corrected_filter = if has_invalid_direction {
-                log::warn!("Filter '{}' is invalid: a packet cannot be both outbound AND inbound. Using 'true' to capture all traffic.", filter);
+                log::warn!(
+                    "Filter '{}' is invalid: a packet cannot be both outbound AND inbound. Using 'true' to capture all traffic.",
+                    filter
+                );
                 "true".to_string()
             } else {
                 filter.clone()

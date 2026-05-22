@@ -234,7 +234,11 @@ describe("NetworkStore", () => {
         it("should update filter target", () => {
 
             const store = useNetworkStore.getState();
-            store.setFilterTarget({ mode: "process", processId: 1234, processName: "test.exe" });
+            store.setFilterTarget({
+                mode: "process",
+                processId: 1234,
+                processName: "test.exe",
+            });
             const newState = useNetworkStore.getState();
             expect(newState.filterTarget?.mode).toBe("process");
             expect(newState.filterTarget?.processId).toBe(1234);
@@ -251,14 +255,15 @@ describe("NetworkStore", () => {
             vi.mocked(invoke).mockImplementation(async (cmd: string) => {
 
                 if (cmd === "update_filter") return undefined;
-
                 if (cmd === "get_status") return { running: false, modules: createMockModules() };
 
                 return undefined;
 
             });
             await useNetworkStore.getState().updateFilter("tcp.DstPort == 80");
-            expect(invoke).toHaveBeenCalledWith("update_filter", { filter: "tcp.DstPort == 80" });
+            expect(invoke).toHaveBeenCalledWith("update_filter", {
+                filter: "tcp.DstPort == 80",
+            });
             expect(useNetworkStore.getState().filter).toBe("tcp.DstPort == 80");
 
         });
@@ -271,7 +276,6 @@ describe("NetworkStore", () => {
             vi.mocked(invoke).mockImplementation(async (cmd: string) => {
 
                 if (cmd === "start_processing") return undefined;
-
                 if (cmd === "get_status") return { running: true, modules: createMockModules() };
 
                 return undefined;
@@ -287,7 +291,6 @@ describe("NetworkStore", () => {
             vi.mocked(invoke).mockImplementation(async (cmd: string) => {
 
                 if (cmd === "stop_processing") return undefined;
-
                 if (cmd === "get_status") return { running: false, modules: createMockModules() };
 
                 return undefined;
@@ -319,7 +322,6 @@ describe("NetworkStore", () => {
             vi.mocked(invoke).mockImplementation(async (cmd: string) => {
 
                 if (cmd === "delete_config") return undefined;
-
                 if (cmd === "list_configs") return ["remaining-preset"];
 
                 return undefined;
@@ -329,7 +331,9 @@ describe("NetworkStore", () => {
                 presets: ["preset-to-delete", "remaining-preset"],
             });
             await useNetworkStore.getState().deletePreset("preset-to-delete");
-            expect(invoke).toHaveBeenCalledWith("delete_config", { name: "preset-to-delete" });
+            expect(invoke).toHaveBeenCalledWith("delete_config", {
+                name: "preset-to-delete",
+            });
             expect(invoke).toHaveBeenCalledWith("list_configs");
 
         });

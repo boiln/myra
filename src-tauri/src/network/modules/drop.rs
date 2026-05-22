@@ -4,7 +4,7 @@ use crate::network::modules::stats::drop_stats::DropStats;
 use crate::network::modules::traits::{ModuleContext, PacketModule};
 use crate::network::types::probability::Probability;
 use crate::settings::drop::DropOptions;
-use rand::{rng, Rng};
+use rand::{Rng, rng};
 
 /// Unit struct for the Drop packet module.
 ///

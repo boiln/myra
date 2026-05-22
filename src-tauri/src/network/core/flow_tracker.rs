@@ -8,9 +8,9 @@ use std::net::IpAddr;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, RwLock};
 use std::thread::{self, JoinHandle};
+use windivert::WinDivert;
 use windivert::layer::FlowLayer;
 use windivert::prelude::WinDivertFlags;
-use windivert::WinDivert;
 
 /// Tracked flow information
 #[derive(Debug, Clone)]

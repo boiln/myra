@@ -5,7 +5,7 @@ use crate::network::modules::traits::{ModuleContext, PacketModule};
 use crate::network::types::probability::Probability;
 use crate::settings::burst::BurstOptions;
 use log::debug;
-use rand::{rng, Rng};
+use rand::{Rng, rng};
 use std::collections::VecDeque;
 use std::time::{Duration, Instant};
 
@@ -28,7 +28,7 @@ pub struct BurstState {
     pub last_keepalive: Option<Instant>,
 }
 
-impl PacketModule for BurstModule {
+                          impl PacketModule for BurstModule {
     type Options = BurstOptions;
     type State = BurstState;
 
@@ -36,21 +36,21 @@ impl PacketModule for BurstModule {
         "burst"
     }
 
-    fn display_name(&self) -> &'static str {
+                          fn display_name(&self) -> &'static str {
         "Packet Burst"
-    }
+                          }
 
-    fn get_duration_ms(&self, options: &Self::Options) -> u64 {
+                          fn get_duration_ms(&self, options: &Self::Options) -> u64 {
         options.duration_ms
     }
 
-    fn process<'a>(
-        &self,
-        packets: &mut Vec<PacketData<'a>>,
-        options: &Self::Options,
-        state: &mut Self::State,
-        ctx: &mut ModuleContext,
-    ) -> Result<()> {
+                          fn process<'a>(
+                          &self,
+                          packets: &mut Vec<PacketData<'a>>,
+                          options: &Self::Options,
+                          state: &mut Self::State,
+                          ctx: &mut ModuleContext,
+                          ) -> Result<()> {
 
         let mut stats = ctx.write_stats(self.name())?;
 
@@ -105,16 +105,16 @@ impl PacketModule for BurstModule {
 pub fn burst_packets<'a>(
     packets: &mut Vec<PacketData<'a>>,
     buffer: &mut VecDeque<(PacketData<'a>, Instant)>,
-    cycle_start: &mut Option<Instant>,
-    last_keepalive: &mut Option<Instant>,
-    buffer_duration: Duration,
-    keepalive_duration: Duration,
-    probability: Probability,
-    apply_inbound: bool,
-    apply_outbound: bool,
-    reverse: bool,
-    stats: &mut BurstStats,
-) {
+                           cycle_start: &mut Option<Instant>,
+                           last_keepalive: &mut Option<Instant>,
+                           buffer_duration: Duration,
+                           keepalive_duration: Duration,
+                           probability: Probability,
+                           apply_inbound: bool,
+                           apply_outbound: bool,
+                           reverse: bool,
+                           stats: &mut BurstStats,
+                           ) {
 
     let now = Instant::now();
     let mut rng = rng();
@@ -232,9 +232,9 @@ pub fn burst_packets<'a>(
 pub fn flush_buffer<'a>(
     packets: &mut Vec<PacketData<'a>>,
     buffer: &mut VecDeque<(PacketData<'a>, Instant)>,
-    cycle_start: &mut Option<Instant>,
-    reverse: bool,
-) {
+                           cycle_start: &mut Option<Instant>,
+                           reverse: bool,
+                           ) {
 
     if buffer.is_empty() {
         debug!("BURST FLUSH: Buffer is empty, nothing to flush");

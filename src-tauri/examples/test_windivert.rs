@@ -1,6 +1,6 @@
 use std::time::Duration;
-use windivert::layer::NetworkLayer;
 use windivert::WinDivert;
+use windivert::layer::NetworkLayer;
 use windivert_sys::WinDivertFlags;
 
 fn main() {

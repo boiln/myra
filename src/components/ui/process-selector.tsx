@@ -68,7 +68,11 @@ export function ProcessSelector({
         const others = filteredProcesses.filter((p) => !games.includes(p));
         const all = [...games, ...others];
 
-        return { gameProcesses: games, otherProcesses: others, allFiltered: all };
+        return {
+            gameProcesses: games,
+            otherProcesses: others,
+            allFiltered: all,
+        };
 
     }, [filteredProcesses]);
 
@@ -348,7 +352,6 @@ function ProcessItem({
     onClick,
     onMouseEnter,
 }: ProcessItemProps) {
-
     return (
         <button
             type="button"

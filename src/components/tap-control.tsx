@@ -37,9 +37,7 @@ export function TapControl() {
 
         // Allow empty and partial numeric input during typing
         if (input === "") return;
-
         if (!/^-?\d*\.?\d*$/.test(input)) return;
-
         if (input === "." || input === "-" || input === "-." || input.endsWith(".")) return;
 
         const parsed = isInteger ? parseInt(input, 10) : parseFloat(input);

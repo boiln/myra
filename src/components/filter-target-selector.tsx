@@ -128,7 +128,9 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
     const validateFilter = useCallback(async (filterStr: string): Promise<boolean> => {
 
         try {
-            const isValid = await invoke<boolean>("validate_filter", { filter: filterStr });
+            const isValid = await invoke<boolean>("validate_filter", {
+                filter: filterStr,
+            });
             if (isValid) {
                 setFilterUi((s) => ({ ...s, error: null }));
                 return true;
@@ -393,7 +395,10 @@ export function FilterTargetSelector({ disabled }: FilterTargetSelectorProps) {
 
                                     try {
                                         await ManipulationService.clearFilterHistory();
-                                        setFilterUi((s) => ({ ...s, history: [] }));
+                                        setFilterUi((s) => ({
+                                            ...s,
+                                            history: [],
+                                        }));
                                     } catch {}
                                 }}
                                 className="text-xs text-muted-foreground"

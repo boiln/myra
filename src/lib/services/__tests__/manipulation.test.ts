@@ -238,7 +238,10 @@ describe("ManipulationService", () => {
             };
             const filter = "outbound";
             await ManipulationService.startProcessing(settings, filter);
-            expect(invoke).toHaveBeenCalledWith("start_processing", { settings, filter });
+            expect(invoke).toHaveBeenCalledWith("start_processing", {
+                settings,
+                filter,
+            });
 
         });
         it("should handle WFP throttle when bandwidth with WFP is enabled", async () => {
@@ -275,12 +278,20 @@ describe("ManipulationService", () => {
     describe("updateFilter", () => {
 
         it("should call invoke with the filter", async () => {
+
             await ManipulationService.updateFilter("tcp.DstPort == 80");
-            expect(invoke).toHaveBeenCalledWith("update_filter", { filter: "tcp.DstPort == 80" });
+            expect(invoke).toHaveBeenCalledWith("update_filter", {
+                filter: "tcp.DstPort == 80",
+            });
+
         });
         it("should handle null filter", async () => {
+
             await ManipulationService.updateFilter(null);
-            expect(invoke).toHaveBeenCalledWith("update_filter", { filter: null });
+            expect(invoke).toHaveBeenCalledWith("update_filter", {
+                filter: null,
+            });
+
         });
 
     });
@@ -322,7 +333,9 @@ describe("ManipulationService", () => {
                 filter: "outbound",
             });
             const result = await ManipulationService.loadConfig("test-config");
-            expect(invoke).toHaveBeenCalledWith("load_config", { name: "test-config" });
+            expect(invoke).toHaveBeenCalledWith("load_config", {
+                name: "test-config",
+            });
             expect(result.filter).toBe("outbound");
 
         });
@@ -335,8 +348,12 @@ describe("ManipulationService", () => {
 
         });
         it("should delete config by name", async () => {
+
             await ManipulationService.deleteConfig("test-config");
-            expect(invoke).toHaveBeenCalledWith("delete_config", { name: "test-config" });
+            expect(invoke).toHaveBeenCalledWith("delete_config", {
+                name: "test-config",
+            });
+
         });
 
     });

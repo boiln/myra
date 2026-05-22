@@ -2,7 +2,7 @@
 pub use crate::error::{MyraError, Result};
 
 // Network core
-pub use crate::network::core::{flush_wfp_cache, HandleConfig, HandleManager, PacketData};
+pub use crate::network::core::{HandleConfig, HandleManager, PacketData, flush_wfp_cache};
 
 // Module traits
 pub use crate::network::modules::traits::{ModuleContext, ModuleOptions, PacketModule};

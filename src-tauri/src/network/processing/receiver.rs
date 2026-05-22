@@ -3,12 +3,12 @@
 //! This module handles receiving network packets using `WinDivert`
 //! and forwarding them to the processing thread.
 use crate::network::core::{
-    construct_filter_with_exclusions, flush_wfp_cache, HandleConfig, HandleManager, PacketData,
+    HandleConfig, HandleManager, PacketData, construct_filter_with_exclusions, flush_wfp_cache,
 };
 use crate::settings::Settings;
 use log::{debug, error, info};
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{mpsc, Arc, Mutex};
+use std::sync::{Arc, Mutex, mpsc};
 use windivert::error::WinDivertError;
 
 /// Receives network packets using `WinDivert`.

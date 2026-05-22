@@ -210,7 +210,6 @@ export function useClassicTap() {
             savedModulesRef.current = [];
 
             if (intervalRef.current) clearInterval(intervalRef.current);
-
             if (tapTimeoutRef.current) clearTimeout(tapTimeoutRef.current);
 
         };

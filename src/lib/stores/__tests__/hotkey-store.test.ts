@@ -15,15 +15,51 @@ describe("HotkeyStore", () => {
         // Reset store to default state
         useHotkeyStore.setState({
             bindings: {
-                toggleFilter: { action: "toggleFilter", shortcut: "F9", enabled: true },
-                toggleDrop: { action: "toggleDrop", shortcut: null, enabled: false },
-                toggleLag: { action: "toggleLag", shortcut: null, enabled: false },
-                toggleThrottle: { action: "toggleThrottle", shortcut: null, enabled: false },
-                toggleDuplicate: { action: "toggleDuplicate", shortcut: null, enabled: false },
-                toggleBandwidth: { action: "toggleBandwidth", shortcut: null, enabled: false },
-                toggleCorruption: { action: "toggleCorruption", shortcut: null, enabled: false },
-                toggleReorder: { action: "toggleReorder", shortcut: null, enabled: false },
-                toggleBurst: { action: "toggleBurst", shortcut: null, enabled: false },
+                toggleFilter: {
+                    action: "toggleFilter",
+                    shortcut: "F9",
+                    enabled: true,
+                },
+                toggleDrop: {
+                    action: "toggleDrop",
+                    shortcut: null,
+                    enabled: false,
+                },
+                toggleLag: {
+                    action: "toggleLag",
+                    shortcut: null,
+                    enabled: false,
+                },
+                toggleThrottle: {
+                    action: "toggleThrottle",
+                    shortcut: null,
+                    enabled: false,
+                },
+                toggleDuplicate: {
+                    action: "toggleDuplicate",
+                    shortcut: null,
+                    enabled: false,
+                },
+                toggleBandwidth: {
+                    action: "toggleBandwidth",
+                    shortcut: null,
+                    enabled: false,
+                },
+                toggleCorruption: {
+                    action: "toggleCorruption",
+                    shortcut: null,
+                    enabled: false,
+                },
+                toggleReorder: {
+                    action: "toggleReorder",
+                    shortcut: null,
+                    enabled: false,
+                },
+                toggleBurst: {
+                    action: "toggleBurst",
+                    shortcut: null,
+                    enabled: false,
+                },
             },
             isRecording: null,
         });
@@ -125,7 +161,11 @@ describe("HotkeyStore", () => {
             useHotkeyStore.setState({
                 bindings: {
                     ...useHotkeyStore.getState().bindings,
-                    toggleDrop: { action: "toggleDrop", shortcut: "F10", enabled: true },
+                    toggleDrop: {
+                        action: "toggleDrop",
+                        shortcut: "F10",
+                        enabled: true,
+                    },
                 },
             });
             await useHotkeyStore.getState().toggleBinding("toggleDrop");
@@ -145,7 +185,11 @@ describe("HotkeyStore", () => {
             useHotkeyStore.setState({
                 bindings: {
                     ...useHotkeyStore.getState().bindings,
-                    toggleDrop: { action: "toggleDrop", shortcut: "F10", enabled: true },
+                    toggleDrop: {
+                        action: "toggleDrop",
+                        shortcut: "F10",
+                        enabled: true,
+                    },
                 },
             });
             await useHotkeyStore.getState().toggleBinding("toggleDrop");
@@ -160,9 +204,21 @@ describe("HotkeyStore", () => {
 
             useHotkeyStore.setState({
                 bindings: {
-                    toggleFilter: { action: "toggleFilter", shortcut: "F9", enabled: true },
-                    toggleDrop: { action: "toggleDrop", shortcut: "F10", enabled: true },
-                    toggleLag: { action: "toggleLag", shortcut: null, enabled: false },
+                    toggleFilter: {
+                        action: "toggleFilter",
+                        shortcut: "F9",
+                        enabled: true,
+                    },
+                    toggleDrop: {
+                        action: "toggleDrop",
+                        shortcut: "F10",
+                        enabled: true,
+                    },
+                    toggleLag: {
+                        action: "toggleLag",
+                        shortcut: null,
+                        enabled: false,
+                    },
                 },
             });
             const handlers = {
@@ -178,7 +234,11 @@ describe("HotkeyStore", () => {
 
             useHotkeyStore.setState({
                 bindings: {
-                    toggleFilter: { action: "toggleFilter", shortcut: "F9", enabled: false },
+                    toggleFilter: {
+                        action: "toggleFilter",
+                        shortcut: "F9",
+                        enabled: false,
+                    },
                 },
             });
             const handlers = {
@@ -192,7 +252,11 @@ describe("HotkeyStore", () => {
 
             useHotkeyStore.setState({
                 bindings: {
-                    toggleFilter: { action: "toggleFilter", shortcut: "F9", enabled: true },
+                    toggleFilter: {
+                        action: "toggleFilter",
+                        shortcut: "F9",
+                        enabled: true,
+                    },
                 },
             });
             await useHotkeyStore.getState().registerAllHotkeys({});
@@ -204,7 +268,11 @@ describe("HotkeyStore", () => {
             vi.mocked(isRegistered).mockResolvedValue(true);
             useHotkeyStore.setState({
                 bindings: {
-                    toggleFilter: { action: "toggleFilter", shortcut: "F9", enabled: true },
+                    toggleFilter: {
+                        action: "toggleFilter",
+                        shortcut: "F9",
+                        enabled: true,
+                    },
                 },
             });
             await useHotkeyStore.getState().registerAllHotkeys({
@@ -223,8 +291,16 @@ describe("HotkeyStore", () => {
             vi.mocked(isRegistered).mockResolvedValue(false);
             useHotkeyStore.setState({
                 bindings: {
-                    toggleFilter: { action: "toggleFilter", shortcut: "F9", enabled: true },
-                    toggleDrop: { action: "toggleDrop", shortcut: "F10", enabled: true },
+                    toggleFilter: {
+                        action: "toggleFilter",
+                        shortcut: "F9",
+                        enabled: true,
+                    },
+                    toggleDrop: {
+                        action: "toggleDrop",
+                        shortcut: "F10",
+                        enabled: true,
+                    },
                 },
             });
             await useHotkeyStore.getState().registerAllHotkeys({
